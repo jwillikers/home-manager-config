@@ -69,6 +69,7 @@ in
       net-snmp
       nil
       nu_scripts
+      pre-commit
       (config.lib.nixGL.wrap sublime-merge)
       sway-audio-idle-inhibit
       tailscale
