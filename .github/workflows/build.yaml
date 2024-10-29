@@ -23,4 +23,4 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v14
       - uses: DeterminateSystems/magic-nix-cache-action@v8
       - name: Build
-        run: nix develop --command home-manager --flake . build
+        run: nix develop --command home-manager --flake .#jordan build
