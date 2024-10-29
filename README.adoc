@@ -1,0 +1,75 @@
+= Home Manager Config
+Jordan Williams <jordan@jwillikers.com>
+:experimental:
+:icons: font
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+:Home-Manager: https://nix-community.github.io/home-manager/[Home Manager]
+
+image:https://github.com/jwillikers/home-manager-config/actions/workflows/build.yaml/badge.svg[Build, link=https://github.com/jwillikers/home-manager-config/actions/workflows/build.yaml]
+
+This is my {Home-Manager} configuration.
+
+== Getting Started
+
+. Install https://lix.systems[Lix].
++
+[,sh]
+----
+curl -sSf -L https://install.lix.systems/lix | sh -s -- install
+----
+
+. Clone the repository.
++
+[,sh]
+----
+git clone git@github.com:jwillikers/home-manager-config.git
+----
+
+. Change into the repository's directory.
++
+[,sh]
+----
+cd home-manager-config
+----
+
+. Create a symlink to this repository at `~/.config/home-manager` for convenience.
++
+[,sh]
+----
+ln --force --relative --symbolic ~/.config/home-manager .
+----
+
+. Build and activate the Home Manager configuration
++
+[,sh]
+----
+home-manager --flake . switch
+----
+
+. Log out and back in for certain environment variable changes to take effect.
+
+== Resources
+
+* https://nix-community.github.io/home-manager/options.xhtml[Home Manager Configuration Options]
+
+== Code of Conduct
+
+The project's Code of Conduct is available in the link:CODE_OF_CONDUCT.adoc[] file.
+
+== License
+
+This repository is licensed under the link:LICENSE[MIT license].
+
+== Copyright
+
+© 2024 Jordan Williams
+
+== Authors
+
+mailto:{email}[{author}]

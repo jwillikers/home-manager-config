@@ -1,0 +1,23 @@
+{
+  "cSpell.words": [
+    "adoc",
+    "asciidoctor",
+    "assumeyes",
+    "autofix",
+    "direnv",
+    "direnvrc",
+    "Flathub",
+    "Flatpak",
+    "ifdef",
+    "justfile",
+    "jwillikers",
+    "lycheecache",
+    "nixos",
+    "nixpkgs",
+    "Nushell",
+    "reviewdog",
+    "treefmt"
+  ],
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nil"
+}

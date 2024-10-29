@@ -1,0 +1,11 @@
+# Due to rate limiting from https://www.gnu.org
+accept = [429]
+
+cache = true
+exclude = [
+  # Ignore references between Asciidoc files.
+  '\.adoc$',
+  # The GitHub repository is private.
+  '^https://github.com/jwillikers/resume',
+]
+max_cache_age = "2w"

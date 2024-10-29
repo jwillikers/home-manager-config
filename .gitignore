@@ -1,0 +1,21 @@
+
+# Asciidoctor
+.asciidoctor-html/
+*.html
+
+# direnv
+.direnv/
+
+# git-hooks.nix
+/.pre-commit-config.yaml
+
+# lychee
+.lycheecache
+
+# Nix
+result
+
+# Temporary Editor Files
+*~
+.*.swp
+.DS_Store
