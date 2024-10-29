@@ -5,14 +5,14 @@
 
 stdenv.mkDerivation {
   pname = "stretchly-config";
-  version = "0-unstable-2024-10-12";
+  version = "0-unstable-2024-10-29";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "stretchly-config";
-    rev = "5aed136cef7ed2d98bfd234c6a2da839806d0220";
-    hash = "sha256-SXtS2IDzhekH/G4/4BuBXUHe3tXVsqr6cTb+T9CNNzU=";
+    rev = "533f1fca7cdc67f365234f75d7b0f104909d67e1";
+    hash = "sha256-ad7HEh81L9RiMnRtakS8fpYtkiItw6T1GK2oFAi0kLQ=";
   };
 
   installPhase = ''

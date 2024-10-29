@@ -81,45 +81,50 @@ in
         run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system $VERBOSE_ARG \
           flathub https://dl.flathub.org/repo/flathub.flatpakrepo
       '';
-      flatpaks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        ${builtins.concatStringsSep "\n" (
+
+      flatpaks = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+        builtins.concatStringsSep "\n" (
           builtins.map (flatpak: ''
             run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG install --noninteractive --system flathub \
               ${flatpak}
           '') flatpaks
-        )}
-      '';
+        )
+      );
+
       # Symlinking the Stretchly config won't work.
       # It's also necessary to install the config when Stretchly isn't running.
-      installStretchlyConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        run cmp --silent \
+      stretchly = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        # We don't want the cmp command to cause the script to fail.
+        set +e
+        cmp --silent \
           "${packages.stretchly-config}/etc/Stretchly/config.json" \
           ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
-        if [ $? -eq 0 ]; then
-          exit 0
-        fi
-        service_running=0
-        if run ${pkgs.procps}/bin/pgrep --ignore-case Stretchly >/dev/null; then
-          if run ${pkgs.systemdMinimal}/bin/systemctl --user is-active net.hovancik.Stretchly.service; then
-            service_running=1
-            run ${pkgs.systemdMinimal}/bin/systemctl --user stop net.hovancik.Stretchly.service
+        exit_status=$?
+        set -e
+        if [ $exit_status -eq 1 ]; then
+          service_running=0
+          if ${pkgs.procps}/bin/pgrep --ignore-case Stretchly >/dev/null; then
+            if ${pkgs.systemdMinimal}/bin/systemctl --user is-active net.hovancik.Stretchly.service >/dev/null; then
+              service_running=1
+              run ${pkgs.systemdMinimal}/bin/systemctl --user stop net.hovancik.Stretchly.service
+            else
+              run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
+            fi
           else
+            run ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
+            run sleep 10
             run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
           fi
-        else
-          run ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
-          run sleep 10
-          run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
-        fi
-        run sleep 2
-        run mkdir --parents .var/app/net.hovancik.Stretchly/config/Stretchly
-        run cp --update=none $VERBOSE_ARG \
-            "${packages.stretchly-config}/etc/Stretchly/config.json" \
-            ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
-        if [ "$service_running" -eq 1 ]; then
-          run ${pkgs.systemdMinimal}/bin/systemctl --user start net.hovancik.Stretchly.service
-        else
-          run setsid ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
+          run sleep 1
+          run mkdir --parents .var/app/net.hovancik.Stretchly/config/Stretchly
+          run install -D --mode=0644 $VERBOSE_ARG \
+              "${packages.stretchly-config}/etc/Stretchly/config.json" \
+              ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
+          if [ "$service_running" -eq 1 ]; then
+            run ${pkgs.systemdMinimal}/bin/systemctl --user start net.hovancik.Stretchly.service
+          else
+            run setsid ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
+          fi
         fi
       '';
     };
@@ -419,8 +424,7 @@ in
         Service = {
           Type = "simple";
           ExecStart = "${pkgs.flatpak}/bin/flatpak run com.nextcloud.desktopclient.nextcloud --background";
-          # todo
-          # ExecStop = "${pkgs.flatpak}/bin/flatpak kill com.nextcloud.desktopclient.nextcloud";
+          ExecStop = "${pkgs.flatpak}/bin/flatpak kill com.nextcloud.desktopclient.nextcloud";
           Restart = "on-failure";
           RestartSec = 5;
           NoNewPrivileges = true;
@@ -444,7 +448,9 @@ in
 
         Service = {
           Type = "simple";
-          ExecStart = "${pkgs.flatpak}/bin/flatpak run im.riot.Riot --hidden";
+          # Can't use Nix's flatpak command with electron apps for reasons.
+          ExecStart = "/usr/bin/flatpak run im.riot.Riot --hidden";
+          ExecStop = "/usr/bin/flatpak kill im.riot.Riot";
           Restart = "on-failure";
           RestartSec = 5;
           NoNewPrivileges = true;
@@ -465,8 +471,9 @@ in
         Service = {
           Type = "simple";
           ExecStartPre = "/bin/sleep 1";
-          ExecStart = "${pkgs.flatpak}/bin/flatpak run net.hovancik.Stretchly";
-          # ExecStop=/usr/bin/flatpak kill net.hovancik.Stretchly
+          # Can't use Nix's flatpak command with electron apps for reasons.
+          ExecStart = "/usr/bin/flatpak run net.hovancik.Stretchly";
+          ExecStop = "/usr/bin/flatpak kill net.hovancik.Stretchly";
           Restart = "on-failure";
           RestartSec = 10;
           KillMode = "process";
