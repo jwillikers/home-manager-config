@@ -9,8 +9,8 @@ alias c := check
 
 check: && format
     yamllint .
-    asciidoctor --destination-dir .asciidoctor-html **/*.adoc
-    lychee --cache .asciidoctor-html/**/*.html
+    asciidoctor **/*.adoc
+    lychee --cache **/*.html
 
 alias f := format
 alias fmt := format
@@ -20,7 +20,7 @@ format:
 
 alias s := switch
 
-build:
+switch:
     home-manager --flake . switch
 
 alias u := update
