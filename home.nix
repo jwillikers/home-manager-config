@@ -33,6 +33,7 @@ let
     # "org.gnome.Podcasts"
     # "org.gnome.Seahorse"
     # "org.gnome.Todo"
+    "org.gtk.Gtk3theme.Adwaita-dark"
     "org.kde.itinerary"
     "org.kde.krita"
     # "org.keepassxc.KeePassXC"
@@ -46,6 +47,43 @@ let
   ];
 in
 {
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+      cursor-theme = "Adwaita";
+      gtk-theme = "Adwaita-dark";
+      icon-theme = "Adwaita";
+    };
+  };
+
+  gtk = {
+    cursorTheme = {
+      name = "Adwaita";
+      package = pkgs.adwaita-icon-theme;
+    };
+    enable = true;
+    gtk2 = {
+      configLocation = "${config.xdg.configHome}/.gtkrc-2.0";
+      extraConfig = ''
+        gtk-application-prefer-dark-theme = 1
+        gtk-button-images = 1
+      '';
+    };
+    gtk3 = {
+      extraConfig = {
+        gtk-application-prefer-dark-theme = 1;
+        gtk-button-images = 1;
+      };
+    };
+    iconTheme = {
+      name = "Adwaita";
+      package = pkgs.adwaita-icon-theme;
+    };
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
+  };
 
   fonts.fontconfig.enable = true;
 
@@ -64,11 +102,17 @@ in
     packages = with pkgs; [
       (nerdfonts.override { fonts = [ "Noto" ]; })
       asciidoctor
+      deadnix # Nix dead code finder
       gcr
+      # h # Modern Unix autojump for git projects
       just
       net-snmp
       nil
+      nixfmt-rfc-style # Nix code formatter
+      nixpkgs-review # Nix code review
+      nix-prefetch-scripts # Nix code fetcher
       nu_scripts
+      nurl # Nix URL fetcher
       pre-commit
       (config.lib.nixGL.wrap sublime-merge)
       sway-audio-idle-inhibit
@@ -76,13 +120,22 @@ in
       tio
     ];
 
+    sessionVariables = {
+      EDITOR = "vim";
+      MANPAGER = "sh -c 'col --no-backspaces --spaces | bat --language man'";
+      MANROFFOPT = "-c";
+      MICRO_TRUECOLOR = "1";
+      PAGER = "bat";
+      SYSTEMD_EDITOR = "vim";
+      VISUAL = "vim";
+    };
+
     activation = {
       flathub = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system $VERBOSE_ARG \
           flathub https://dl.flathub.org/repo/flathub.flatpakrepo
       '';
-
-      flatpaks = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+      flatpaks = lib.hm.dag.entryAfter [ "flathub" ] (
         builtins.concatStringsSep "\n" (
           builtins.map (flatpak: ''
             run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG install --noninteractive --system flathub \
@@ -90,10 +143,28 @@ in
           '') flatpaks
         )
       );
+      flatpakTheme =
+        lib.hm.dag.entryAfter
+          [
+            "flatpaks"
+            "dconfSettings"
+          ]
+          ''
+            COLOR_SCHEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/color-scheme | sed -e "s/'//g")
+            GTK_THEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/gtk-theme | sed -e "s/'//g")
+            ICON_THEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/icon-theme | sed -e "s/'//g")
+            XCURSOR_THEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/cursor-theme | sed -e "s/'//g")
+            if [ "$COLOR_SCHEME" == "prefer-dark" ]; then
+              GTK_THEME="$GTK_THEME:dark"
+            fi
+            run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak override --env=GTK_THEME="$GTK_THEME"
+            run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak override --env=ICON_THEME="$ICON_THEME"
+            run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak override --env=XCURSOR_THEME="$XCURSOR_THEME"
+          '';
 
       # Symlinking the Stretchly config won't work.
       # It's also necessary to install the config when Stretchly isn't running.
-      stretchly = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      stretchly = lib.hm.dag.entryAfter [ "flatpaks" ] ''
         # We don't want the cmp command to cause the script to fail.
         set +e
         cmp --silent \
@@ -130,16 +201,17 @@ in
     };
 
     file = {
-      ".config/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
-      ".config/sublime-merge/Packages/User".source =
+      "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
+      "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
-      ".config/sway/config.d" = {
+      "${config.xdg.configHome}/sway/config.d" = {
         source = packages.sway-config + "/etc/sway/config.d";
-        onChange = "swaymsg reload";
+        onChange = "${pkgs.sway}/bin/swaymsg reload";
       };
-      ".config/tio/config".source = packages.tio-config + "/etc/tio/config";
-      ".config/vim/vimrc".source = packages.vim-config + "/etc/vim/vimrc";
+      "${config.xdg.configHome}/tio/config".source = packages.tio-config + "/etc/tio/config";
+      "${config.xdg.configHome}/vim/vimrc".source = packages.vim-config + "/etc/vim/vimrc";
       ".ssh/config.d".source = packages.openssh-client-config + "/etc/ssh/ssh_config.d";
+      # "${config.xdg.configHome}/fish/functions/h.fish".text = builtins.readFile ./_mixins/configs/h.fish;
     };
   };
 
@@ -196,6 +268,12 @@ in
     carapace = {
       enable = true;
     };
+    # dircolors = {
+    #   enable = true;
+    #   enableBashIntegration = true;
+    #   enableFishIntegration = true;
+    #   enableZshIntegration = true;
+    # };
     direnv = {
       enable = true;
       nix-direnv.enable = true;
@@ -323,6 +401,7 @@ in
     # Let Home Manager install and manage itself.
     home-manager.enable = true;
 
+    # nix-index.enable = true;
     nushell = {
       enable = true;
     };
@@ -390,6 +469,31 @@ in
       ];
     };
   };
+
+  # https://dl.thalheim.io/
+  # sops = lib.mkIf (username == "jordan") {
+  #   age = {
+  #     keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
+  #     generateKey = false;
+  #   };
+  #   defaultSopsFile = ../secrets/secrets.yaml;
+  #   secrets = {
+  #     asciinema.path = "${config.home.homeDirectory}/.config/asciinema/config";
+  #     atuin_key.path = "${config.home.homeDirectory}/.local/share/atuin/key";
+  #     gh_token = { };
+  #     gpg_private = { };
+  #     gpg_public = { };
+  #     gpg_ownertrust = { };
+  #     hueadm.path = "${config.home.homeDirectory}/.hueadm.json";
+  #     obs_secrets = { };
+  #     ssh_config.path = "${config.home.homeDirectory}/.ssh/config";
+  #     ssh_key.path = "${config.home.homeDirectory}/.ssh/id_rsa";
+  #     ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_rsa.pub";
+  #     ssh_semaphore_key.path = "${config.home.homeDirectory}/.ssh/id_rsa_semaphore";
+  #     ssh_semaphore_pub.path = "${config.home.homeDirectory}/.ssh/id_rsa_semaphore.pub";
+  #     transifex.path = "${config.home.homeDirectory}/.transifexrc";
+  #   };
+  # };
 
   services = {
     # flatpak = {
@@ -562,30 +666,44 @@ in
       "d ${homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books/Books 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Projects 0750 ${username} ${username} - -"
-      "L+ ${homeDirectory}/.config/ssh - - - - ${homeDirectory}/.ssh"
+      "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
+      "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
       "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
       "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
     ];
   };
 
+  xdg.portal = {
+    config = {
+      common = {
+        default = [ "gtk" ];
+      };
+      sway = {
+        default = [
+          "wlr"
+          "gtk"
+        ];
+        "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
+        # "org.freedesktop.portal.FileChooser" = ["xdg-desktop-portal-gtk"];
+      };
+    };
+    enable = true;
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal-wlr
+    ];
+    xdgOpenUsePortal = true;
+  };
+  # xdg.enable = true; ?
+  # xdg.userDirs.createDirectories = true;
+
   # todo Look into using these options.
 
   # accounts.email.accounts.<name>.thunderbird.enable
 
-  # gtk.enable
-  # gtk.cursorTheme
-  # gtk.iconTheme
-  # gtk.iconTheme.name
-  # gtk.theme
-  # gtk.theme.package
-  # gtk.theme.name
-
   # home.keyboard
   # home.language
   # home.language.measurement
-  # home.sessionPath
-
-  # news.display
 
   # wayland.windowManager.sway.enable
   # wayland.windowManager.sway.config

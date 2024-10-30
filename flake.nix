@@ -32,6 +32,8 @@
         nixpkgs-stable.follows = "nixpkgs";
       };
     };
+    # todo inputs follows for sops?
+    # sops-nix.url = "github:Mic92/sops-nix";
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -69,10 +71,16 @@
 
           modules = [
             ./home.nix
+            ./scripts
             # todo Use nix-flatpak with NixOS.
             # I'd rather install Flatpaks system-wide.
             # nix-flatpak.homeManagerModules.nix-flatpak
+            # sops-nix.homeManagerModules.sops
           ];
+
+          # sharedModules = [
+          # sops-nix.homeManagerModules.sops
+          # ];
 
           extraSpecialArgs = {
             inherit inputs nixgl packages;

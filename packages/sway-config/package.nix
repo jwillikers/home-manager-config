@@ -7,14 +7,14 @@
 
 stdenv.mkDerivation {
   pname = "sway-config";
-  version = "0-unstable-2024-10-17";
+  version = "0-unstable-2024-10-30";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "sway-config";
-    rev = "f185a7d0df02a9206e0ca4b65e4e30577263599e";
-    hash = "sha256-KWHLVmMnKFoirQm3Whb9AY08A8t5+ip9ziBW4WyPC2A=";
+    rev = "bbf3a1d56b9c7505c9c5000dcb24e7d9c99a3b36";
+    hash = "sha256-NyWsax2+lZkbHrmxW8czARfoSo3HUlMwNIntYLQ9S68=";
   };
 
   installPhase = ''

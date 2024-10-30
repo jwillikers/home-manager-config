@@ -57,6 +57,7 @@ home-manager --flake . switch
 == Resources
 
 * https://nix-community.github.io/home-manager/options.xhtml[Home Manager Configuration Options]
+* https://github.com/wimpysworld/nix-config[Wimpy's NixOS, nix-darwin & Home Manager Configurations]
 
 == Code of Conduct
 
