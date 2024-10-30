@@ -106,6 +106,7 @@ in
       gcr
       # h # Modern Unix autojump for git projects
       just
+      libtree
       net-snmp
       nil
       nixfmt-rfc-style # Nix code formatter
@@ -118,6 +119,7 @@ in
       sway-audio-idle-inhibit
       tailscale
       tio
+      wl-clipboard-rs
     ];
 
     sessionVariables = {

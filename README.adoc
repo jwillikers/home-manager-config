@@ -17,12 +17,37 @@ This is my {Home-Manager} configuration.
 
 == Getting Started
 
+This Home Manager configuration is currently intended for Fedora Atomic Sway.
+
+. Install `gcr` package for secret management.
++
+[,sh]
+----
+sudo rpm-ostree install fish gcr
+----
+
+. Reboot to apply the changes.
++
+[,sh]
+----
+sudo systemctl reboot
+----
+
+. Enable the `gcr-ssh-agent.socket` systemd socket.
++
+[,sh]
+----
+systemctl --user enable --now gcr-ssh-agent.socket
+----
+
 . Install https://lix.systems[Lix].
 +
 [,sh]
 ----
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
+
+// todo Configure nix.conf.
 
 . Clone the repository.
 +

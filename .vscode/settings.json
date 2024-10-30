@@ -18,6 +18,7 @@
     "nixos",
     "nixpkgs",
     "Nushell",
+    "ostree",
     "ownertrust",
     "reviewdog",
     "statix",
