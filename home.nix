@@ -411,7 +411,6 @@ in
       enable = true;
       includes = [ "~/.ssh/config.d/*.conf" ];
     };
-    swaylock.enable = true;
     starship = {
       enable = true;
     };
