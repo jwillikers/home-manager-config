@@ -588,24 +588,20 @@ in
           WantedBy = [ "graphical-session.target" ];
         };
       };
-      "nix-garbage-collection" = {
-        Unit = {
-          Description = "Initiate Nix garbage collection";
-        };
-
-        Service = {
-          Type = "oneshot";
-          # Do I need to use nix-collect-garbage at all?
-          # ExecStart = "/nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-old";
-          # todo Use pkgs.nix here?
-          ExecStart = "${pkgs.nix}/bin/nix store gc";
-          # ExecStart = "/nix/var/nix/profiles/default/bin/nix store gc";
-        };
-
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
-      };
+      #      "nix-garbage-collection" = {
+      #        Unit = {
+      #          Description = "Initiate Nix garbage collection";
+      #        };
+      #
+      #        Service = {
+      #          Type = "oneshot";
+      #          ExecStart = "${pkgs.nix}/bin/nix store gc";
+      #        };
+      #
+      #        Install = {
+      #          WantedBy = [ "default.target" ];
+      #        };
+      #      };
       "update-flatpaks" = {
         Unit = {
           Description = "Update Flatpaks";
@@ -631,20 +627,20 @@ in
     };
     startServices = "sd-switch";
     timers = {
-      "nix-garbage-collection" = {
-        Unit = {
-          Description = "Initiate Nix garbage collection weekly";
-        };
-
-        Timer = {
-          OnCalendar = "weekly";
-          Persistent = true;
-        };
-
-        Install = {
-          WantedBy = [ "timers.target" ];
-        };
-      };
+      #      "nix-garbage-collection" = {
+      #        Unit = {
+      #          Description = "Initiate Nix garbage collection weekly";
+      #        };
+      #
+      #        Timer = {
+      #          OnCalendar = "weekly";
+      #          Persistent = true;
+      #        };
+      #
+      #        Install = {
+      #          WantedBy = [ "timers.target" ];
+      #        };
+      #      };
       # todo Service / Timer to auto-update Nix?
       "update-flatpaks" = {
         Unit = {
