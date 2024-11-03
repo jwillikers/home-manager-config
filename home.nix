@@ -112,6 +112,7 @@ in
       nixfmt-rfc-style # Nix code formatter
       nixpkgs-review # Nix code review
       nix-prefetch-scripts # Nix code fetcher
+      nix-tree
       nu_scripts
       nurl # Nix URL fetcher
       pre-commit
