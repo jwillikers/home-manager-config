@@ -230,7 +230,7 @@ in
       auto-optimise-store = true;
       # Don't use the temp directory as that requires a lot of RAM.
       build-dir = "/var/tmp/nix-daemon";
-      cores = 4;
+      max-jobs = 1;
       # On x86_64 for emulation.
       # todo: Set this only if/then.
       extra-platforms = "aarch64-linux";
@@ -243,7 +243,6 @@ in
       # Avoid unwanted garbage collection when using nix-direnv
       keep-outputs = true;
       keep-derivations = true;
-      max-jobs = 4;
       warn-dirty = false;
     };
   };
