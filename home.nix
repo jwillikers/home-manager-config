@@ -112,6 +112,7 @@ in
       nixfmt-rfc-style # Nix code formatter
       nixpkgs-review # Nix code review
       nix-prefetch-scripts # Nix code fetcher
+      nix-tree
       nu_scripts
       nurl # Nix URL fetcher
       pre-commit
@@ -133,23 +134,52 @@ in
     };
 
     activation = {
-      flathub = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system $VERBOSE_ARG \
-          flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+      escalationProgram = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        escalation_program=/usr/bin/sudo
+        if [ -x "/usr/bin/doas" ]; then
+          escalation_program=/usr/bin/doas
+        fi
       '';
-      flatpaks = lib.hm.dag.entryAfter [ "flathub" ] (
-        builtins.concatStringsSep "\n" (
-          builtins.map (flatpak: ''
-            run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG install --noninteractive --system flathub \
-              ${flatpak}
-          '') flatpaks
-        )
-      );
+      flathub =
+        lib.hm.dag.entryAfter
+          [
+            "escalationProgram"
+            "writeBoundary"
+          ]
+          ''
+            if ! ${pkgs.flatpak}/bin/flatpak remotes --columns=name --system \
+              | grep --fixed-strings --line-regexp --quiet 'flathub'; then
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system $VERBOSE_ARG \
+                flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+            fi
+          '';
+      flatpaks =
+        lib.hm.dag.entryAfter
+          [
+            "escalationProgram"
+            "flathub"
+            "writeBoundary"
+          ]
+          (
+            ''
+              installed_flatpaks=$(${pkgs.flatpak}/bin/flatpak list --columns=application --system)
+            ''
+            + builtins.concatStringsSep "\n" (
+              builtins.map (flatpak: ''
+                if ! echo "$installed_flatpaks" | grep --fixed-strings --line-regexp --quiet '${flatpak}'; then
+                  run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG install --noninteractive \
+                  --system flathub '${flatpak}'
+                fi
+              '') flatpaks
+            )
+          );
       flatpakTheme =
         lib.hm.dag.entryAfter
           [
+            "escalationProgram"
             "flatpaks"
             "dconfSettings"
+            "writeBoundary"
           ]
           ''
             COLOR_SCHEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/color-scheme | sed -e "s/'//g")
@@ -159,9 +189,20 @@ in
             if [ "$COLOR_SCHEME" == "prefer-dark" ]; then
               GTK_THEME="$GTK_THEME:dark"
             fi
-            run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak override --env=GTK_THEME="$GTK_THEME"
-            run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak override --env=ICON_THEME="$ICON_THEME"
-            run /usr/bin/sudo ${pkgs.flatpak}/bin/flatpak override --env=XCURSOR_THEME="$XCURSOR_THEME"
+            flatpak_overrides=$(${pkgs.flatpak}/bin/flatpak override --show --system)
+            FLATPAK_GTK_THEME=$(echo "$flatpak_overrides" | ${pkgs.nawk}/bin/nawk -F'=' '/GTK_THEME/ {print $2;}')
+            FLATPAK_ICON_THEME=$(echo "$flatpak_overrides" | ${pkgs.nawk}/bin/nawk -F'=' '/ICON_THEME/ {print $2;}')
+            FLATPAK_XCURSOR_THEME=$(echo "$flatpak_overrides" \
+              | ${pkgs.nawk}/bin/nawk -F'=' '/XCURSOR_THEME/ {print $2;}')
+            if [ "$FLATPAK_GTK_THEME" != "$GTK_THEME" ]; then
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=GTK_THEME="$GTK_THEME"
+            fi
+            if [ "$FLATPAK_ICON_THEME" != "$ICON_THEME" ]; then
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=ICON_THEME="$ICON_THEME"
+            fi
+            if [ "$FLATPAK_XCURSOR_THEME" != "$XCURSOR_THEME" ]; then
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=XCURSOR_THEME="$XCURSOR_THEME"
+            fi
           '';
 
       # Symlinking the Stretchly config won't work.
@@ -229,7 +270,7 @@ in
       auto-optimise-store = true;
       # Don't use the temp directory as that requires a lot of RAM.
       build-dir = "/var/tmp/nix-daemon";
-      cores = 4;
+      max-jobs = 1;
       # On x86_64 for emulation.
       # todo: Set this only if/then.
       extra-platforms = "aarch64-linux";
@@ -242,7 +283,6 @@ in
       # Avoid unwanted garbage collection when using nix-direnv
       keep-outputs = true;
       keep-derivations = true;
-      max-jobs = 4;
       warn-dirty = false;
     };
   };
@@ -588,24 +628,20 @@ in
           WantedBy = [ "graphical-session.target" ];
         };
       };
-      "nix-garbage-collection" = {
-        Unit = {
-          Description = "Initiate Nix garbage collection";
-        };
-
-        Service = {
-          Type = "oneshot";
-          # Do I need to use nix-collect-garbage at all?
-          # ExecStart = "/nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-old";
-          # todo Use pkgs.nix here?
-          ExecStart = "${pkgs.nix}/bin/nix store gc";
-          # ExecStart = "/nix/var/nix/profiles/default/bin/nix store gc";
-        };
-
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
-      };
+      #      "nix-garbage-collection" = {
+      #        Unit = {
+      #          Description = "Initiate Nix garbage collection";
+      #        };
+      #
+      #        Service = {
+      #          Type = "oneshot";
+      #          ExecStart = "${pkgs.nix}/bin/nix store gc";
+      #        };
+      #
+      #        Install = {
+      #          WantedBy = [ "default.target" ];
+      #        };
+      #      };
       "update-flatpaks" = {
         Unit = {
           Description = "Update Flatpaks";
@@ -631,20 +667,20 @@ in
     };
     startServices = "sd-switch";
     timers = {
-      "nix-garbage-collection" = {
-        Unit = {
-          Description = "Initiate Nix garbage collection weekly";
-        };
-
-        Timer = {
-          OnCalendar = "weekly";
-          Persistent = true;
-        };
-
-        Install = {
-          WantedBy = [ "timers.target" ];
-        };
-      };
+      #      "nix-garbage-collection" = {
+      #        Unit = {
+      #          Description = "Initiate Nix garbage collection weekly";
+      #        };
+      #
+      #        Timer = {
+      #          OnCalendar = "weekly";
+      #          Persistent = true;
+      #        };
+      #
+      #        Install = {
+      #          WantedBy = [ "timers.target" ];
+      #        };
+      #      };
       # todo Service / Timer to auto-update Nix?
       "update-flatpaks" = {
         Unit = {
