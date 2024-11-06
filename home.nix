@@ -674,7 +674,7 @@ in
       #        };
       #
       #        Timer = {
-      #          OnCalendar = "weekly";
+      #          OnCalendar = "yearly";
       #          Persistent = true;
       #        };
       #
