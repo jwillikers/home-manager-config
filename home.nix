@@ -642,10 +642,6 @@ in
       #          Type = "oneshot";
       #          ExecStart = "${pkgs.nix}/bin/nix store gc";
       #        };
-      #
-      #        Install = {
-      #          WantedBy = [ "default.target" ];
-      #        };
       #      };
       "update-flatpaks" = {
         Unit = {
