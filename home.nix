@@ -42,6 +42,7 @@ let
     "org.raspberrypi.rpi-imager"
     "org.thonny.Thonny"
     "org.torproject.torbrowser-launcher"
+    "page.kramo.Sly"
     "us.zoom.Zoom"
     # "com.valve.Steam"
   ];
