@@ -102,7 +102,9 @@ in
 
     packages = with pkgs; [
       (nerdfonts.override { fonts = [ "Noto" ]; })
+      age
       asciidoctor
+      colmena
       deadnix # Nix dead code finder
       gcr
       # h # Modern Unix autojump for git projects
@@ -117,6 +119,8 @@ in
       nu_scripts
       nurl # Nix URL fetcher
       pre-commit
+      sops
+      ssh-to-age
       (config.lib.nixGL.wrap sublime-merge)
       sway-audio-idle-inhibit
       tailscale
