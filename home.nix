@@ -103,29 +103,34 @@ in
     packages = with pkgs; [
       (nerdfonts.override { fonts = [ "Noto" ]; })
       age
+      appstream
+      # librsvg?
       asciidoctor
-      colmena
+      beets # Music collection organizer
+      cbconvert # Comic book converter
+      colmena # Nix deployment
       deadnix # Nix dead code finder
-      gcr
+      flatpak-builder # Build Flatpaks
+      gcr # A library for accessing key stores
       # h # Modern Unix autojump for git projects
-      just
-      libtree
-      net-snmp
-      nil
+      just # Command runner
+      libtree # Tree output for ldd
+      net-snmp # SNMP manager tools
+      nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
       nixpkgs-review # Nix code review
       nix-prefetch-scripts # Nix code fetcher
-      nix-tree
-      nu_scripts
+      nix-tree # Examine dependencies of Nix derivations
+      nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
-      pre-commit
-      sops
-      ssh-to-age
-      (config.lib.nixGL.wrap sublime-merge)
-      sway-audio-idle-inhibit
-      tailscale
-      tio
-      wl-clipboard-rs
+      pre-commit # Git pre-commit hooks manager
+      sops # Secret management
+      ssh-to-age # Convert SSH keys to age keys
+      (config.lib.nixGL.wrap sublime-merge) # Git GUI
+      sway-audio-idle-inhibit # Pause SwayLock when audio is playing
+      tailscale # WireGuard-based VPN
+      tio # Serial device I/O tool
+      wl-clipboard-rs # Wayland clipboard program
     ];
 
     sessionVariables = {
@@ -268,7 +273,7 @@ in
     # To make nix3 commands consistent with your flake
     registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
 
-    package = pkgs.nix;
+    package = pkgs.nixVersions.latest;
     # A lot of these should instead to be managed system-wide, right?
     settings = {
       accept-flake-config = true;
@@ -284,6 +289,10 @@ in
       experimental-features = [
         "nix-command"
         "flakes"
+      ];
+      trusted-users = [
+        "root"
+        "${username}"
       ];
       # Avoid unwanted garbage collection when using nix-direnv
       keep-outputs = true;
@@ -444,11 +453,9 @@ in
         use-keyboxd = true;
       };
     };
-
     # Let Home Manager install and manage itself.
     home-manager.enable = true;
-
-    # nix-index.enable = true;
+    nix-index.enable = true;
     nushell = {
       enable = true;
     };
@@ -700,6 +707,8 @@ in
     };
 
     tmpfiles.rules = [
+      # Create age keys directory for SOPS
+      "d ${config.xdg.configHome}/sops/age 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books/Books 0750 ${username} ${username} - -"
@@ -711,26 +720,30 @@ in
     ];
   };
 
-  xdg.portal = {
-    config = {
-      common = {
-        default = [ "gtk" ];
-      };
-      sway = {
-        default = [
-          "wlr"
-          "gtk"
-        ];
-        "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
-        # "org.freedesktop.portal.FileChooser" = ["xdg-desktop-portal-gtk"];
-      };
-    };
+  xdg = {
+    userDirs.createDirectories = lib.mkDefault true;
     enable = true;
-    extraPortals = [
-      pkgs.xdg-desktop-portal-gtk
-      pkgs.xdg-desktop-portal-wlr
-    ];
-    xdgOpenUsePortal = true;
+    portal = {
+      config = {
+        common = {
+          default = [ "gtk" ];
+        };
+        sway = {
+          default = [
+            "wlr"
+            "gtk"
+          ];
+          "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
+          # "org.freedesktop.portal.FileChooser" = ["xdg-desktop-portal-gtk"];
+        };
+      };
+      enable = true;
+      extraPortals = [
+        pkgs.xdg-desktop-portal-gtk
+        pkgs.xdg-desktop-portal-wlr
+      ];
+      xdgOpenUsePortal = true;
+    };
   };
   # xdg.enable = true; ?
   # xdg.userDirs.createDirectories = true;
