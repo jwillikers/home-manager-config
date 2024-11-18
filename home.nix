@@ -109,6 +109,7 @@ in
       beets # Music collection organizer
       cbconvert # Comic book converter
       colmena # Nix deployment
+      comma
       deadnix # Nix dead code finder
       flatpak-builder # Build Flatpaks
       gcr # A library for accessing key stores
@@ -323,7 +324,6 @@ in
     carapace = {
       enable = true;
     };
-    comma.enable = true;
     # dircolors = {
     #   enable = true;
     #   enableBashIntegration = true;
