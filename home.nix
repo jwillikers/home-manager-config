@@ -323,6 +323,7 @@ in
     carapace = {
       enable = true;
     };
+    comma.enable = true;
     # dircolors = {
     #   enable = true;
     #   enableBashIntegration = true;

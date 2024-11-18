@@ -18,6 +18,7 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
+    # todo nix-index-database
     nixgl = {
       url = "github:nix-community/nixGL";
       inputs = {
