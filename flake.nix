@@ -91,27 +91,20 @@
       with pkgs;
       {
         apps = {
-          inherit (nix-update-scripts.apps.${system}) update-nix-direnv;
-          inherit (nix-update-scripts.apps.${system}) update-nixos-release;
-          update-packages =
-            let
-              script = pkgs.writeShellApplication {
-                name = "update-packages";
-                text = ''
-                  set -eou pipefail
-                  ${builtins.concatStringsSep "\n" (
-                    builtins.map (
-                      package: "${pkgs.nix-update}/bin/nix-update ${package} --build --flake --version branch"
-                    ) (builtins.attrNames packages)
-                  )}
-                  ${treefmtEval.config.build.wrapper}/bin/treefmt
-                '';
-              };
-            in
-            {
-              type = "app";
-              program = "${script}/bin/update-packages";
-            };
+          inherit (nix-update-scripts.apps.${system}) update-nix-direnv update-nixos-release;
+          update-packages = {
+            type = "app";
+            program = builtins.toString (
+              pkgs.writers.writeNu "update-packages" ''
+                ${builtins.concatStringsSep "\n" (
+                  builtins.map (
+                    package: "${pkgs.lib.getExe pkgs.nix-update} ${package} --build --flake --version branch"
+                  ) (builtins.attrNames packages)
+                )}
+                ${pkgs.lib.getExe treefmtEval.config.build.wrapper}
+              ''
+            );
+          };
         };
         devShells.default = mkShell {
           inherit (pre-commit) shellHook;
