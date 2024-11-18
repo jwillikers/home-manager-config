@@ -4,8 +4,8 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      # todo use release branch?
-      url = "github:nix-community/home-manager";
+      # todo Create utility to auto-update like for the nixpkgs NixOS release branch.
+      url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # nix-flatpak.url = "github:gmodena/nix-flatpak";
@@ -25,7 +25,7 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = {
