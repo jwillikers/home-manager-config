@@ -24,6 +24,13 @@
     "statix",
     "treefmt"
   ],
+  "files.watcherExclude": {
+    ".direnv/**": true,
+    ".lycheecache": true,
+    ".pre-commit-config.yaml": true,
+    "result": true,
+    "result/**": true
+  },
   "nix.enableLanguageServer": true,
   "nix.serverPath": "nil"
 }

@@ -4,8 +4,8 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      # todo use release branch?
-      url = "github:nix-community/home-manager";
+      # todo Create utility to auto-update like for the nixpkgs NixOS release branch.
+      url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # nix-flatpak.url = "github:gmodena/nix-flatpak";
@@ -18,6 +18,7 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
+    # todo nix-index-database
     nixgl = {
       url = "github:nix-community/nixGL";
       inputs = {
@@ -25,7 +26,11 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nix-index-database = {
+      url = "github:Mic92/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = {
@@ -48,6 +53,7 @@
       flake-utils,
       home-manager,
       # nix-flatpak,
+      nix-index-database,
       nix-update-scripts,
       nixgl,
       nixpkgs,
@@ -73,6 +79,7 @@
           modules = [
             ./home.nix
             ./scripts
+            nix-index-database.hmModules.nix-index
             # todo Use nix-flatpak with NixOS.
             # I'd rather install Flatpaks system-wide.
             # nix-flatpak.homeManagerModules.nix-flatpak
@@ -91,27 +98,20 @@
       with pkgs;
       {
         apps = {
-          inherit (nix-update-scripts.apps.${system}) update-nix-direnv;
-          inherit (nix-update-scripts.apps.${system}) update-nixos-release;
-          update-packages =
-            let
-              script = pkgs.writeShellApplication {
-                name = "update-packages";
-                text = ''
-                  set -eou pipefail
-                  ${builtins.concatStringsSep "\n" (
-                    builtins.map (
-                      package: "${pkgs.nix-update}/bin/nix-update ${package} --build --flake --version branch"
-                    ) (builtins.attrNames packages)
-                  )}
-                  ${treefmtEval.config.build.wrapper}/bin/treefmt
-                '';
-              };
-            in
-            {
-              type = "app";
-              program = "${script}/bin/update-packages";
-            };
+          inherit (nix-update-scripts.apps.${system}) update-nix-direnv update-nixos-release;
+          update-packages = {
+            type = "app";
+            program = builtins.toString (
+              pkgs.writers.writeNu "update-packages" ''
+                ${builtins.concatStringsSep "\n" (
+                  builtins.map (
+                    package: "${pkgs.lib.getExe pkgs.nix-update} ${package} --build --flake --version branch"
+                  ) (builtins.attrNames packages)
+                )}
+                ${pkgs.lib.getExe treefmtEval.config.build.wrapper}
+              ''
+            );
+          };
         };
         devShells.default = mkShell {
           inherit (pre-commit) shellHook;

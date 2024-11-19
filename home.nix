@@ -119,7 +119,6 @@ in
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
       nixpkgs-review # Nix code review
-      nix-prefetch-scripts # Nix code fetcher
       nix-tree # Examine dependencies of Nix derivations
       nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
@@ -455,7 +454,7 @@ in
     };
     # Let Home Manager install and manage itself.
     home-manager.enable = true;
-    nix-index.enable = true;
+    nix-index-database.comma.enable = true;
     nushell = {
       enable = true;
     };
