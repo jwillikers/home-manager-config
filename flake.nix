@@ -26,6 +26,10 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    nix-index-database = {
+      url = "github:Mic92/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
@@ -49,6 +53,7 @@
       flake-utils,
       home-manager,
       # nix-flatpak,
+      nix-index-database,
       nix-update-scripts,
       nixgl,
       nixpkgs,
@@ -74,6 +79,7 @@
           modules = [
             ./home.nix
             ./scripts
+            nix-index-database.hmModules.nix-index
             # todo Use nix-flatpak with NixOS.
             # I'd rather install Flatpaks system-wide.
             # nix-flatpak.homeManagerModules.nix-flatpak

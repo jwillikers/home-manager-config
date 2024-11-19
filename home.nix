@@ -109,7 +109,6 @@ in
       beets # Music collection organizer
       cbconvert # Comic book converter
       colmena # Nix deployment
-      comma
       deadnix # Nix dead code finder
       flatpak-builder # Build Flatpaks
       gcr # A library for accessing key stores
@@ -455,7 +454,7 @@ in
     };
     # Let Home Manager install and manage itself.
     home-manager.enable = true;
-    nix-index.enable = true;
+    nix-index-database.comma.enable = true;
     nushell = {
       enable = true;
     };
