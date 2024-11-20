@@ -111,6 +111,7 @@ in
         asciidoctor
         beets # Music collection organizer
         cbconvert # Comic book converter
+        ccache # Compiler cache
         deadnix # Nix dead code finder
         deploy-rs # Nix deployment
         flatpak-builder # Build Flatpaks
@@ -305,6 +306,7 @@ in
       # On x86_64 for emulation.
       # todo: Set this only if/then.
       extra-platforms = "aarch64-linux";
+      extra-sandbox-paths = [ "/nix/var/cache/ccache" ];
       extra-trusted-public-keys = [ "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o=" ];
       extra-trusted-substituters = [ "https://cache.lix.systems" ];
       experimental-features = [
