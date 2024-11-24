@@ -273,6 +273,17 @@ in
       "${config.xdg.configHome}/vim/vimrc".source = packages.vim-config + "/etc/vim/vimrc";
       ".ssh/config.d".source = packages.openssh-client-config + "/etc/ssh/ssh_config.d";
       # "${config.xdg.configHome}/fish/functions/h.fish".text = builtins.readFile ./_mixins/configs/h.fish;
+
+      # Go to System Settings > KDE Wallet and enable Use KWallet for the Secret Service interface. ??
+
+      # todo https://wiki.archlinux.org/title/KDE_Wallet#Automatic_D-Bus_activation
+      # todo:
+      # ~/.config/kwalletrc
+      # [org.freedesktop.secrets]
+      # apiEnabled=true
+      # todo Reload this way:
+      # $ qdbus org.kde.kwalletd6 /modules/kwalletd6 closeAllWallets
+      # $ qdbus org.kde.kwalletd6 /modules/kwalletd6 open kdewallet 0 0
     };
   };
 
@@ -576,6 +587,7 @@ in
     # };
     gpg-agent = {
       enable = true;
+      # todo Use pinentry-kwallet instead?
       pinentryPackage = if desktop == "kde" then pkgs.pinentry-qt else pkgs.pinentry-gnome3;
     };
   };
@@ -687,6 +699,9 @@ in
       SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/gcr/ssh";
       # Sway
       _JAVA_AWT_WM_NONREPARENTING = "1";
+
+      SSH_ASKPASS = lib.optionalString (desktop == "kde") lib.getExe pkgs.kdePackages.ksshaskpass;
+      SSH_ASKPASS_REQUIRE = lib.optionalString (desktop == "kde") "prefer";
     };
     startServices = "sd-switch";
     timers = {
