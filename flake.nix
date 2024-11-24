@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix-module = {
-      url = "git+https://git.lix.systems/lix-project/lix.git?ref=release-2.91";
+      url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.91";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # nix-flatpak.url = "github:gmodena/nix-flatpak";
@@ -68,7 +68,10 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        overlays = [ lix-module.overlays.default nixgl.overlay ];
+        overlays = [
+          lix-module.overlays.default
+          nixgl.overlay
+        ];
         pkgs = import nixpkgs {
           inherit system overlays;
           # todo Limit this to specific packages.
@@ -102,7 +105,7 @@
             username = "jordan";
           };
         };
-        homeConfigurations."jordan@yoga-x1" = home-manager.lib.homeManagerConfiguration {
+        homeConfigurations."jordan@x1-yoga" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
 
           modules = [

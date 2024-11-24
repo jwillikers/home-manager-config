@@ -101,38 +101,45 @@ in
     # release notes.
     stateVersion = "24.05"; # Please read the comment before changing.
 
-    packages = with pkgs; [
-      (nerdfonts.override { fonts = [ "Noto" ]; })
-      age
-      appstream
-      # librsvg?
-      asciidoctor
-      beets # Music collection organizer
-      cbconvert # Comic book converter
-      colmena # Nix deployment
-      deadnix # Nix dead code finder
-      flatpak-builder # Build Flatpaks
-      gcr # A library for accessing key stores
-      # h # Modern Unix autojump for git projects
-      just # Command runner
-      libtree # Tree output for ldd
-      net-snmp # SNMP manager tools
-      nil # Nix language engine for IDEs
-      nixfmt-rfc-style # Nix code formatter
-      nixpkgs-review # Nix code review
-      nix-tree # Examine dependencies of Nix derivations
-      nu_scripts # Nushell scripts
-      nurl # Nix URL fetcher
-      pre-commit # Git pre-commit hooks manager
-      sops # Secret management
-      ssh-to-age # Convert SSH keys to age keys
-      (config.lib.nixGL.wrap sublime-merge) # Git GUI
-      tailscale # WireGuard-based VPN
-      tio # Serial device I/O tool
-      wl-clipboard-rs # Wayland clipboard program
-    ] ++ lib.optionals (desktop == "sway") [
-      sway-audio-idle-inhibit # Pause SwayLock when audio is playing
-    ];
+    packages =
+      with pkgs;
+      [
+        (nerdfonts.override { fonts = [ "Noto" ]; })
+        age
+        appstream
+        # librsvg?
+        asciidoctor
+        beets # Music collection organizer
+        cbconvert # Comic book converter
+        deadnix # Nix dead code finder
+        deploy-rs # Nix deployment
+        flatpak-builder # Build Flatpaks
+        gcr # A library for accessing key stores
+        # h # Modern Unix autojump for git projects
+        just # Command runner
+        libtree # Tree output for ldd
+        net-snmp # SNMP manager tools
+        nil # Nix language engine for IDEs
+        nixfmt-rfc-style # Nix code formatter
+        nixpkgs-review # Nix code review
+        nix-tree # Examine dependencies of Nix derivations
+        nu_scripts # Nushell scripts
+        nurl # Nix URL fetcher
+        pre-commit # Git pre-commit hooks manager
+        probe-rs # Debug probe tool
+        sops # Secret management
+        ssh-to-age # Convert SSH keys to age keys
+        (config.lib.nixGL.wrap sublime-merge) # Git GUI
+        tailscale # WireGuard-based VPN
+        tio # Serial device I/O tool
+        wl-clipboard-rs # Wayland clipboard program
+      ]
+      ++ lib.optionals (desktop == "sway") [
+        sway-audio-idle-inhibit # Pause SwayLock when audio is playing
+      ]
+      ++ lib.optionals (desktop == "kde") [
+        kdePackages.ksshaskpass
+      ];
 
     sessionVariables = {
       EDITOR = "vim";
@@ -275,7 +282,8 @@ in
     registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
 
     # package = pkgs.nixVersions.latest;
-    package = inputs.lix-module.packages.${pkgs.system}.default;
+    # package = inputs.lix-module.packages.${pkgs.system}.default;
+    package = pkgs.lix;
     # A lot of these should instead to be managed system-wide, right?
     settings = {
       accept-flake-config = true;
@@ -315,6 +323,10 @@ in
     inherit (nixgl) packages;
     vulkan.enable = true;
   };
+
+  #nixpkgs.overlays = [
+  #  inputs.lix-module.overlays.default;
+  #];
 
   programs = {
     bat = {
@@ -451,6 +463,7 @@ in
     gpg = {
       enable = true;
       # Required on Fedora Sway Atomic.
+      # todo Move use-keyboxd to common.conf.
       settings = {
         use-keyboxd = true;
       };
@@ -563,7 +576,7 @@ in
     # };
     gpg-agent = {
       enable = true;
-      pinentryPackage = pkgs.pinentry-gnome3;
+      pinentryPackage = if desktop == "kde" then pkgs.pinentry-qt else pkgs.pinentry-gnome3;
     };
   };
 
@@ -747,10 +760,12 @@ in
         };
       };
       enable = true;
-      extraPortals = lib.optionals (desktop == "sway") [
-        pkgs.xdg-desktop-portal-gtk
-        pkgs.xdg-desktop-portal-wlr
-      ] ++ lib.optionals (desktop == "kde") [ pkgs.xdg-desktop-portal-kde ];
+      extraPortals =
+        lib.optionals (desktop == "sway") [
+          pkgs.xdg-desktop-portal-gtk
+          pkgs.xdg-desktop-portal-wlr
+        ]
+        ++ lib.optionals (desktop == "kde") [ pkgs.xdg-desktop-portal-kde ];
       xdgOpenUsePortal = true;
     };
   };

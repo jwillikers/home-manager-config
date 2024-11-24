@@ -15,6 +15,11 @@ image:https://github.com/jwillikers/home-manager-config/actions/workflows/build.
 
 This is my {Home-Manager} configuration.
 
+// todo Install udev rules
+// todo Install KDE wallet integration things such as ksshaskpass and related autostart service
+// todo Fix colorscheme for konsole
+// todo Configure theme for KDE?
+
 == Getting Started
 
 This Home Manager configuration is currently intended for Fedora Atomic Sway.
@@ -23,6 +28,7 @@ This Home Manager configuration is currently intended for Fedora Atomic Sway.
 +
 [,sh]
 ----
+// kwallet for kde?
 sudo rpm-ostree install fish gcr
 ----
 
@@ -47,15 +53,15 @@ systemctl --user enable --now gcr-ssh-agent.socket
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
 
-. Enter a development shell which contains Home Manager.
-+
-[,sh]
-----
-nix develop
+// todo Remove.
+// . Install Home Manager.
+// +
+// [,sh]
+// ----
 // nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
 // nix-channel --update
 // nix-shell '<home-manager>' -A install
-----
+// ----
 
 . Clone the repository.
 +
@@ -63,6 +69,8 @@ nix develop
 ----
 git clone git@github.com:jwillikers/home-manager-config.git
 ----
+
+// todo Add user to trusted-users in nix.conf
 
 . Change into the repository's directory.
 +
@@ -84,7 +92,7 @@ ln --force --relative --symbolic . ~/.config/home-manager
 --
 [,sh]
 ----
-home-manager --flake .#jordan@$(hostname --short) switch
+nix develop --command home-manager --flake .#jordan@$(hostname --short) switch
 ----
 
 [TIP]
