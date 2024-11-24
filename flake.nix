@@ -71,6 +71,7 @@
         overlays = [ lix-module.overlays.default nixgl.overlay ];
         pkgs = import nixpkgs {
           inherit system overlays;
+          # todo Limit this to specific packages.
           config.allowUnfree = true;
         };
         pre-commit = pre-commit-hooks.lib.${system}.run (
@@ -78,7 +79,7 @@
         );
         treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         packages = import ./packages { inherit pkgs; };
-        homeConfigurations."jordan" = home-manager.lib.homeManagerConfiguration {
+        homeConfigurations."jordan@precision" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
 
           modules = [
@@ -97,6 +98,31 @@
 
           extraSpecialArgs = {
             inherit inputs nixgl packages;
+            desktop = "sway";
+            username = "jordan";
+          };
+        };
+        homeConfigurations."jordan@yoga-x1" = home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+
+          modules = [
+            ./home.nix
+            ./scripts
+            nix-index-database.hmModules.nix-index
+            # todo Use nix-flatpak with NixOS.
+            # I'd rather install Flatpaks system-wide.
+            # nix-flatpak.homeManagerModules.nix-flatpak
+            # sops-nix.homeManagerModules.sops
+          ];
+
+          # sharedModules = [
+          # sops-nix.homeManagerModules.sops
+          # ];
+
+          extraSpecialArgs = {
+            inherit inputs nixgl packages;
+            desktop = "kde";
+            username = "jordan";
           };
         };
       in
@@ -134,8 +160,9 @@
             ++ pre-commit.enabledPackages;
         };
         formatter = treefmtEval.config.build.wrapper;
+        # inherit packages;
         packages = {
-          default = homeConfigurations."jordan".activationPackage;
+          default = homeConfigurations."jordan@precision".activationPackage;
           inherit homeConfigurations;
         } // packages;
       }

@@ -1,14 +1,15 @@
 {
   config,
+  desktop,
   inputs,
   lib,
   nixgl,
   packages,
   pkgs,
+  username,
   ...
 }:
 let
-  username = "jordan";
   homeDirectory = "/home/${username}";
   flatpaks = [
     "com.bitwarden.desktop"
@@ -126,10 +127,11 @@ in
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
-      sway-audio-idle-inhibit # Pause SwayLock when audio is playing
       tailscale # WireGuard-based VPN
       tio # Serial device I/O tool
       wl-clipboard-rs # Wayland clipboard program
+    ] ++ lib.optionals (desktop == "sway") [
+      sway-audio-idle-inhibit # Pause SwayLock when audio is playing
     ];
 
     sessionVariables = {
@@ -256,7 +258,7 @@ in
       "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
-      "${config.xdg.configHome}/sway/config.d" = {
+      "${config.xdg.configHome}/sway/config.d" = lib.mkIf (desktop == "sway") {
         source = packages.sway-config + "/etc/sway/config.d";
         onChange = "${pkgs.sway}/bin/swaymsg reload";
       };
@@ -272,7 +274,8 @@ in
     # To make nix3 commands consistent with your flake
     registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
 
-    package = pkgs.nixVersions.latest;
+    # package = pkgs.nixVersions.latest;
+    package = inputs.lix-module.packages.${pkgs.system}.default;
     # A lot of these should instead to be managed system-wide, right?
     settings = {
       accept-flake-config = true;
@@ -727,7 +730,14 @@ in
         common = {
           default = [ "gtk" ];
         };
-        sway = {
+        kde = lib.mkIf (desktop == "kde") {
+          default = [
+            "kde"
+          ];
+          "org.freedesktop.impl.portal.Secret" = [ "kwallet" ];
+          # "org.freedesktop.portal.FileChooser" = ["xdg-desktop-portal-gtk"];
+        };
+        sway = lib.mkIf (desktop == "sway") {
           default = [
             "wlr"
             "gtk"
@@ -737,10 +747,10 @@ in
         };
       };
       enable = true;
-      extraPortals = [
+      extraPortals = lib.optionals (desktop == "sway") [
         pkgs.xdg-desktop-portal-gtk
         pkgs.xdg-desktop-portal-wlr
-      ];
+      ] ++ lib.optionals (desktop == "kde") [ pkgs.xdg-desktop-portal-kde ];
       xdgOpenUsePortal = true;
     };
   };

@@ -47,16 +47,15 @@ systemctl --user enable --now gcr-ssh-agent.socket
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
 
-. Install Home Manager.
+. Enter a development shell which contains Home Manager.
 +
 [,sh]
 ----
-nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
-nix-channel --update
-nix-shell '<home-manager>' -A install
+nix develop
+// nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+// nix-channel --update
+// nix-shell '<home-manager>' -A install
 ----
-
-// todo Configure nix.conf.
 
 . Clone the repository.
 +
@@ -82,10 +81,37 @@ ln --force --relative --symbolic . ~/.config/home-manager
 
 . Build and activate the Home Manager configuration
 +
+--
 [,sh]
 ----
-home-manager --flake . switch
+home-manager --flake .#jordan@$(hostname --short) switch
 ----
+
+[TIP]
+====
+If for any reason the build fails or your computer locks up, there's a good chance that it's related to Nix attempting to build too many jobs simultaneously or not having adequate RAM space to hold the build directory for a package.
+These issues can be fixed with configuration options for the Nix daemon in `/etc/nix/nix.conf`.
+Use the `max-jobs` option to limit the number of simultaneous jobs.
+To build only a single job at a time, this would look like `max-jobs = 1` in the config file.
+
+To prevent running out space in RAM, set the `build-dir` option to a path that is located on disk.
+The default `tmp` directory is usually stored in a special filesystem backed by RAM.
+To set this to `/var/tmp/nix-daemon`, the line in the config will look like `build-dir = /var/tmp/nix-daemon`.
+Be sure to create this directory.
+
+[,sh]
+----
+sudo mkdir --parents /var/tmp/nix-daemon
+----
+
+To apply changes in `/etc/nix/nix.conf`, restart the Nix daemon.
+
+[,sh]
+----
+sudo systemctl restart nix-daemon.service
+----
+====
+--
 
 . Log out and back in for certain environment variable changes to take effect.
 
