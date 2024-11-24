@@ -47,6 +47,15 @@ systemctl --user enable --now gcr-ssh-agent.socket
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
 
+. Install Home Manager.
++
+[,sh]
+----
+nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
+nix-channel --update
+nix-shell '<home-manager>' -A install
+----
+
 // todo Configure nix.conf.
 
 . Clone the repository.
@@ -67,7 +76,8 @@ cd home-manager-config
 +
 [,sh]
 ----
-ln --force --relative --symbolic ~/.config/home-manager .
+rm --recursive ~/.config/home-manager
+ln --force --relative --symbolic . ~/.config/home-manager
 ----
 
 . Build and activate the Home Manager configuration
