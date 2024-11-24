@@ -8,6 +8,10 @@
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    lix-module = {
+      url = "git+https://git.lix.systems/lix-project/lix.git?ref=release-2.91";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # nix-flatpak.url = "github:gmodena/nix-flatpak";
     nix-update-scripts = {
       url = "github:jwillikers/nix-update-scripts";
@@ -52,6 +56,7 @@
       self,
       flake-utils,
       home-manager,
+      lix-module,
       # nix-flatpak,
       nix-index-database,
       nix-update-scripts,
@@ -63,7 +68,7 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        overlays = [ nixgl.overlay ];
+        overlays = [ lix-module.overlays.default nixgl.overlay ];
         pkgs = import nixpkgs {
           inherit system overlays;
           config.allowUnfree = true;
