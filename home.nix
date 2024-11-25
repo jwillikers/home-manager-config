@@ -133,6 +133,7 @@ in
         (config.lib.nixGL.wrap sublime-merge) # Git GUI
         tailscale # WireGuard-based VPN
         tio # Serial device I/O tool
+        treefmt-nix # Code formatter
         wl-clipboard-rs # Wayland clipboard program
       ]
       ++ lib.optionals (desktop == "sway") [
