@@ -87,6 +87,13 @@ rm --recursive ~/.config/home-manager
 ln --force --relative --symbolic . ~/.config/home-manager
 ----
 
+. Create the `ccache` directory the Nix.
++
+[,sh]
+----
+mkdir --parents /nix/var/cache/ccache
+----
+
 . Build and activate the Home Manager configuration
 +
 --
