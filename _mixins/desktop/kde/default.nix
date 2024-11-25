@@ -7,7 +7,7 @@
 {
   home = {
     file = {
-      "${config.xdg.configHome}/.gnupg/gpg-agent.conf".text = ''
+      "${config.home.homeDirectory}/.gnupg/gpg-agent.conf".text = ''
         grab
         pinentry-program ${lib.getBin pkgs.kwalletcli}/bin/pinentry-kwallet
       '';
