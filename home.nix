@@ -124,6 +124,7 @@ in
         nixfmt-rfc-style # Nix code formatter
         nixpkgs-review # Nix code review
         nix-tree # Examine dependencies of Nix derivations
+        nix-update # Update Nix packages
         nu_scripts # Nushell scripts
         nurl # Nix URL fetcher
         pre-commit # Git pre-commit hooks manager
