@@ -56,7 +56,10 @@
 
         Service = {
           Type = "oneshot";
-          Environment = "SSH_ASKPASS=${lib.getExe pkgs.kdePackages.ksshaskpass}";
+          Environment = [
+            "SSH_ASKPASS=${lib.getExe pkgs.kdePackages.ksshaskpass}"
+            "SSH_AUTH_SOCK=%t/ssh-agent.socket"
+          ];
           ExecStart = "${lib.getBin pkgs.openssh}/bin/ssh-add -q";
         };
 
