@@ -1,9 +1,9 @@
 {
   fetchFromGitea,
-  stdenv,
+  stdenvNoCC,
 }:
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   pname = "tio-config";
   version = "0-unstable-2024-11-06";
 
@@ -16,6 +16,8 @@ stdenv.mkDerivation {
   };
 
   installPhase = ''
+    runHook preInstall
     install -D --mode=0644 tio/config $out/etc/tio/config
+    runHook postInstall
   '';
 }

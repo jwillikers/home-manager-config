@@ -1,9 +1,9 @@
 {
   fetchFromGitea,
-  stdenv,
+  stdenvNoCC,
 }:
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   pname = "vim-config";
   version = "0-unstable-2024-10-16";
 
@@ -16,6 +16,8 @@ stdenv.mkDerivation {
   };
 
   installPhase = ''
+    runHook preInstall
     install -D --mode=0644 vimrc $out/etc/vim/vimrc
+    runHook postInstall
   '';
 }

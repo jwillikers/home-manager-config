@@ -1,9 +1,9 @@
 {
   fetchFromGitea,
-  stdenv,
+  stdenvNoCC,
 }:
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   pname = "stretchly-config";
   version = "0-unstable-2024-10-29";
 
@@ -16,6 +16,8 @@ stdenv.mkDerivation {
   };
 
   installPhase = ''
+    runHook preInstall
     install -D --mode=0644 config.json $out/etc/Stretchly/config.json
+    runHook postInstall
   '';
 }

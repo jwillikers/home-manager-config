@@ -1,9 +1,9 @@
 {
   fetchFromGitea,
-  stdenv,
+  stdenvNoCC,
 }:
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   pname = "sublime-merge-config";
   version = "0-unstable-2024-10-12";
 
@@ -17,6 +17,8 @@ stdenv.mkDerivation {
 
   # todo Install Sublime Merge license key somehow.
   installPhase = ''
+    runHook preInstall
     install -D --mode=0644 --target-directory=$out/etc/sublime-merge/Packages/User User/*.sublime-settings
+    runHook postInstall
   '';
 }

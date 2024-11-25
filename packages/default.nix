@@ -9,5 +9,6 @@
   sublime-merge-config = pkgs.callPackage ./sublime-merge-config/package.nix { };
   sway-config = pkgs.callPackage ./sway-config/package.nix { };
   tio-config = pkgs.callPackage ./tio-config/package.nix { };
+  udev-rules = pkgs.callPackage ./udev-rules/package.nix { };
   vim-config = pkgs.callPackage ./vim-config/package.nix { };
 }

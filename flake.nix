@@ -4,15 +4,14 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      # todo Create utility to auto-update like for the nixpkgs NixOS release branch.
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix-module = {
+      # todo autoupdate
       url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.91";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # nix-flatpak.url = "github:gmodena/nix-flatpak";
     nix-update-scripts = {
       url = "github:jwillikers/nix-update-scripts";
       inputs = {
@@ -22,7 +21,6 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
-    # todo nix-index-database
     nixgl = {
       url = "github:nix-community/nixGL";
       inputs = {
@@ -57,7 +55,7 @@
       flake-utils,
       home-manager,
       lix-module,
-      # nix-flatpak,
+      # deadnix: skip
       nix-index-database,
       nix-update-scripts,
       nixgl,
@@ -82,22 +80,12 @@
         );
         treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         packages = import ./packages { inherit pkgs; };
-        homeConfigurations."jordan@precision" = home-manager.lib.homeManagerConfiguration {
+        homeConfigurations."jordan@precision5350" = home-manager.lib.homeManagerConfiguration {
           inherit pkgs;
 
           modules = [
             ./home.nix
-            ./scripts
-            nix-index-database.hmModules.nix-index
-            # todo Use nix-flatpak with NixOS.
-            # I'd rather install Flatpaks system-wide.
-            # nix-flatpak.homeManagerModules.nix-flatpak
-            # sops-nix.homeManagerModules.sops
           ];
-
-          # sharedModules = [
-          # sops-nix.homeManagerModules.sops
-          # ];
 
           extraSpecialArgs = {
             inherit inputs nixgl packages;
@@ -110,17 +98,7 @@
 
           modules = [
             ./home.nix
-            ./scripts
-            nix-index-database.hmModules.nix-index
-            # todo Use nix-flatpak with NixOS.
-            # I'd rather install Flatpaks system-wide.
-            # nix-flatpak.homeManagerModules.nix-flatpak
-            # sops-nix.homeManagerModules.sops
           ];
-
-          # sharedModules = [
-          # sops-nix.homeManagerModules.sops
-          # ];
 
           extraSpecialArgs = {
             inherit inputs nixgl packages;
