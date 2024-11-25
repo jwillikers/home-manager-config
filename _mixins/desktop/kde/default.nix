@@ -8,7 +8,6 @@
   home = {
     file = {
       ".gnupg/gpg-agent.conf".text = ''
-        grab
         pinentry-program ${lib.getBin pkgs.kwalletcli}/bin/pinentry-kwallet
       '';
       # Go to System Settings > KDE Wallet and enable Use KWallet for the Secret Service interface. ??
