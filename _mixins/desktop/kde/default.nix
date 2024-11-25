@@ -40,17 +40,12 @@
           After = [
             "graphical-session.target"
             "plasma-kwallet-pam.service"
-            "plasma-polkit-agent.service"
             "ssh-agent.service"
           ];
           Requires = [
             "graphical-session.target"
             "plasma-kwallet-pam.service"
-            # "plasma-polkit-agent.service"
             "ssh-agent.service"
-          ];
-          Wants = [
-            "plasma-polkit-agent.service"
           ];
         };
 
