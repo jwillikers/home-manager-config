@@ -11,11 +11,6 @@
         pinentry-program ${lib.getBin pkgs.kwalletcli}/bin/pinentry-kwallet
       '';
       # Go to System Settings > KDE Wallet and enable Use KWallet for the Secret Service interface. ??
-      "${config.xdg.dataHome}/dbus-1/services/org.freedesktop.secrets.service".text = ''
-        [D-BUS Service]
-        Name=org.freedesktop.secrets
-        Exec=/usr/bin/kwalletd6
-      '';
       "${config.xdg.configHome}/kwalletrc" = {
         onChange = ''
           ${lib.getBin pkgs.kdePackages.qttools}/bin/qdbus org.kde.kwalletd6 /modules/kwalletd6 closeAllWallets
@@ -26,6 +21,19 @@
           apiEnabled=true
         '';
       };
+      "${config.xdg.dataHome}/dbus-1/services/org.freedesktop.secrets.service".text = ''
+        [D-BUS Service]
+        Name=org.freedesktop.secrets
+        Exec=/usr/bin/kwalletd6
+      '';
+      "${config.xdg.dataHome}/konsole/Default.profile".text = ''
+        [Appearance]
+        ColorScheme=Solarized
+
+        [General]
+        Name=Default
+        Parent=FALLBACK/
+      '';
     };
     packages = with pkgs; [
       kdePackages.ksshaskpass

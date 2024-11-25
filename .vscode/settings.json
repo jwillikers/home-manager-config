@@ -24,6 +24,7 @@
     "justfile",
     "jwillikers",
     "keyboxd",
+    "konsole",
     "ksshaskpass",
     "kwallet",
     "kwalletcli",
