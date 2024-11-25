@@ -1,9 +1,9 @@
 {
   fetchFromGitea,
-  stdenv,
+  stdenvNoCC,
 }:
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   pname = "openssh-client-config";
   version = "0-unstable-2024-09-30";
 
@@ -16,6 +16,8 @@ stdenv.mkDerivation {
   };
 
   installPhase = ''
+    runHook preInstall
     install -D --mode=0644 --target-directory=$out/etc/ssh/ssh_config.d ssh/config.d/*
+    runHook postInstall
   '';
 }

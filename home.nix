@@ -1,14 +1,15 @@
 {
   config,
+  desktop,
   inputs,
   lib,
   nixgl,
   packages,
   pkgs,
+  username,
   ...
 }:
 let
-  username = "jordan";
   homeDirectory = "/home/${username}";
   flatpaks = [
     "com.bitwarden.desktop"
@@ -42,12 +43,32 @@ let
     "org.raspberrypi.rpi-imager"
     "org.thonny.Thonny"
     "org.torproject.torbrowser-launcher"
+    "one.flipperzero.qFlipper"
     "page.kramo.Sly"
     "us.zoom.Zoom"
     # "com.valve.Steam"
   ];
+  udevPackages = [
+    pkgs.nrf-udev
+    pkgs.picoprobe-udev-rules
+    pkgs.qFlipper
+    pkgs.steam-unwrapped
+    packages.udev-rules
+  ];
 in
 {
+
+  imports = [
+    # If you want to use modules your own flake exports (from modules/home-manager):
+    # outputs.homeManagerModules.example
+
+    # Modules exported from other flakes:
+    # inputs.sops-nix.homeManagerModules.sops
+    inputs.nix-index-database.hmModules.nix-index
+    ./_mixins/desktop
+    ./_mixins/scripts
+  ];
+
   dconf.settings = {
     "org/gnome/desktop/interface" = {
       color-scheme = "prefer-dark";
@@ -108,8 +129,9 @@ in
       asciidoctor
       beets # Music collection organizer
       cbconvert # Comic book converter
-      colmena # Nix deployment
+      ccache # Compiler cache
       deadnix # Nix dead code finder
+      deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
       gcr # A library for accessing key stores
       # h # Modern Unix autojump for git projects
@@ -120,15 +142,17 @@ in
       nixfmt-rfc-style # Nix code formatter
       nixpkgs-review # Nix code review
       nix-tree # Examine dependencies of Nix derivations
+      nix-update # Update Nix packages
       nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
       pre-commit # Git pre-commit hooks manager
+      probe-rs # Debug probe tool
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
-      sway-audio-idle-inhibit # Pause SwayLock when audio is playing
       tailscale # WireGuard-based VPN
       tio # Serial device I/O tool
+      treefmt # Code formatter
       wl-clipboard-rs # Wayland clipboard program
     ];
 
@@ -149,6 +173,22 @@ in
           escalation_program=/usr/bin/doas
         fi
       '';
+      udev =
+        lib.hm.dag.entryAfter
+          [
+            "escalationProgram"
+            "writeBoundary"
+          ]
+          ''
+            for package in ${builtins.concatStringsSep " " (lib.unique (map toString udevPackages))}; do
+              for file in $(shopt -s nullglob dotglob; echo $package/{etc,lib}/udev/rules.d/*); do
+                target_file=/etc/udev/rules.d/$(basename $file)
+                if ! cmp --silent $file $target_file; then
+                  run "$escalation_program" install -D --mode=0644 --target-directory=/etc/udev/rules.d $file
+                fi
+              done
+            done
+          '';
       flathub =
         lib.hm.dag.entryAfter
           [
@@ -191,18 +231,18 @@ in
             "writeBoundary"
           ]
           ''
-            COLOR_SCHEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/color-scheme | sed -e "s/'//g")
-            GTK_THEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/gtk-theme | sed -e "s/'//g")
-            ICON_THEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/icon-theme | sed -e "s/'//g")
-            XCURSOR_THEME=$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/cursor-theme | sed -e "s/'//g")
+            COLOR_SCHEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/color-scheme | sed -e "s/'//g")
+            GTK_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/gtk-theme | sed -e "s/'//g")
+            ICON_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/icon-theme | sed -e "s/'//g")
+            XCURSOR_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/cursor-theme | sed -e "s/'//g")
             if [ "$COLOR_SCHEME" == "prefer-dark" ]; then
               GTK_THEME="$GTK_THEME:dark"
             fi
             flatpak_overrides=$(${pkgs.flatpak}/bin/flatpak override --show --system)
-            FLATPAK_GTK_THEME=$(echo "$flatpak_overrides" | ${pkgs.nawk}/bin/nawk -F'=' '/GTK_THEME/ {print $2;}')
-            FLATPAK_ICON_THEME=$(echo "$flatpak_overrides" | ${pkgs.nawk}/bin/nawk -F'=' '/ICON_THEME/ {print $2;}')
+            FLATPAK_GTK_THEME=$(echo "$flatpak_overrides" | ${lib.getExe pkgs.nawk} -F'=' '/GTK_THEME/ {print $2;}')
+            FLATPAK_ICON_THEME=$(echo "$flatpak_overrides" | ${lib.getExe pkgs.nawk} -F'=' '/ICON_THEME/ {print $2;}')
             FLATPAK_XCURSOR_THEME=$(echo "$flatpak_overrides" \
-              | ${pkgs.nawk}/bin/nawk -F'=' '/XCURSOR_THEME/ {print $2;}')
+              | ${lib.getExe pkgs.nawk} -F'=' '/XCURSOR_THEME/ {print $2;}')
             if [ "$FLATPAK_GTK_THEME" != "$GTK_THEME" ]; then
               run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=GTK_THEME="$GTK_THEME"
             fi
@@ -256,14 +296,10 @@ in
       "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
-      "${config.xdg.configHome}/sway/config.d" = {
-        source = packages.sway-config + "/etc/sway/config.d";
-        onChange = "${pkgs.sway}/bin/swaymsg reload";
-      };
       "${config.xdg.configHome}/tio/config".source = packages.tio-config + "/etc/tio/config";
       "${config.xdg.configHome}/vim/vimrc".source = packages.vim-config + "/etc/vim/vimrc";
+      ".gnupg/common.conf".text = "use-keyboxd";
       ".ssh/config.d".source = packages.openssh-client-config + "/etc/ssh/ssh_config.d";
-      # "${config.xdg.configHome}/fish/functions/h.fish".text = builtins.readFile ./_mixins/configs/h.fish;
     };
   };
 
@@ -272,7 +308,9 @@ in
     # To make nix3 commands consistent with your flake
     registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
 
-    package = pkgs.nixVersions.latest;
+    # package = pkgs.nixVersions.latest;
+    # package = inputs.lix-module.packages.${pkgs.system}.default;
+    package = pkgs.lix;
     # A lot of these should instead to be managed system-wide, right?
     settings = {
       accept-flake-config = true;
@@ -283,6 +321,7 @@ in
       # On x86_64 for emulation.
       # todo: Set this only if/then.
       extra-platforms = "aarch64-linux";
+      extra-sandbox-paths = [ "/nix/var/cache/ccache" ];
       extra-trusted-public-keys = [ "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o=" ];
       extra-trusted-substituters = [ "https://cache.lix.systems" ];
       experimental-features = [
@@ -312,6 +351,10 @@ in
     inherit (nixgl) packages;
     vulkan.enable = true;
   };
+
+  #nixpkgs.overlays = [
+  #  inputs.lix-module.overlays.default;
+  #];
 
   programs = {
     bat = {
@@ -401,10 +444,10 @@ in
         color.ui = "auto";
         commit.gpgSign = true;
         core = {
-          editor = "${pkgs.vscode}/bin/code --wait";
-          pager = "${pkgs.delta}/bin/delta";
+          editor = "${lib.getExe pkgs.vscode} --wait";
+          pager = "${lib.getExe pkgs.delta}";
         };
-        credential.helper = "${pkgs.gitFull}/bin/git-credential-libsecret";
+        credential.helper = "${lib.getBin pkgs.gitFull}/bin/git-credential-libsecret";
         diff = {
           algorithm = "histogram";
           colorMoved = "default";
@@ -415,7 +458,9 @@ in
         };
         merge = {
           conflictstyle = "diff3";
-          tool = "${pkgs.sublime-merge}/bin/smerge";
+          # todo
+          # tool = "${lib.getExe pkgs.sublime-merge}";
+          tool = "${lib.getBin pkgs.sublime-merge}/bin/smerge";
         };
         pull.rebase = true;
         push = {
@@ -445,13 +490,7 @@ in
       userEmail = "jordan@jwillikers.com";
       userName = "Jordan Williams";
     };
-    gpg = {
-      enable = true;
-      # Required on Fedora Sway Atomic.
-      settings = {
-        use-keyboxd = true;
-      };
-    };
+    gpg.enable = true;
     # Let Home Manager install and manage itself.
     home-manager.enable = true;
     nix-index-database.comma.enable = true;
@@ -560,7 +599,7 @@ in
     # };
     gpg-agent = {
       enable = true;
-      pinentryPackage = pkgs.pinentry-gnome3;
+      pinentryPackage = if desktop == "kde" then null else pkgs.pinentry-gnome3;
     };
   };
 
@@ -666,12 +705,6 @@ in
         };
       };
     };
-    sessionVariables = {
-      # gcr
-      SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/gcr/ssh";
-      # Sway
-      _JAVA_AWT_WM_NONREPARENTING = "1";
-    };
     startServices = "sd-switch";
     timers = {
       #      "nix-garbage-collection" = {
@@ -722,27 +755,7 @@ in
   xdg = {
     userDirs.createDirectories = lib.mkDefault true;
     enable = true;
-    portal = {
-      config = {
-        common = {
-          default = [ "gtk" ];
-        };
-        sway = {
-          default = [
-            "wlr"
-            "gtk"
-          ];
-          "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
-          # "org.freedesktop.portal.FileChooser" = ["xdg-desktop-portal-gtk"];
-        };
-      };
-      enable = true;
-      extraPortals = [
-        pkgs.xdg-desktop-portal-gtk
-        pkgs.xdg-desktop-portal-wlr
-      ];
-      xdgOpenUsePortal = true;
-    };
+    portal.xdgOpenUsePortal = true;
   };
   # xdg.enable = true; ?
   # xdg.userDirs.createDirectories = true;

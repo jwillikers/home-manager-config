@@ -22,7 +22,7 @@ format:
 alias s := switch
 
 switch:
-    home-manager --flake . switch
+    home-manager --flake ".#"$(id --name --user)@$(hostname --short) switch
 
 alias u := update
 alias up := update

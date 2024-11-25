@@ -1,10 +1,11 @@
 {
   fetchFromGitea,
   fish,
-  stdenv,
+  lib,
+  stdenvNoCC,
 }:
 
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   pname = "foot-config";
   version = "0-unstable-2024-09-30";
 
@@ -17,11 +18,13 @@ stdenv.mkDerivation {
   };
 
   installPhase = ''
+    runHook preInstall
     install -D --mode=0644 foot.ini $out/etc/foot/foot.ini
+    runHook postInstall
   '';
 
   postFixup = ''
     substituteInPlace $out/etc/foot/foot.ini \
-      --replace-fail "shell=/usr/bin/fish" "shell=${fish}/bin/fish"
+      --replace-fail "shell=/usr/bin/fish" "shell=${lib.getExe fish}"
   '';
 }
