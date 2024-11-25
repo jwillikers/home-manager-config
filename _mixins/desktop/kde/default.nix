@@ -7,7 +7,9 @@
 {
   home = {
     file = {
-      "${config.home.homeDirectory}/.gnupg/gpg-agent.conf".text = "pinentry-program ${lib.getBin pkgs.kwalletcli}/bin/pinentry-kwallet";
+      "${config.home.homeDirectory}/.gnupg/gpg-agent.conf".text = ''
+        pinentry-program ${lib.getBin pkgs.kwalletcli}/bin/pinentry-kwallet
+      '';
       # Go to System Settings > KDE Wallet and enable Use KWallet for the Secret Service interface. ??
       "${config.xdg.dataHome}/dbus-1/services/org.freedesktop.secrets.service".text = ''
         [D-BUS Service]
