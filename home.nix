@@ -143,6 +143,7 @@ in
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
+      # todo Set GITHUB_TOKEN in environment for pull-request reviews.
       nixpkgs-review # Nix code review
       nix-tree # Examine dependencies of Nix derivations
       nix-update # Update Nix packages
