@@ -137,6 +137,7 @@ in
       # h # Modern Unix autojump for git projects
       just # Command runner
       libtree # Tree output for ldd
+      minio-client
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
@@ -152,6 +153,7 @@ in
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
       tio # Serial device I/O tool
+      tone
       treefmt # Code formatter
       wl-clipboard-rs # Wayland clipboard program
     ];
