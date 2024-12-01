@@ -21,6 +21,7 @@ let
     "com.nextcloud.desktopclient.nextcloud"
     "de.haeckerfelix.Fragments"
     "im.riot.Riot"
+    "io.github.ciromattia.kcc"
     "io.gitlab.azymohliad.WatchMate"
     "io.gitlab.news_flash.NewsFlash"
     "net.hovancik.Stretchly"
