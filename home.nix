@@ -137,6 +137,7 @@ in
       gcr # A library for accessing key stores
       # h # Modern Unix autojump for git projects
       just # Command runner
+      kcc # Kindle Comic Converter
       libtree # Tree output for ldd
       minio-client
       net-snmp # SNMP manager tools
