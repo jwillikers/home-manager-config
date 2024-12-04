@@ -21,6 +21,7 @@ let
     "com.nextcloud.desktopclient.nextcloud"
     "de.haeckerfelix.Fragments"
     "im.riot.Riot"
+    "io.github.ciromattia.kcc"
     "io.gitlab.azymohliad.WatchMate"
     "io.gitlab.news_flash.NewsFlash"
     "net.hovancik.Stretchly"
@@ -136,10 +137,13 @@ in
       gcr # A library for accessing key stores
       # h # Modern Unix autojump for git projects
       just # Command runner
+      kcc # Kindle Comic Converter
       libtree # Tree output for ldd
+      minio-client
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
+      # todo Set GITHUB_TOKEN in environment for pull-request reviews.
       nixpkgs-review # Nix code review
       nix-tree # Examine dependencies of Nix derivations
       nix-update # Update Nix packages
@@ -152,6 +156,7 @@ in
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
       tio # Serial device I/O tool
+      tone
       treefmt # Code formatter
       wl-clipboard-rs # Wayland clipboard program
     ];

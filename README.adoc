@@ -15,31 +15,29 @@ image:https://github.com/jwillikers/home-manager-config/actions/workflows/build.
 
 This is my {Home-Manager} configuration.
 
-// todo Install udev rules
-// todo Install KDE wallet integration things such as ksshaskpass and related autostart service
-// todo Fix colorscheme for konsole
 // todo Configure theme for KDE?
 
 == Getting Started
 
 This Home Manager configuration is currently intended for Fedora Atomic Sway.
 
-. Install `gcr` package for secret management.
+Sway::
++
+.. Install `gcr` package for secret management.
 +
 [,sh]
 ----
-// kwallet for kde?
-sudo rpm-ostree install fish gcr
+sudo rpm-ostree install gcr
 ----
 
-. Reboot to apply the changes.
+.. Reboot to apply the changes.
 +
 [,sh]
 ----
 sudo systemctl reboot
 ----
 
-. Enable the `gcr-ssh-agent.socket` systemd socket.
+.. Enable the `gcr-ssh-agent.socket` systemd socket.
 +
 [,sh]
 ----
@@ -52,16 +50,6 @@ systemctl --user enable --now gcr-ssh-agent.socket
 ----
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
-
-// todo Remove.
-// . Install Home Manager.
-// +
-// [,sh]
-// ----
-// nix-channel --add https://github.com/nix-community/home-manager/archive/master.tar.gz home-manager
-// nix-channel --update
-// nix-shell '<home-manager>' -A install
-// ----
 
 . Clone the repository.
 +
