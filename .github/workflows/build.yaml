@@ -23,6 +23,6 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v16
       - uses: DeterminateSystems/magic-nix-cache-action@v9
       - name: Build x1-yoga
-        run: nix develop --command home-manager --flake .#jordan@x1-yoga build
+        run: nix develop --command home-manager --flake .#jordan@x1-yoga --impure build
       - name: Build precision5350
-        run: nix develop --command home-manager --flake .#jordan@precision5350 build
+        run: nix develop --command home-manager --flake .#jordan@precision5350 --impure build

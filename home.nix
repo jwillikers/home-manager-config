@@ -13,7 +13,7 @@ let
   homeDirectory = "/home/${username}";
   flatpaks = [
     "com.bitwarden.desktop"
-    "com.calibre_ebook.calibre"
+    # "com.calibre_ebook.calibre"
     "com.discordapp.Discord"
     "com.github.geigi.cozy"
     "com.github.iwalton3.jellyfin-media-player"
@@ -129,6 +129,7 @@ in
       # librsvg?
       asciidoctor
       beets # Music collection organizer
+      (config.lib.nixGL.wrap calibre) # EBook manager
       cbconvert # Comic book converter
       ccache # Compiler cache
       deadnix # Nix dead code finder
@@ -137,7 +138,7 @@ in
       gcr # A library for accessing key stores
       # h # Modern Unix autojump for git projects
       just # Command runner
-      kcc # Kindle Comic Converter
+      image_optim # Image optimizer
       libtree # Tree output for ldd
       minio-client
       net-snmp # SNMP manager tools
@@ -305,6 +306,16 @@ in
       "${config.xdg.configHome}/vim/vimrc".source = packages.vim-config + "/etc/vim/vimrc";
       ".gnupg/common.conf".text = "use-keyboxd";
       ".ssh/config.d".source = packages.openssh-client-config + "/etc/ssh/ssh_config.d";
+
+      # todo Comicvine API key for Calibre plugin from SOPS
+      # ".var/app/com.calibre_ebook.calibre/config/calibre/plugins/comicvine.json".contents = ''
+      # {
+      #   "api_key": "<API KEY>",
+      #   "max_volumes": 2,
+      #   "requests_rate": 1,
+      #   "worker_threads": 16
+      # }
+      # '';
     };
   };
 
