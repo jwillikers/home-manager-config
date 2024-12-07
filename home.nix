@@ -64,8 +64,9 @@ in
     # outputs.homeManagerModules.example
 
     # Modules exported from other flakes:
-    # inputs.sops-nix.homeManagerModules.sops
+    inputs.media-juggler.hmModules.media-juggler
     inputs.nix-index-database.hmModules.nix-index
+    # inputs.sops-nix.homeManagerModules.sops
     ./_mixins/desktop
     ./_mixins/scripts
   ];
@@ -125,17 +126,20 @@ in
     packages = with pkgs; [
       (nerdfonts.override { fonts = [ "Noto" ]; })
       age
+      android-tools # Tools for Android mobile OS
       appstream
       # librsvg?
       asciidoctor
-      beets # Music collection organizer
-      (config.lib.nixGL.wrap calibre) # EBook manager
+      # beets # Music collection organizer
+      # (config.lib.nixGL.wrap calibre) # EBook manager
+      calibre # EBook manager
       cbconvert # Comic book converter
       ccache # Compiler cache
       deadnix # Nix dead code finder
       deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
       gcr # A library for accessing key stores
+      # gptfdisk
       # h # Modern Unix autojump for git projects
       just # Command runner
       image_optim # Image optimizer
@@ -152,6 +156,8 @@ in
       nurl # Nix URL fetcher
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
+      # qemu # Emulator
+      # quickemu # Quickly spin up virtual machines
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
@@ -368,9 +374,10 @@ in
     vulkan.enable = true;
   };
 
-  #nixpkgs.overlays = [
-  #  inputs.lix-module.overlays.default;
-  #];
+  # nixpkgs.overlays = [
+  # inputs.media-juggler.overlays.calibre-acsm-plugin-libcrypto
+  # inputs.lix-module.overlays.default
+  # ];
 
   programs = {
     bat = {
