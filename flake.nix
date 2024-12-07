@@ -12,6 +12,15 @@
       url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.91";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    media-juggler = {
+      url = "/var/home/jordan/Projects/media-juggler";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+        pre-commit-hooks.follows = "pre-commit-hooks";
+        treefmt-nix.follows = "treefmt-nix";
+      };
+    };
     nix-update-scripts = {
       url = "github:jwillikers/nix-update-scripts";
       inputs = {
@@ -55,6 +64,8 @@
       flake-utils,
       home-manager,
       lix-module,
+      # deadnix: skip
+      media-juggler,
       # deadnix: skip
       nix-index-database,
       nix-update-scripts,
