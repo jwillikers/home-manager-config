@@ -145,6 +145,7 @@ in
       image_optim # Image optimizer
       libtree # Tree output for ldd
       minio-client
+      mupdf-headless
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
@@ -154,6 +155,8 @@ in
       nix-update # Update Nix packages
       nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
+      picard # Music tagger
+      pipx
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
       # qemu # Emulator
@@ -162,6 +165,7 @@ in
       ssh-to-age # Convert SSH keys to age keys
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
+      tesseract
       tio # Serial device I/O tool
       tone
       treefmt # Code formatter
@@ -386,6 +390,43 @@ in
         theme = "Solarized (dark)";
       };
     };
+    beets = {
+      enable = true;
+      package = pkgs.unstable.beets;
+      # todo Add API keys when SOPS support is added.
+      settings = {
+        plugins = [
+          "chroma"
+          "embedart"
+          "export"
+          "fetchart"
+          "keyfinder"
+          "lyrics"
+          "scrub"
+        ];
+        acoustid = {
+          # apikey = "";
+        };
+        embedart = {
+          remove_art_file = true;
+        };
+        fetchart = {
+          # fanarttv_key = "";
+          # google_key = "";
+          high_resolution = true;
+          # lastfm_key = "";
+        };
+        keyfinder = {
+          bin = "keyfinder-cli";
+        };
+        lyrics = {
+          # bing_client_secret = "";
+          # bing_lang_to = "english";
+          # google_API_key = "";
+          synced = true;
+        };
+      };
+    };
     carapace = {
       enable = true;
     };
@@ -519,6 +560,12 @@ in
     nix-index-database.comma.enable = true;
     nushell = {
       enable = true;
+      # todo Use in 25.05
+      # plugins = with pkgs.nushellPlugins; [
+      #   formats
+      #   query
+      #   units
+      # ];
     };
     ssh = {
       enable = true;
