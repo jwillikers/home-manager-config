@@ -170,7 +170,8 @@ in
       tio # Serial device I/O tool
       tone
       treefmt # Code formatter
-      wl-clipboard-rs # Wayland clipboard program
+      # todo Use wl-clipboard-rs?
+      wl-clipboard # Wayland clipboard program
     ];
 
     sessionVariables = {
