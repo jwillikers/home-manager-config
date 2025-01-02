@@ -1,6 +1,7 @@
 {
   clipse,
   fetchFromGitea,
+  fish,
   foot,
   glib,
   lib,
@@ -16,8 +17,8 @@ stdenvNoCC.mkDerivation {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "sway-config";
-    rev = "9e8bc619690078166b2c137fb77286a8870ddff6";
-    hash = "sha256-Igp22hkVyPJACkPeopvw8/8wzHw9IRN5SVFHCkqbE5I=";
+    rev = "3ca7d3ad2a756be94cbfb16acf9398151370c896";
+    hash = "sha256-BxM4z6pYaDEA8L+ptt0eATKDLmaPOfqw9PTx0My10Tw=";
   };
 
   installPhase = ''
@@ -29,7 +30,9 @@ stdenvNoCC.mkDerivation {
   postFixup = ''
     substituteInPlace $out/etc/sway/config.d/99-clipse.conf \
       --replace-fail "exec clipse" "exec ${lib.getExe clipse}" \
-      --replace-fail "exec foot" "exec ${lib.getExe foot}"
+      --replace-fail "exec foot" "exec ${lib.getExe foot}" \
+      --replace-fail "and clipse" "and ${lib.getExe clipse}" \
+      --replace-fail " fish " " ${lib.getExe fish} "
     substituteInPlace $out/etc/sway/config.d/99-swayaudioidleinhibit.conf \
       --replace-fail "exec sway-audio-idle-inhibit" "exec ${lib.getExe sway-audio-idle-inhibit}"
     substituteInPlace $out/etc/sway/config.d/99-gtk-dark-theme.conf \

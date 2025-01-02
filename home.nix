@@ -135,6 +135,7 @@ in
       calibre # EBook manager
       cbconvert # Comic book converter
       ccache # Compiler cache
+      clipse # Clipboard manager
       deadnix # Nix dead code finder
       deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
