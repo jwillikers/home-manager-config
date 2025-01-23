@@ -9,7 +9,7 @@
     };
     lix-module = {
       # todo autoupdate
-      url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.91";
+      url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.92";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     media-juggler = {
@@ -46,7 +46,6 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        nixpkgs-stable.follows = "nixpkgs";
       };
     };
     # todo inputs follows for sops?
