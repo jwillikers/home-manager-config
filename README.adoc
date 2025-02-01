@@ -51,14 +51,28 @@ systemctl --user enable --now gcr-ssh-agent.socket
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
 
+. Configure your user as an allowed and trusted user for Nix.
++
+./etc/nix/nix.conf
+[,ini]
+----
+allowed-users = jordan
+trusted-users = jordan
+----
+
+. Restart the Nix daemon.
++
+[,sh]
+----
+sudo systemctl restart nix-daemon.service
+----
+
 . Clone the repository.
 +
 [,sh]
 ----
 git clone git@github.com:jwillikers/home-manager-config.git
 ----
-
-// todo Add user to trusted-users in nix.conf
 
 . Change into the repository's directory.
 +
