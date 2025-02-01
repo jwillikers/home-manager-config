@@ -1,5 +1,38 @@
 {
   "nodes": {
+    "chapterz": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nix-update-scripts": [
+          "nix-update-scripts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": "nixpkgs-unstable",
+        "pre-commit-hooks": [
+          "pre-commit-hooks"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1738418692,
+        "narHash": "sha256-c9KR7neBKRp7pqgykMM7VU1MhRBS5N7YMV+VfBuHOJM=",
+        "owner": "jwillikers",
+        "repo": "chapterz",
+        "rev": "b8f59f19dfcaeb9e3ed981b32deb5faf968bab06",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jwillikers",
+        "repo": "chapterz",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -152,10 +185,13 @@
         "flake-utils": [
           "flake-utils"
         ],
+        "nix-update-scripts": [
+          "nix-update-scripts"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ],
-        "nixpkgs-unstable": "nixpkgs-unstable",
+        "nixpkgs-unstable": "nixpkgs-unstable_2",
         "pre-commit-hooks": [
           "pre-commit-hooks"
         ],
@@ -164,17 +200,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1737131043,
-        "narHash": "sha256-g6eNoIjLt0oQX96vNSD+sj9KslZYJsbGA0U8yqIDmZE=",
-        "ref": "refs/heads/main",
-        "rev": "55fd4c72b360183887129b83c560072c44f7cfb4",
-        "revCount": 67,
-        "type": "git",
-        "url": "file:///var/home/jordan/Projects/media-juggler"
+        "lastModified": 1738418644,
+        "narHash": "sha256-JDRHJfxXNqj3irBbje3fGdgTYCfn+i3MUvHFbhptNUw=",
+        "owner": "jwillikers",
+        "repo": "media-juggler",
+        "rev": "fed978b0cc20fa26d2fedf839a31b412e584750f",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///var/home/jordan/Projects/media-juggler"
+        "owner": "jwillikers",
+        "repo": "media-juggler",
+        "type": "github"
       }
     },
     "nix-index-database": {
@@ -267,6 +303,22 @@
     },
     "nixpkgs-unstable": {
       "locked": {
+        "lastModified": 1738142207,
+        "narHash": "sha256-NGqpVVxNAHwIicXpgaVqJEJWeyqzoQJ9oc8lnK9+WC4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "9d3ae807ebd2981d593cddd0080856873139aa40",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-unstable_2": {
+      "locked": {
         "lastModified": 1734119587,
         "narHash": "sha256-AKU6qqskl0yf2+JdRdD0cfxX4b9x3KKV5RqA6wijmPM=",
         "owner": "NixOS",
@@ -305,6 +357,7 @@
     },
     "root": {
       "inputs": {
+        "chapterz": "chapterz",
         "flake-utils": "flake-utils",
         "home-manager": "home-manager",
         "lix-module": "lix-module",

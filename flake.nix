@@ -2,6 +2,16 @@
   description = "Home Manager configuration of jwillikers";
 
   inputs = {
+    chapterz = {
+      url = "github:jwillikers/chapterz";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nix-update-scripts.follows = "nix-update-scripts";
+        nixpkgs.follows = "nixpkgs";
+        pre-commit-hooks.follows = "pre-commit-hooks";
+        treefmt-nix.follows = "treefmt-nix";
+      };
+    };
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
@@ -13,9 +23,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     media-juggler = {
-      url = "/var/home/jordan/Projects/media-juggler";
+      url = "github:jwillikers/media-juggler";
       inputs = {
         flake-utils.follows = "flake-utils";
+        nix-update-scripts.follows = "nix-update-scripts";
         nixpkgs.follows = "nixpkgs";
         pre-commit-hooks.follows = "pre-commit-hooks";
         treefmt-nix.follows = "treefmt-nix";
@@ -60,6 +71,8 @@
     {
       # deadnix: skip
       self,
+      # deadnix: skip
+      chapterz,
       flake-utils,
       home-manager,
       lix-module,

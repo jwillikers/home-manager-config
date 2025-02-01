@@ -125,6 +125,7 @@ in
 
     packages = with pkgs; [
       (nerdfonts.override { fonts = [ "Noto" ]; })
+      inputs.chapterz.packages.${system}.chapterz
       age
       android-tools # Tools for Android mobile OS
       appstream
