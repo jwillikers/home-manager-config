@@ -17,10 +17,9 @@
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # todo autoupdate
     lix-module = {
-      url = "https://git.lix.systems/lix-project/nixos-module/archive/release-2.92.tar.gz";
-      # url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.92";
+      # todo autoupdate
+      url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.92";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     media-juggler = {
