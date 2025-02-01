@@ -29,11 +29,16 @@ name: Check files with treefmt
 
 jobs:
   treefmt:
+    permissions:
+      id-token: write
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v16
-      - uses: DeterminateSystems/flakehub-cache-action@v9
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          determinate: true
+      - uses: DeterminateSystems/flakehub-cache-action@main
       - name: Run treefmt
         run: nix develop --command treefmt --ci
       - uses: reviewdog/action-suggester@v1
