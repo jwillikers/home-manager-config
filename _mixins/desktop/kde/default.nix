@@ -68,7 +68,7 @@
           ];
           # For some reason the dependencies are not enough for this service to start successfully.
           # Add a delay to ensure it succeeds.
-          ExecStartPre = "${lib.getBin pkgs.coreutils}/sleep 15";
+          ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 15";
           ExecStart = "${lib.getBin pkgs.openssh}/bin/ssh-add -q";
         };
 
