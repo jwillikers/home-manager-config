@@ -3,9 +3,9 @@ name: yamllint
   pull_request:
     branches: ["main"]
     paths:
-      - '**.nix'
-      - '**.yaml'
-      - '**.yml'
+      - "**.nix"
+      - "**.yaml"
+      - "**.yml"
       - .github/workflows/yamllint.yaml
       - .yamllint.yaml
       - flake.lock
@@ -16,6 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - uses: DeterminateSystems/flakehub-cache-action@v9
       - name: Check YAML files
         run: nix develop --command yamllint --format github .
