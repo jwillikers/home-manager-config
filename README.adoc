@@ -79,7 +79,7 @@ ln --force --relative --symbolic . ~/.config/home-manager
 +
 [,sh]
 ----
-mkdir --parents /nix/var/cache/ccache
+sudo mkdir --parents /nix/var/cache/ccache
 ----
 
 . Build and activate the Home Manager configuration
