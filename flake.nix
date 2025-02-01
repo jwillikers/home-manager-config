@@ -18,8 +18,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix-module = {
-      # todo autoupdate
-      url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=2.92.0";
+      url = "git+https://git.lix.systems/lix-project/nixos-module.git";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     media-juggler = {
