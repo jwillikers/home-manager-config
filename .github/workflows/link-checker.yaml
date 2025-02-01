@@ -6,16 +6,16 @@ name: Check URLs with Lychee
     paths:
       - .github/workflows/link-checker.yaml
       - flake.lock
-      - '**.adoc'
-      - '**.nix'
+      - "**.adoc"
+      - "**.nix"
       - lychee.toml
   push:
     branches: [main]
     paths:
       - .github/workflows/link-checker.yaml
       - flake.lock
-      - '**.adoc'
-      - '**.nix'
+      - "**.adoc"
+      - "**.nix"
       - lychee.toml
   schedule:
     # Run once a month on the 14th.
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - uses: DeterminateSystems/flakehub-cache-action@v9
       - name: Restore lychee cache
         id: cache-lychee-restore
         uses: actions/cache/restore@v4

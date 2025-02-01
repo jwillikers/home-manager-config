@@ -13,7 +13,7 @@ let
   homeDirectory = "/home/${username}";
   flatpaks = [
     "com.bitwarden.desktop"
-    "com.calibre_ebook.calibre"
+    # "com.calibre_ebook.calibre"
     "com.discordapp.Discord"
     "com.github.geigi.cozy"
     "com.github.iwalton3.jellyfin-media-player"
@@ -21,6 +21,7 @@ let
     "com.nextcloud.desktopclient.nextcloud"
     "de.haeckerfelix.Fragments"
     "im.riot.Riot"
+    "io.github.ciromattia.kcc"
     "io.gitlab.azymohliad.WatchMate"
     "io.gitlab.news_flash.NewsFlash"
     "net.hovancik.Stretchly"
@@ -63,8 +64,9 @@ in
     # outputs.homeManagerModules.example
 
     # Modules exported from other flakes:
-    # inputs.sops-nix.homeManagerModules.sops
+    inputs.media-juggler.hmModules.media-juggler
     inputs.nix-index-database.hmModules.nix-index
+    # inputs.sops-nix.homeManagerModules.sops
     ./_mixins/desktop
     ./_mixins/scripts
   ];
@@ -123,37 +125,54 @@ in
 
     packages = with pkgs; [
       (nerdfonts.override { fonts = [ "Noto" ]; })
+      inputs.chapterz.packages.${system}.chapterz
       age
+      android-tools # Tools for Android mobile OS
       appstream
       # librsvg?
       asciidoctor
-      beets # Music collection organizer
+      # beets # Music collection organizer
+      # (config.lib.nixGL.wrap calibre) # EBook manager
+      calibre # EBook manager
       cbconvert # Comic book converter
       ccache # Compiler cache
+      clipse # Clipboard manager
       deadnix # Nix dead code finder
       deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
       gcr # A library for accessing key stores
+      # gptfdisk
       # h # Modern Unix autojump for git projects
       just # Command runner
+      image_optim # Image optimizer
       libtree # Tree output for ldd
+      minio-client
+      mupdf-headless
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
+      # todo Set GITHUB_TOKEN in environment for pull-request reviews.
       nixpkgs-review # Nix code review
       nix-tree # Examine dependencies of Nix derivations
       nix-update # Update Nix packages
       nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
+      picard # Music tagger
+      pipx
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
+      # qemu # Emulator
+      # quickemu # Quickly spin up virtual machines
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
+      tesseract
       tio # Serial device I/O tool
+      tone
       treefmt # Code formatter
-      wl-clipboard-rs # Wayland clipboard program
+      # todo Use wl-clipboard-rs?
+      wl-clipboard # Wayland clipboard program
     ];
 
     sessionVariables = {
@@ -300,6 +319,16 @@ in
       "${config.xdg.configHome}/vim/vimrc".source = packages.vim-config + "/etc/vim/vimrc";
       ".gnupg/common.conf".text = "use-keyboxd";
       ".ssh/config.d".source = packages.openssh-client-config + "/etc/ssh/ssh_config.d";
+
+      # todo Comicvine API key for Calibre plugin from SOPS
+      # ".var/app/com.calibre_ebook.calibre/config/calibre/plugins/comicvine.json".contents = ''
+      # {
+      #   "api_key": "<API KEY>",
+      #   "max_volumes": 2,
+      #   "requests_rate": 1,
+      #   "worker_threads": 16
+      # }
+      # '';
     };
   };
 
@@ -352,15 +381,53 @@ in
     vulkan.enable = true;
   };
 
-  #nixpkgs.overlays = [
-  #  inputs.lix-module.overlays.default;
-  #];
+  # nixpkgs.overlays = [
+  # inputs.media-juggler.overlays.calibre-acsm-plugin-libcrypto
+  # inputs.lix-module.overlays.default
+  # ];
 
   programs = {
     bat = {
       enable = true;
       config = {
         theme = "Solarized (dark)";
+      };
+    };
+    beets = {
+      enable = true;
+      package = pkgs.unstable.beets;
+      # todo Add API keys when SOPS support is added.
+      settings = {
+        plugins = [
+          "chroma"
+          "embedart"
+          "export"
+          "fetchart"
+          "keyfinder"
+          "lyrics"
+          "scrub"
+        ];
+        acoustid = {
+          # apikey = "";
+        };
+        embedart = {
+          remove_art_file = true;
+        };
+        fetchart = {
+          # fanarttv_key = "";
+          # google_key = "";
+          high_resolution = true;
+          # lastfm_key = "";
+        };
+        keyfinder = {
+          bin = "keyfinder-cli";
+        };
+        lyrics = {
+          # bing_client_secret = "";
+          # bing_lang_to = "english";
+          # google_API_key = "";
+          synced = true;
+        };
       };
     };
     carapace = {
@@ -496,6 +563,12 @@ in
     nix-index-database.comma.enable = true;
     nushell = {
       enable = true;
+      # todo Use in 25.05
+      # plugins = with pkgs.nushellPlugins; [
+      #   formats
+      #   query
+      #   units
+      # ];
     };
     ssh = {
       enable = true;

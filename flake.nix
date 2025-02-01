@@ -2,6 +2,16 @@
   description = "Home Manager configuration of jwillikers";
 
   inputs = {
+    chapterz = {
+      url = "github:jwillikers/chapterz";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nix-update-scripts.follows = "nix-update-scripts";
+        nixpkgs.follows = "nixpkgs";
+        pre-commit-hooks.follows = "pre-commit-hooks";
+        treefmt-nix.follows = "treefmt-nix";
+      };
+    };
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
@@ -9,8 +19,18 @@
     };
     lix-module = {
       # todo autoupdate
-      url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.91";
+      url = "git+https://git.lix.systems/lix-project/nixos-module.git?ref=release-2.92";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    media-juggler = {
+      url = "github:jwillikers/media-juggler";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nix-update-scripts.follows = "nix-update-scripts";
+        nixpkgs.follows = "nixpkgs";
+        pre-commit-hooks.follows = "pre-commit-hooks";
+        treefmt-nix.follows = "treefmt-nix";
+      };
     };
     nix-update-scripts = {
       url = "github:jwillikers/nix-update-scripts";
@@ -37,7 +57,6 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        nixpkgs-stable.follows = "nixpkgs";
       };
     };
     # todo inputs follows for sops?
@@ -52,9 +71,13 @@
     {
       # deadnix: skip
       self,
+      # deadnix: skip
+      chapterz,
       flake-utils,
       home-manager,
       lix-module,
+      # deadnix: skip
+      media-juggler,
       # deadnix: skip
       nix-index-database,
       nix-update-scripts,

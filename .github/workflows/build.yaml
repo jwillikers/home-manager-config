@@ -4,13 +4,13 @@ name: Build
   pull_request:
     branches: ["main"]
     paths:
-      - '**.nix'
+      - "**.nix"
       - .github/workflows/build.yaml
       - flake.lock
   push:
     branches: ["main"]
     paths:
-      - '**.nix'
+      - "**.nix"
       - .github/workflows/build.yaml
       - flake.lock
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - uses: DeterminateSystems/flakehub-cache-action@v9
       - name: Build x1-yoga
         run: nix develop --command home-manager --flake .#jordan@x1-yoga build
       - name: Build precision5350

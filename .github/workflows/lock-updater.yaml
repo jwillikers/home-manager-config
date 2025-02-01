@@ -3,7 +3,7 @@ name: Flake ❄️ Lock 🔒️ Updater ✨
 "on":
   schedule:
     # Run once a month on the third.
-    - cron: '0 0 3 * *'
+    - cron: "0 0 3 * *"
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: DeterminateSystems/nix-installer-action@v16
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - uses: DeterminateSystems/flakehub-cache-action@v9
       - uses: DeterminateSystems/update-flake-lock@v24
         with:
           pr-assignees: ${{ github.repository_owner }}

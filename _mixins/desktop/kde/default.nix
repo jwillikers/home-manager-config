@@ -66,6 +66,9 @@
             "SSH_ASKPASS=${lib.getExe pkgs.kdePackages.ksshaskpass}"
             "SSH_AUTH_SOCK=%t/ssh-agent.socket"
           ];
+          # For some reason the dependencies are not enough for this service to start successfully.
+          # Add a delay to ensure it succeeds.
+          ExecStartPre = "${lib.getBin pkgs.coreutils}/sleep 15";
           ExecStart = "${lib.getBin pkgs.openssh}/bin/ssh-add -q";
         };
 
