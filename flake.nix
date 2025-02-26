@@ -140,7 +140,7 @@
                 ${builtins.concatStringsSep "\n" (
                   builtins.map (
                     package: "${pkgs.lib.getExe pkgs.nix-update} ${package} --build --flake --version branch"
-                  ) (builtins.attrNames packages)
+                  ) (builtins.attrNames (removeAttrs packages [ "udev-rules" ]))
                 )}
                 ${pkgs.lib.getExe treefmtEval.config.build.wrapper}
               ''
