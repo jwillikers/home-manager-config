@@ -27,7 +27,7 @@ Sway::
 +
 [,sh]
 ----
-sudo rpm-ostree install gcr
+sudo rpm-ostree install gcr # fctix5-autostart?
 ----
 
 .. Reboot to apply the changes.

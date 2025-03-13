@@ -332,6 +332,22 @@ in
     };
   };
 
+  i18n.inputMethod = {
+    enabled = "fcitx5";
+    fcitx5 = {
+      addons = with pkgs; [
+        fcitx5-gtk
+        fcitx5-lua
+        kdePackages.fcitx5-configtool
+        kdePackages.fcitx5-qt
+        libsForQt5.fcitx5-qt
+      ];
+      # todo in 24.05
+      # fcitx5-with-addons = pkgs.kdePackages.fcitx5-with-addons;
+      # waylandFrontend = true;
+    };
+  };
+
   nix = {
     # This will add each flake input as a registry
     # To make nix3 commands consistent with your flake
