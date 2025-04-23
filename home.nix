@@ -136,6 +136,7 @@ in
       calibre # EBook manager
       cbconvert # Comic book converter
       ccache # Compiler cache
+      chromaprint # Utility to calculate AcoustID audio fingerprint
       clipse # Clipboard manager
       deadnix # Nix dead code finder
       deploy-rs # Nix deployment
