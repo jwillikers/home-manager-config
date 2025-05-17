@@ -147,6 +147,7 @@ in
       just # Command runner
       image_optim # Image optimizer
       libtree # Tree output for ldd
+      inputs.m4b-tool.packages.${system}.m4b-tool # Audiobook merging, splitting, and chapters tool
       minio-client
       mupdf-headless
       net-snmp # SNMP manager tools

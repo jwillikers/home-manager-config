@@ -10,6 +10,14 @@
         nixpkgs.follows = "nixpkgs";
         pre-commit-hooks.follows = "pre-commit-hooks";
         treefmt-nix.follows = "treefmt-nix";
+        m4b-tool.follows = "m4b-tool";
+      };
+    };
+    m4b-tool = {
+      url = "github:sandreas/m4b-tool";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
       };
     };
     flake-utils.url = "github:numtide/flake-utils";
@@ -52,6 +60,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    # Add nixpkgs-unstable here so that it is part of the generated registries.json file
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs = {
@@ -76,12 +86,16 @@
       home-manager,
       lix-module,
       # deadnix: skip
+      m4b-tool,
+      # deadnix: skip
       media-juggler,
       # deadnix: skip
       nix-index-database,
       nix-update-scripts,
       nixgl,
       nixpkgs,
+      # deadnix: skip
+      nixpkgs-unstable,
       pre-commit-hooks,
       treefmt-nix,
     }@inputs:
