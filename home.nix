@@ -146,6 +146,7 @@ in
       # h # Modern Unix autojump for git projects
       just # Command runner
       image_optim # Image optimizer
+      kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
       inputs.m4b-tool.packages.${system}.m4b-tool # Audiobook merging, splitting, and chapters tool
       minio-client
