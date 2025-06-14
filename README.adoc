@@ -129,6 +129,17 @@ To apply changes in `/etc/nix/nix.conf`, restart the Nix daemon.
 sudo systemctl restart nix-daemon.service
 ----
 ====
+
+[TIP]
+====
+If the DeACSM fails during installation, it's necessary to manually delete the plugin and then redeploy the config and re-import your key in Calibre.
+The following command will delete the plugin.
+
+[,sh]
+----
+rm ~/.config/calibre/plugins/ACSM\ Input.zip ~/.config/calibre/plugins/deacsm.json
+----
+====
 --
 
 . Log out and back in for certain environment variable changes to take effect.
