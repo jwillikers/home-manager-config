@@ -126,8 +126,8 @@ in
     packages = with pkgs; [
       pkgs.nerd-fonts.noto
       inputs.chapterz.packages.${system}.chapterz
-      inputs.media-juggler.packages.minuimus
-      inputs.media-juggler.packages.pdfsizeopt
+      inputs.media-juggler.packages.${system}.minuimus
+      inputs.media-juggler.packages.${system}.pdfsizeopt
       advancecomp
       age
       android-tools # Tools for Android mobile OS
