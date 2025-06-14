@@ -10,7 +10,6 @@
         nixpkgs.follows = "nixpkgs";
         pre-commit-hooks.follows = "pre-commit-hooks";
         treefmt-nix.follows = "treefmt-nix";
-        m4b-tool.follows = "m4b-tool";
       };
     };
     m4b-tool = {
@@ -22,7 +21,7 @@
     };
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.11";
+      url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix-module = {
@@ -33,6 +32,7 @@
       url = "github:jwillikers/media-juggler";
       inputs = {
         flake-utils.follows = "flake-utils";
+        m4b-tool.follows = "m4b-tool";
         nix-update-scripts.follows = "nix-update-scripts";
         nixpkgs.follows = "nixpkgs";
         pre-commit-hooks.follows = "pre-commit-hooks";
@@ -59,7 +59,7 @@
       url = "github:Mic92/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     # Add nixpkgs-unstable here so that it is part of the generated registries.json file
     nixpkgs-unstable.url = "github:NixOS/nixpkgs";
     pre-commit-hooks = {
@@ -105,11 +105,17 @@
         overlays = [
           lix-module.overlays.default
           nixgl.overlay
+          (_final: prev: {
+            image_optim = prev.image_optim.override { withPngout = true; };
+          })
         ];
         pkgs = import nixpkgs {
           inherit system overlays;
           # todo Limit this to specific packages.
-          config.allowUnfree = true;
+          config = {
+            allowUnfree = true;
+            permittedInsecurePackages = [ "python-2.7.18.8" ];
+          };
         };
         pre-commit = pre-commit-hooks.lib.${system}.run (
           import ./pre-commit-hooks.nix { inherit pkgs treefmtEval; }

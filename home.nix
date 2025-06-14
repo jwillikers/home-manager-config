@@ -124,8 +124,11 @@ in
     stateVersion = "24.05"; # Please read the comment before changing.
 
     packages = with pkgs; [
-      (nerdfonts.override { fonts = [ "Noto" ]; })
+      pkgs.nerd-fonts.noto
       inputs.chapterz.packages.${system}.chapterz
+      inputs.media-juggler.packages.${system}.minuimus
+      inputs.media-juggler.packages.${system}.pdfsizeopt
+      advancecomp
       age
       android-tools # Tools for Android mobile OS
       appstream
@@ -133,6 +136,7 @@ in
       asciidoctor
       # beets # Music collection organizer
       # (config.lib.nixGL.wrap calibre) # EBook manager
+      efficient-compression-tool # Image optimization tool
       calibre # EBook manager
       cbconvert # Comic book converter
       ccache # Compiler cache
@@ -337,7 +341,8 @@ in
   };
 
   i18n.inputMethod = {
-    enabled = "fcitx5";
+    enable = true;
+    type = "fcitx5";
     fcitx5 = {
       addons = with pkgs; [
         fcitx5-gtk
@@ -346,9 +351,8 @@ in
         kdePackages.fcitx5-qt
         libsForQt5.fcitx5-qt
       ];
-      # todo in 24.05
-      # fcitx5-with-addons = pkgs.kdePackages.fcitx5-with-addons;
-      # waylandFrontend = true;
+      inherit (pkgs.kdePackages) fcitx5-with-addons;
+      waylandFrontend = true;
     };
   };
 
@@ -606,7 +610,7 @@ in
     };
     vscode = {
       enable = true;
-      extensions = with pkgs.vscode-extensions; [
+      profiles.default.extensions = with pkgs.vscode-extensions; [
         # "1dot75cm.RPMSpec"
         asciidoctor.asciidoctor-vscode
         bbenoist.nix
@@ -692,7 +696,7 @@ in
     # };
     gpg-agent = {
       enable = true;
-      pinentryPackage = if desktop == "kde" then null else pkgs.pinentry-gnome3;
+      pinentry.package = if desktop == "kde" then null else pkgs.pinentry-gnome3;
     };
   };
 
