@@ -65,7 +65,7 @@ in
 
     # Modules exported from other flakes:
     inputs.media-juggler.hmModules.media-juggler
-    inputs.nix-index-database.hmModules.nix-index
+    inputs.nix-index-database.homeModules.nix-index
     # inputs.sops-nix.homeManagerModules.sops
     ./_mixins/desktop
     ./_mixins/scripts
