@@ -64,9 +64,7 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     # todo inputs follows for sops?
     # sops-nix.url = "github:Mic92/sops-nix";
@@ -104,10 +102,9 @@
       let
         overlays = [
           lix-module.overlays.default
+          chapterz.overlays.chapterz
+          m4b-tool.overlay
           nixgl.overlay
-          (_final: prev: {
-            image_optim = prev.image_optim.override { withPngout = true; };
-          })
         ];
         pkgs = import nixpkgs {
           inherit system overlays;

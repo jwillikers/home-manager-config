@@ -64,8 +64,8 @@ in
     # outputs.homeManagerModules.example
 
     # Modules exported from other flakes:
-    inputs.media-juggler.hmModules.media-juggler
-    inputs.nix-index-database.hmModules.nix-index
+    inputs.media-juggler.homeModules.media-juggler
+    inputs.nix-index-database.homeModules.nix-index
     # inputs.sops-nix.homeManagerModules.sops
     ./_mixins/desktop
     ./_mixins/scripts
@@ -124,10 +124,10 @@ in
     stateVersion = "24.05"; # Please read the comment before changing.
 
     packages = with pkgs; [
-      pkgs.nerd-fonts.noto
-      inputs.chapterz.packages.${system}.chapterz
-      inputs.media-juggler.packages.${system}.minuimus
-      inputs.media-juggler.packages.${system}.pdfsizeopt
+      nerd-fonts.noto
+      chapterz
+      minuimus
+      pdfsizeopt
       advancecomp
       age
       android-tools # Tools for Android mobile OS
@@ -145,14 +145,16 @@ in
       deadnix # Nix dead code finder
       deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
+      ghc # Glasgow Haskell Compiler
       gcr # A library for accessing key stores
       # gptfdisk
       # h # Modern Unix autojump for git projects
+      julia # Julia programming language
       just # Command runner
       image_optim # Image optimizer
       kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
-      inputs.m4b-tool.packages.${system}.m4b-tool # Audiobook merging, splitting, and chapters tool
+      m4b-tool # Audiobook merging, splitting, and chapters tool
       minio-client
       mupdf-headless
       net-snmp # SNMP manager tools
@@ -168,7 +170,9 @@ in
       pipx
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
+      python # Python
       rpiboot
+      rustup # Rust toolchain installer
       # qemu # Emulator
       # quickemu # Quickly spin up virtual machines
       sops # Secret management
