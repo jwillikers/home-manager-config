@@ -171,6 +171,7 @@ in
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
       rpiboot
+      rustup # Rust toolchain installer
       # qemu # Emulator
       # quickemu # Quickly spin up virtual machines
       sops # Secret management
