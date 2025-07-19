@@ -145,6 +145,7 @@ in
       deadnix # Nix dead code finder
       deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
+      ghc # Glasgow Haskell Compiler
       gcr # A library for accessing key stores
       # gptfdisk
       # h # Modern Unix autojump for git projects
