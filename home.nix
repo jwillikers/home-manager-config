@@ -149,6 +149,7 @@ in
       gcr # A library for accessing key stores
       # gptfdisk
       # h # Modern Unix autojump for git projects
+      julia # Julia programming language
       just # Command runner
       image_optim # Image optimizer
       kakasi # Japanese Kanji to Kana converter
