@@ -64,7 +64,7 @@ in
     # outputs.homeManagerModules.example
 
     # Modules exported from other flakes:
-    inputs.media-juggler.hmModules.media-juggler
+    inputs.media-juggler.homeModules.media-juggler
     inputs.nix-index-database.homeModules.nix-index
     # inputs.sops-nix.homeManagerModules.sops
     ./_mixins/desktop
@@ -124,10 +124,10 @@ in
     stateVersion = "24.05"; # Please read the comment before changing.
 
     packages = with pkgs; [
-      pkgs.nerd-fonts.noto
-      inputs.chapterz.packages.${system}.chapterz
-      inputs.media-juggler.packages.${system}.minuimus
-      inputs.media-juggler.packages.${system}.pdfsizeopt
+      nerd-fonts.noto
+      chapterz
+      minuimus
+      pdfsizeopt
       advancecomp
       age
       android-tools # Tools for Android mobile OS
@@ -154,7 +154,7 @@ in
       image_optim # Image optimizer
       kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
-      inputs.m4b-tool.packages.${system}.m4b-tool # Audiobook merging, splitting, and chapters tool
+      m4b-tool # Audiobook merging, splitting, and chapters tool
       minio-client
       mupdf-headless
       net-snmp # SNMP manager tools
