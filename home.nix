@@ -170,7 +170,7 @@ in
       pipx
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
-      python3 # Python
+      python3Packages.python # Python
       rpiboot
       rustup # Rust toolchain installer
       # qemu # Emulator
