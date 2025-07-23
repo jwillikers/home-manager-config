@@ -11,8 +11,6 @@ ifdef::env-github[]
 endif::[]
 :Home-Manager: https://nix-community.github.io/home-manager/[Home Manager]
 
-image:https://github.com/jwillikers/home-manager-config/actions/workflows/build.yaml/badge.svg[Build, link=https://github.com/jwillikers/home-manager-config/actions/workflows/build.yaml]
-
 This is my {Home-Manager} configuration.
 
 // todo Configure theme for KDE?
@@ -49,6 +47,13 @@ systemctl --user enable --now gcr-ssh-agent.socket
 [,sh]
 ----
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
+----
+
+. Create the `ccache` directory the Nix.
++
+[,sh]
+----
+sudo mkdir --parents /nix/var/cache/ccache
 ----
 
 . Configure your user as an allowed and trusted user for Nix.
@@ -88,13 +93,6 @@ cd home-manager-config
 ----
 rm --recursive ~/.config/home-manager
 ln --force --relative --symbolic . ~/.config/home-manager
-----
-
-. Create the `ccache` directory the Nix.
-+
-[,sh]
-----
-sudo mkdir --parents /nix/var/cache/ccache
 ----
 
 . Build and activate the Home Manager configuration
