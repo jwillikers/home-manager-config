@@ -42,6 +42,8 @@ sudo systemctl reboot
 systemctl --user enable --now gcr-ssh-agent.socket
 ----
 
+//-
+
 . Install https://lix.systems[Lix].
 +
 [,sh]
