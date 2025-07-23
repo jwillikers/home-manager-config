@@ -130,6 +130,7 @@
             extraSpecialArgs = {
               inherit inputs nixgl packages;
               desktop = "sway";
+              hostname = "precision5350";
               username = "jordan";
             };
           };
@@ -143,6 +144,7 @@
             extraSpecialArgs = {
               inherit inputs nixgl packages;
               desktop = "kde";
+              hostname = "steamdeck";
               username = "deck";
             };
           };
@@ -156,6 +158,7 @@
             extraSpecialArgs = {
               inherit inputs nixgl packages;
               desktop = "kde";
+              hostname = "x1-yoga";
               username = "jordan";
             };
           };
