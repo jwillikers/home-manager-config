@@ -55,7 +55,7 @@ curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 +
 [,sh]
 ----
-sudo mkdir --parents /nix/var/cache/ccache
+sudo mkdir --parents /nix/var/cache/ccache /var/tmp/nix-daemon
 ----
 
 . Configure your user as an allowed and trusted user for Nix.
@@ -102,7 +102,7 @@ ln --force --relative --symbolic . ~/.config/home-manager
 --
 [,sh]
 ----
-nix develop --command home-manager --flake .#jordan@$(hostname --short) switch
+nix develop --command home-manager --flake .#$(id --user --name)@$(hostname --short) switch
 ----
 
 [TIP]
