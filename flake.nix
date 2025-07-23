@@ -119,30 +119,45 @@
         );
         treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
         packages = import ./packages { inherit pkgs; };
-        homeConfigurations."jordan@precision5350" = home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
+        homeConfigurations = {
+          "jordan@precision5350" = home-manager.lib.homeManagerConfiguration {
+            inherit pkgs;
 
-          modules = [
-            ./home.nix
-          ];
+            modules = [
+              ./home.nix
+            ];
 
-          extraSpecialArgs = {
-            inherit inputs nixgl packages;
-            desktop = "sway";
-            username = "jordan";
+            extraSpecialArgs = {
+              inherit inputs nixgl packages;
+              desktop = "sway";
+              username = "jordan";
+            };
           };
-        };
-        homeConfigurations."jordan@x1-yoga" = home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
+          "deck@steamdeck" = home-manager.lib.homeManagerConfiguration {
+            inherit pkgs;
 
-          modules = [
-            ./home.nix
-          ];
+            modules = [
+              ./home.nix
+            ];
 
-          extraSpecialArgs = {
-            inherit inputs nixgl packages;
-            desktop = "kde";
-            username = "jordan";
+            extraSpecialArgs = {
+              inherit inputs nixgl packages;
+              desktop = "kde";
+              username = "deck";
+            };
+          };
+          "jordan@x1-yoga" = home-manager.lib.homeManagerConfiguration {
+            inherit pkgs;
+
+            modules = [
+              ./home.nix
+            ];
+
+            extraSpecialArgs = {
+              inherit inputs nixgl packages;
+              desktop = "kde";
+              username = "jordan";
+            };
           };
         };
       in
