@@ -177,6 +177,7 @@ in
       # quickemu # Quickly spin up virtual machines
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
+      (config.lib.nixGL.wrap github-desktop) # Git GUI
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
       tesseract
