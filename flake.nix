@@ -100,14 +100,17 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        overlays = [
+        overlays = import ./overlays { inherit inputs; };
+        overlaysList = [
           lix-module.overlays.default
           chapterz.overlays.chapterz
           m4b-tool.overlay
           nixgl.overlay
+          overlays.ludusavi-rclone
         ];
         pkgs = import nixpkgs {
-          inherit system overlays;
+          inherit system;
+          overlays = overlaysList;
           # todo Limit this to specific packages.
           config = {
             allowUnfree = true;

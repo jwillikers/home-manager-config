@@ -25,6 +25,7 @@ let
     "io.gitlab.azymohliad.WatchMate"
     "io.gitlab.news_flash.NewsFlash"
     "net.hovancik.Stretchly"
+    # "net.lutris.Lutris"
     "net.werwolv.ImHex"
     "org.fedoraproject.MediaWriter"
     # "org.fritzing.Fritzing"
@@ -154,6 +155,8 @@ in
       image_optim # Image optimizer
       kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
+      (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
+      (config.lib.nixGL.wrap lutris) # Game launcher
       m4b-tool # Audiobook merging, splitting, and chapters tool
       minio-client
       mupdf-headless
@@ -177,6 +180,7 @@ in
       # quickemu # Quickly spin up virtual machines
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
+      (config.lib.nixGL.wrap github-desktop) # Git GUI
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
       tesseract

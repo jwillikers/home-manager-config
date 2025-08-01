@@ -160,7 +160,7 @@ This repository is licensed under the link:LICENSE[MIT license].
 
 == Copyright
 
-© 2024 Jordan Williams
+© 2024-2025 Jordan Williams
 
 == Authors
 
