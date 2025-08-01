@@ -155,8 +155,8 @@ in
       image_optim # Image optimizer
       kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
-      ludusavi # Game save data backup tool
-      lutris # Game launcher
+      (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
+      (config.lib.nixGL.wrap lutris) # Game launcher
       m4b-tool # Audiobook merging, splitting, and chapters tool
       minio-client
       mupdf-headless
