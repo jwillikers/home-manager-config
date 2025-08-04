@@ -816,6 +816,8 @@ in
       "d ${homeDirectory}/Projects 0750 ${username} ${username} - -"
       "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
       "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
+      # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
+      "L+ ${config.xdg.configHome}/git - - - - ${homeDirectory}/.gitconfig"
       "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
       "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
     ];
