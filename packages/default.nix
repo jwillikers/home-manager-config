@@ -8,6 +8,7 @@
   ludusavi-steam-deck-config = pkgs.callPackage ./ludusavi-steam-deck-config/package.nix { };
   lutris-config = pkgs.callPackage ./lutris-config/package.nix { };
   openssh-client-config = pkgs.callPackage ./openssh-client-config/package.nix { };
+  rclone-config = pkgs.callPackage ./rclone-config/package.nix { };
   stretchly-config = pkgs.callPackage ./stretchly-config/package.nix { };
   stretchly-steam-deck-config = pkgs.callPackage ./stretchly-steam-deck-config/package.nix { };
   sublime-merge-config = pkgs.callPackage ./sublime-merge-config/package.nix { };

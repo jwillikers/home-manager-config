@@ -12,7 +12,7 @@ stdenvNoCC.mkDerivation {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "ludusavi-config";
-    rev = "e1e625d78c5fd6fac403732cc49084f513dbff1d";
+    rev = "b352744ec59a7711c62653dad3fa329e3b969017";
     hash = lib.fakeHash;
   };
 

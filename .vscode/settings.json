@@ -66,6 +66,7 @@
     "procps",
     "qdbus",
     "qttools",
+    "rclone",
     "reviewdog",
     "setsid",
     "SNMP",

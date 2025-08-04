@@ -344,6 +344,8 @@ in
         ludusavi-config + "/etc/ludusavi/config.yaml";
       "${config.xdg.dataHome}/lutris/system.yml".source =
         packages.lutris-config + "/etc/lutris/system.yml";
+      "${config.xdg.configHome}/rclone/rclone.conf".source =
+        packages.rclone-config + "/etc/rclone/rclone.conf";
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
       "${config.xdg.configHome}/tio/config".source = packages.tio-config + "/etc/tio/config";
@@ -808,18 +810,26 @@ in
     };
 
     tmpfiles.rules = [
-      # Create age keys directory for SOPS
+      # Create age keys directory for SOPS.
       "d ${config.xdg.configHome}/sops/age 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books/Books 0750 ${username} ${username} - -"
+      "d ${homeDirectory}/Games 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Projects 0750 ${username} ${username} - -"
+      "d ${homeDirectory}/ludusavi-backup 0750 ${username} ${username} - -"
       "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
       "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
       # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
       "L+ ${config.xdg.configHome}/git - - - - ${homeDirectory}/.gitconfig"
       "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
       "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
+      # Symlink game save data between multiple locations.
+      ## Kingdom Two Crowns
+      "L+ ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release - - - - ${homeDirectory}/.steam/steam/steamapps/compatdata/701160/pfx/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release"
+      "L+ ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release - - - - ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release"
+      ## Dome Keeper
+      "L+ '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' - - - - '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper'"
     ];
   };
 
