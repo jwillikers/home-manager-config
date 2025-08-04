@@ -831,11 +831,11 @@ in
       # Symlink game save data between multiple locations.
       ## Kingdom Two Crowns
       "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"
-      "L+ ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release - - - - ${homeDirectory}/.steam/steam/steamapps/compatdata/701160/pfx/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release"
-      "L+ ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release - - - - ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release"
+      "L+ ${homeDirectory}/.steam/steam/steamapps/compatdata/701160/pfx/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
+      "L+ ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
       ## Dome Keeper
       "v ${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
-      "L+ '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' - - - - '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper'"
+      "L+ '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper' - - - - '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper'"
     ];
   };
 
