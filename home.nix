@@ -824,6 +824,9 @@ in
       "L+ ${config.xdg.configHome}/git - - - - ${homeDirectory}/.gitconfig"
       "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
       "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
+      # Restrict permissions on the Rclone config file.
+      "z ${config.xdg.configHome}/rclone 0700 ${username} ${username} - -"
+      "z ${config.xdg.configHome}/rclone.conf 0600 ${username} ${username} - -"
       # Symlink game save data between multiple locations.
       ## Kingdom Two Crowns
       "L+ ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release - - - - ${homeDirectory}/.steam/steam/steamapps/compatdata/701160/pfx/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release"
