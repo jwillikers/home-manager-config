@@ -816,8 +816,9 @@ in
       "d ${homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Books/Books 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Games 0750 ${username} ${username} - -"
+      # "v ${homeDirectory}/Games/gog 0750 ${username} ${username} - -"
       "d ${homeDirectory}/Projects 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/ludusavi-backup 0750 ${username} ${username} - -"
+      "v ${homeDirectory}/ludusavi-backup 0750 ${username} ${username} - -"
       "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
       "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
       # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
@@ -829,9 +830,11 @@ in
       "z ${config.xdg.configHome}/rclone.conf 0600 ${username} ${username} - -"
       # Symlink game save data between multiple locations.
       ## Kingdom Two Crowns
+      "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"
       "L+ ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release - - - - ${homeDirectory}/.steam/steam/steamapps/compatdata/701160/pfx/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release"
       "L+ ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release - - - - ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release"
       ## Dome Keeper
+      "v ${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
       "L+ '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' - - - - '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper'"
     ];
   };
