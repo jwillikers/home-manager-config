@@ -1,6 +1,7 @@
 {
   config,
   desktop,
+  hostname,
   inputs,
   lib,
   nixgl,
@@ -291,44 +292,58 @@ in
 
       # Symlinking the Stretchly config won't work.
       # It's also necessary to install the config when Stretchly isn't running.
-      stretchly = lib.hm.dag.entryAfter [ "flatpaks" ] ''
-        # We don't want the cmp command to cause the script to fail.
-        set +e
-        cmp --silent \
-          "${packages.stretchly-config}/etc/Stretchly/config.json" \
-          ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
-        exit_status=$?
-        set -e
-        if [ $exit_status -eq 1 ]; then
-          service_running=0
-          if ${pkgs.procps}/bin/pgrep --ignore-case Stretchly >/dev/null; then
-            if ${pkgs.systemdMinimal}/bin/systemctl --user is-active net.hovancik.Stretchly.service >/dev/null; then
-              service_running=1
-              run ${pkgs.systemdMinimal}/bin/systemctl --user stop net.hovancik.Stretchly.service
+      stretchly = lib.hm.dag.entryAfter [ "flatpaks" ] (
+        let
+          stretchly-config =
+            if hostname == "steamdeck" then packages.stretchly-steam-deck-config else packages.stretchly-config;
+        in
+        ''
+          # We don't want the cmp command to cause the script to fail.
+          set +e
+          cmp --silent \
+            "${stretchly-config}/etc/Stretchly/config.json" \
+            ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
+          exit_status=$?
+          set -e
+          if [ $exit_status -eq 1 ]; then
+            service_running=0
+            if ${pkgs.procps}/bin/pgrep --ignore-case Stretchly >/dev/null; then
+              if ${pkgs.systemdMinimal}/bin/systemctl --user is-active net.hovancik.Stretchly.service >/dev/null; then
+                service_running=1
+                run ${pkgs.systemdMinimal}/bin/systemctl --user stop net.hovancik.Stretchly.service
+              else
+                run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
+              fi
             else
+              run ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
+              run sleep 10
               run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
             fi
-          else
-            run ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
-            run sleep 10
-            run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
+            run sleep 1
+            run mkdir --parents .var/app/net.hovancik.Stretchly/config/Stretchly
+            run install -D --mode=0644 $VERBOSE_ARG \
+                "${stretchly-config}/etc/Stretchly/config.json" \
+                ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
+            if [ "$service_running" -eq 1 ]; then
+              run ${pkgs.systemdMinimal}/bin/systemctl --user start net.hovancik.Stretchly.service
+            else
+              run setsid ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
+            fi
           fi
-          run sleep 1
-          run mkdir --parents .var/app/net.hovancik.Stretchly/config/Stretchly
-          run install -D --mode=0644 $VERBOSE_ARG \
-              "${packages.stretchly-config}/etc/Stretchly/config.json" \
-              ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
-          if [ "$service_running" -eq 1 ]; then
-            run ${pkgs.systemdMinimal}/bin/systemctl --user start net.hovancik.Stretchly.service
-          else
-            run setsid ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
-          fi
-        fi
-      '';
+        ''
+      );
     };
 
     file = {
       "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
+      "${config.xdg.configHome}/ludusavi/config.yaml".source =
+        let
+          ludusavi-config =
+            if hostname == "steamdeck" then packages.ludusavi-steam-deck-config else packages.ludusavi-config;
+        in
+        ludusavi-config + "/etc/ludusavi/config.yaml";
+      "${config.xdg.dataHome}/lutris/system.yml".source =
+        packages.lutris-config + "/etc/lutris/system.yml";
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
       "${config.xdg.configHome}/tio/config".source = packages.tio-config + "/etc/tio/config";
