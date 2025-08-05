@@ -832,7 +832,7 @@ in
       "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
       "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
       # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
-      "L+ ${config.xdg.configHome}/git - - - - ${homeDirectory}/.gitconfig"
+      "L+ ${homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
       "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
       "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
       # Restrict permissions on the Rclone config file.
@@ -841,10 +841,10 @@ in
       # Symlink game save data between multiple locations.
       ## Kingdom Two Crowns
       "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"
-      "L+ ${homeDirectory}/.steam/steam/steamapps/compatdata/701160/pfx/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
+      "L+ ${config.xdg.dataHome}/Steam/steamapps/compatdata/701160/pfx/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
       "L+ ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
       ## Dome Keeper
-      "v ${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
+      "v '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
       "L+ '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper' - - - - '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper'"
     ];
   };
