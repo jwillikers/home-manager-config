@@ -340,20 +340,12 @@ in
       "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
       # Copy the file to make it writeable.
       "${config.xdg.configHome}/ludusavi/config_source.yaml" = {
-        text =
+        source =
           let
             ludusavi-config =
               if hostname == "steamdeck" then packages.ludusavi-steam-deck-config else packages.ludusavi-config;
           in
-          lib.strings.replaceString
-            # "NIX_SOPS_PASSWORD_COMMAND"
-            ''"--fast-list --ignore-checksum"''
-            (
-              "'"
-              + ''--fast-list --ignore-checksum --password-command "${lib.getBin pkgs.coreutils}/bin/cat $XDG_RUNTIME_DIR/sops-secrets/nextcloud-ludusavi.txt"''
-              + "'"
-            )
-            (builtins.readFile (ludusavi-config + "/etc/ludusavi/config.yaml"));
+          ludusavi-config + "/etc/ludusavi/config.yaml";
         onChange = ''cat ${config.xdg.configHome}/ludusavi/config_source.yaml > ${config.xdg.configHome}/ludusavi/config.yaml'';
       };
       # Copy the file to make it writeable.
