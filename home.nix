@@ -769,7 +769,7 @@ in
           Restart = "on-failure";
           RestartSec = 10;
           ExitType = "cgroup";
-          SuccessExitStatus = "7";
+          SuccessExitStatus = [ 7 ];
         };
 
         Install = {
