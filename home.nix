@@ -337,14 +337,21 @@ in
 
     file = {
       "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
-      "${config.xdg.configHome}/ludusavi/config.yaml".source =
-        let
-          ludusavi-config =
-            if hostname == "steamdeck" then packages.ludusavi-steam-deck-config else packages.ludusavi-config;
-        in
-        ludusavi-config + "/etc/ludusavi/config.yaml";
-      "${config.xdg.dataHome}/lutris/system.yml".source =
-        packages.lutris-config + "/etc/lutris/system.yml";
+      # Copy the file to make it writeable.
+      "${config.xdg.configHome}/ludusavi/config_source.yaml" = {
+        source =
+          let
+            ludusavi-config =
+              if hostname == "steamdeck" then packages.ludusavi-steam-deck-config else packages.ludusavi-config;
+          in
+          ludusavi-config + "/etc/ludusavi/config.yaml";
+        onChange = ''cat ${config.xdg.configHome}/ludusavi/config_source.yaml > ${config.xdg.configHome}/ludusavi/config.yaml'';
+      };
+      # Copy the file to make it writeable.
+      "${config.xdg.dataHome}/lutris/system_source.yml" = {
+        source = packages.lutris-config + "/etc/lutris/system.yml";
+        onChange = ''cat ${config.xdg.dataHome}/lutris/system_source.yml > ${config.xdg.dataHome}/lutris/system.yml'';
+      };
       "${config.xdg.configHome}/rclone/rclone.conf".source =
         packages.rclone-config + "/etc/rclone/rclone.conf";
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
