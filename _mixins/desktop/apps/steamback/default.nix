@@ -16,26 +16,29 @@
     (config.lib.nixGL.wrap pkgs.steamback) # Steam game save snapshotting tool
   ];
 
-  systemd.user = {
-    services = {
-      "steamback" = {
-        Unit = {
-          Description = "Snapshot saves of Steam games";
-        };
+  # todo
+  # Crashes when run in daemon mode.
+  # See https://github.com/geeksville/steamback/issues/58
+  # systemd.user = {
+  #   services = {
+  #     "steamback" = {
+  #       Unit = {
+  #         Description = "Snapshot saves of Steam games";
+  #       };
 
-        Service = {
-          Type = "simple";
-          ExecStart = "${lib.getExe pkgs.steamback} --daemon";
-          Restart = "on-failure";
-          RestartSec = 5;
-          NoNewPrivileges = true;
-          RestrictRealtime = true;
-        };
+  #       Service = {
+  #         Type = "simple";
+  #         ExecStart = "${lib.getExe pkgs.steamback} --daemon";
+  #         Restart = "on-failure";
+  #         RestartSec = 5;
+  #         NoNewPrivileges = true;
+  #         RestrictRealtime = true;
+  #       };
 
-        Install = {
-          WantedBy = [ "graphical-session.target" ];
-        };
-      };
-    };
-  };
+  #       Install = {
+  #         WantedBy = [ "graphical-session.target" ];
+  #       };
+  #     };
+  #   };
+  # };
 }
