@@ -797,10 +797,6 @@ in
           # ExecStart = "${lib.getExe pkgs.flatpak} update --assumeyes --noninteractive";
           ExecStart = "/usr/bin/flatpak update --assumeyes --noninteractive";
         };
-
-        Install = {
-          WantedBy = [ "default.target" ];
-        };
       };
     };
     startServices = "sd-switch";
