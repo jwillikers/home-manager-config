@@ -25,7 +25,7 @@ let
     "io.github.ciromattia.kcc"
     "io.gitlab.azymohliad.WatchMate"
     "io.gitlab.news_flash.NewsFlash"
-    "net.hovancik.Stretchly"
+    # "net.hovancik.Stretchly"
     # "net.lutris.Lutris"
     "net.werwolv.ImHex"
     "org.fedoraproject.MediaWriter"
@@ -182,6 +182,7 @@ in
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
       (config.lib.nixGL.wrap github-desktop) # Git GUI
+      (config.lib.nixGL.wrap stretchly) # Break timer
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
       tesseract
@@ -302,32 +303,32 @@ in
           set +e
           cmp --silent \
             "${stretchly-config}/etc/Stretchly/config.json" \
-            ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
+            "${config.xdg.configHome}/Stretchly/config.json"
           exit_status=$?
           set -e
           if [ $exit_status -eq 1 ]; then
             service_running=0
-            if ${pkgs.procps}/bin/pgrep --ignore-case Stretchly >/dev/null; then
-              if ${pkgs.systemdMinimal}/bin/systemctl --user is-active net.hovancik.Stretchly.service >/dev/null; then
+            if ${lib.getBin pkgs.procps}/bin/pgrep --full --ignore-case Stretchly >/dev/null; then
+              if ${lib.getBin pkgs.systemdMinimal}/bin/systemctl --user is-active stretchly.service >/dev/null; then
                 service_running=1
-                run ${pkgs.systemdMinimal}/bin/systemctl --user stop net.hovancik.Stretchly.service
+                run ${lib.getBin pkgs.systemdMinimal}/bin/systemctl --user stop stretchly.service
               else
-                run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
+                run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
               fi
             else
-              run ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
-              run sleep 10
-              run ${pkgs.procps}/bin/pkill --ignore-case Stretchly
+              run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
+              run ${lib.getBin pkgs.coreutils}/bin/sleep 10
+              run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
             fi
-            run sleep 1
-            run mkdir --parents .var/app/net.hovancik.Stretchly/config/Stretchly
+            run ${lib.getBin pkgs.coreutils}/bin/sleep 1
+            run mkdir --parents ${config.xdg.configHome}/Stretchly/
             run install -D --mode=0644 $VERBOSE_ARG \
                 "${stretchly-config}/etc/Stretchly/config.json" \
-                ".var/app/net.hovancik.Stretchly/config/Stretchly/config.json"
+                "${config.xdg.configHome}/Stretchly/config.json"
             if [ "$service_running" -eq 1 ]; then
-              run ${pkgs.systemdMinimal}/bin/systemctl --user start net.hovancik.Stretchly.service
+              run ${pkgs.systemdMinimal}/bin/systemctl --user start stretchly.service
             else
-              run setsid ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG run net.hovancik.Stretchly &>/dev/null &
+              run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
             fi
           fi
         ''
@@ -727,7 +728,7 @@ in
 
   systemd.user = {
     services = {
-      "net.hovancik.Stretchly" = {
+      "stretchly" = {
         Unit = {
           Description = "Start Stretchly";
           After = [ "graphical-session.target" ];
@@ -736,10 +737,11 @@ in
 
         Service = {
           Type = "simple";
-          ExecStartPre = "/bin/sleep 1";
+          ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
           # Can't use Nix's flatpak command with electron apps for reasons.
-          ExecStart = "/usr/bin/flatpak run net.hovancik.Stretchly";
-          ExecStop = "/usr/bin/flatpak kill net.hovancik.Stretchly";
+          ExecStart = "${lib.getExe pkgs.stretchly}";
+          # todo Is an ExecStop command needed?
+          # ExecStop = "${pkgs.procps}/bin/pkill --ignore-case Stretchly";
           Restart = "on-failure";
           RestartSec = 10;
           KillMode = "process";
