@@ -1,6 +1,5 @@
 {
   fetchFromGitea,
-  lib,
   stdenvNoCC,
 }:
 
@@ -13,7 +12,7 @@ stdenvNoCC.mkDerivation {
     owner = "jwillikers";
     repo = "ludusavi-config";
     rev = "b352744ec59a7711c62653dad3fa329e3b969017";
-    hash = lib.fakeHash;
+    hash = "sha256-Wd9jZeCeTvDNpleDgXspcY6+VPdS7EeYtYfvkUrnv+8=";
   };
 
   installPhase = ''

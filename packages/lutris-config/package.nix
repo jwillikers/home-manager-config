@@ -1,24 +1,23 @@
 {
   fetchFromGitea,
-  lib,
   stdenvNoCC,
 }:
 
 stdenvNoCC.mkDerivation {
-  pname = "ludusavi-config";
+  pname = "lutris-config";
   version = "0-unstable-2025-08-04";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
-    repo = "ludusavi-config";
-    rev = "e1e625d78c5fd6fac403732cc49084f513dbff1d";
-    hash = lib.fakeHash;
+    repo = "lutris-config";
+    rev = "536d279f3c0a4c6882a5e2b094dda8c2ca49f5d0";
+    hash = "sha256-ZiNGjjWN6f6NuUdclI0UqQWJhHawOThn9rdIu1c5GP0=";
   };
 
   installPhase = ''
     runHook preInstall
-    install -D --mode=0644 ludusavi/config.yaml $out/etc/ludusavi/config.yaml
+    install -D --mode=0644 --target-directory=$out/etc/lutris/ lutris/*.yml
     runHook postInstall
   '';
 }
