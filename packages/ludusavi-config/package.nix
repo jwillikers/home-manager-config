@@ -11,8 +11,8 @@ stdenvNoCC.mkDerivation {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "ludusavi-config";
-    rev = "b352744ec59a7711c62653dad3fa329e3b969017";
-    hash = "sha256-R+8yoTY4STKy8UfyNSRAOIvubhGuAjIfRFGodIQz9Y8=";
+    rev = "c15c9806bb2f5bbf4bc6574ca4df14f4799171be";
+    hash = "sha256-XGnC1ABsM9PADFAXYHL+AlhcDXrQXPstqcgp45ydAWc=";
   };
 
   installPhase = ''

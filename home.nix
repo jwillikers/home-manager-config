@@ -361,10 +361,6 @@ in
         source = packages.lutris-config + "/etc/lutris/system.yml";
         onChange = ''cat ${config.xdg.dataHome}/lutris/system_source.yml > ${config.xdg.dataHome}/lutris/system.yml'';
       };
-      "${config.xdg.configHome}/rclone/rclone_source.conf" = {
-        source = packages.rclone-config + "/etc/rclone/rclone.conf";
-        onChange = ''cat ${config.xdg.configHome}/rclone/rclone_source.conf > ${config.xdg.configHome}/rclone/rclone.conf'';
-      };
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
       "${config.xdg.configHome}/tio/config".source = packages.tio-config + "/etc/tio/config";
@@ -638,6 +634,24 @@ in
       #   units
       # ];
     };
+    rclone = {
+      enable = true;
+      remotes = {
+        "nextcloud" = {
+          config = {
+            type = "webdav";
+            url = "https://cloud.jwillikers.io/remote.php/dav/files/jordan/";
+            user = "jordan";
+            vendor = "nextcloud";
+          };
+          secrets = {
+            pass = config.sops.secrets."nextcloud-ludusavi".path;
+          };
+        };
+      };
+      # Ensure that sops-nix is activated before the Rclone configuration, since it requires the secret to be available.
+      writeAfter = "sops-nix";
+    };
     ssh = {
       enable = true;
       includes = [ "~/.ssh/config.d/*.conf" ];
@@ -846,9 +860,6 @@ in
       "L+ ${homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
       "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
       "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
-      # Restrict permissions on the Rclone config file.
-      "z ${config.xdg.configHome}/rclone 0700 ${username} ${username} - -"
-      "z ${config.xdg.configHome}/rclone.conf 0600 ${username} ${username} - -"
       # Symlink game save data between multiple locations.
       ## Kingdom Two Crowns
       "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"

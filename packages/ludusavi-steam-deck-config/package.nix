@@ -11,8 +11,8 @@ stdenvNoCC.mkDerivation {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "ludusavi-steam-deck-config";
-    rev = "c1c3c538482460a3de0cee5d16aa08c79b1e600a";
-    hash = "sha256-jLUq2LYPAmvv1QUGar0RDg0N9KV4F0tVKwy5xgy7bGQ=";
+    rev = "762100e33b94bf15cddbdb25b211ed8028ecc7c7";
+    hash = "sha256-+xUwcvqL1KtejjjGI/0yQrp/+fwNSpFmP7ubM/itsPM=";
   };
 
   installPhase = ''

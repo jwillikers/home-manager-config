@@ -82,6 +82,7 @@
     "treefmt",
     "uaccess",
     "vimrc",
+    "webdav",
     "XCURSOR"
   ],
   "files.watcherExclude": {

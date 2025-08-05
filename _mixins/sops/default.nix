@@ -17,7 +17,7 @@ in
     age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
     secrets = {
       "nextcloud-ludusavi" = {
-        path = "%r/sops-secrets/nextcloud-ludusavi.txt";
+        # path = "%r/sops-secrets/nextcloud-ludusavi.txt";
       };
     };
   };
