@@ -373,7 +373,8 @@ in
   };
 
   i18n.inputMethod = {
-    enable = true;
+    # Does enabling fcitx5 cause problems on the steam deck?
+    enable = hostname != "steamdeck";
     type = "fcitx5";
     fcitx5 = {
       addons = with pkgs; [
