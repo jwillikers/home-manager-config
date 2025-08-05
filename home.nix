@@ -770,7 +770,8 @@ in
 
         Service = {
           Type = "oneshot";
-          ExecStart = "${pkgs.flatpak}/bin/flatpak update --assumeyes --noninteractive";
+          # ExecStart = "${lib.getExe pkgs.flatpak} update --assumeyes --noninteractive";
+          ExecStart = "/usr/bin/flatpak update --assumeyes --noninteractive";
         };
 
         Install = {
