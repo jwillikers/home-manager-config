@@ -5,7 +5,7 @@
 
 stdenvNoCC.mkDerivation {
   pname = "ludusavi-steam-deck-config";
-  version = "0-unstable-2025-08-04";
+  version = "0-unstable-2025-08-05";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
