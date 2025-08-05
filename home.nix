@@ -69,8 +69,9 @@ in
     inputs.media-juggler.homeModules.media-juggler
     inputs.nix-index-database.homeModules.nix-index
     # inputs.sops-nix.homeManagerModules.sops
-    ./_mixins/desktop
-    ./_mixins/scripts
+    # ./_mixins/desktop
+    # ./_mixins/scripts
+    ./_mixins
   ];
 
   dconf.settings = {
@@ -339,12 +340,20 @@ in
       "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
       # Copy the file to make it writeable.
       "${config.xdg.configHome}/ludusavi/config_source.yaml" = {
-        source =
+        text =
           let
             ludusavi-config =
               if hostname == "steamdeck" then packages.ludusavi-steam-deck-config else packages.ludusavi-config;
           in
-          ludusavi-config + "/etc/ludusavi/config.yaml";
+          lib.strings.replaceString
+            # "NIX_SOPS_PASSWORD_COMMAND"
+            ''"--fast-list --ignore-checksum"''
+            (
+              "'"
+              + ''--fast-list --ignore-checksum --password-command "${lib.getBin pkgs.coreutils}/bin/cat $XDG_RUNTIME_DIR/sops-secrets/nextcloud-ludusavi.txt"''
+              + "'"
+            )
+            (builtins.readFile (ludusavi-config + "/etc/ludusavi/config.yaml"));
         onChange = ''cat ${config.xdg.configHome}/ludusavi/config_source.yaml > ${config.xdg.configHome}/ludusavi/config.yaml'';
       };
       # Copy the file to make it writeable.
@@ -352,8 +361,10 @@ in
         source = packages.lutris-config + "/etc/lutris/system.yml";
         onChange = ''cat ${config.xdg.dataHome}/lutris/system_source.yml > ${config.xdg.dataHome}/lutris/system.yml'';
       };
-      "${config.xdg.configHome}/rclone/rclone.conf".source =
-        packages.rclone-config + "/etc/rclone/rclone.conf";
+      "${config.xdg.configHome}/rclone/rclone_source.conf" = {
+        source = packages.rclone-config + "/etc/rclone/rclone.conf";
+        onChange = ''cat ${config.xdg.configHome}/rclone/rclone_source.conf > ${config.xdg.configHome}/rclone/rclone.conf'';
+      };
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
       "${config.xdg.configHome}/tio/config".source = packages.tio-config + "/etc/tio/config";
