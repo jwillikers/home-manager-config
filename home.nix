@@ -767,7 +767,6 @@ in
           ExecStop = "${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly";
           Restart = "on-failure";
           RestartSec = 10;
-          KillMode = "process";
         };
 
         Install = {
