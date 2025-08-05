@@ -760,14 +760,15 @@ in
         };
 
         Service = {
-          Type = "forking";
+          Type = "exec";
           ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
           # Can't use Nix's flatpak command with electron apps for reasons.
-          ExecStart = "-${lib.getExe pkgs.stretchly}";
+          ExecStart = "${lib.getExe pkgs.stretchly}";
           # TimeoutStopSec = 5;
           KillMode = "mixed";
           Restart = "on-failure";
           RestartSec = 10;
+          ExitType = "cgroup";
         };
 
         Install = {
