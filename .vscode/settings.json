@@ -74,6 +74,7 @@
     "SNMP",
     "statix",
     "stdenv",
+    "steamback",
     "steamdeck",
     "Stretchly",
     "substituters",

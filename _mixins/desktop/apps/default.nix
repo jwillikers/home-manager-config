@@ -5,5 +5,6 @@
     ./element
     ./opengamepadui
     ./ludusavi
+    ./steamback
   ];
 }
