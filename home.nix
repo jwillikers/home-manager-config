@@ -373,8 +373,7 @@ in
   };
 
   i18n.inputMethod = {
-    # Does enabling fcitx5 cause problems on the steam deck?
-    enable = hostname != "steamdeck";
+    enable = true;
     type = "fcitx5";
     fcitx5 = {
       addons = with pkgs; [
@@ -837,30 +836,39 @@ in
       };
     };
 
-    tmpfiles.rules = [
-      # Create age keys directory for SOPS.
-      "d ${config.xdg.configHome}/sops/age 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Books 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Books/Books 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Games 0750 ${username} ${username} - -"
-      # "v ${homeDirectory}/Games/gog 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Projects 0750 ${username} ${username} - -"
-      "v ${homeDirectory}/ludusavi-backup 0750 ${username} ${username} - -"
-      "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
-      "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
-      # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
-      "L+ ${homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
-      "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
-      "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
-      # Symlink game save data between multiple locations.
-      ## Kingdom Two Crowns
-      "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"
-      "L+ ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
-      ## Dome Keeper
-      "v '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
-      "L+ '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper' - - - - '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper'"
-    ];
+    tmpfiles.rules =
+      [
+        # Create age keys directory for SOPS.
+        "d ${config.xdg.configHome}/sops/age 0750 ${username} ${username} - -"
+        "d ${homeDirectory}/Books 0750 ${username} ${username} - -"
+        "d ${homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
+        "d ${homeDirectory}/Books/Books 0750 ${username} ${username} - -"
+        "d ${homeDirectory}/Games 0750 ${username} ${username} - -"
+        # "v ${homeDirectory}/Games/gog 0750 ${username} ${username} - -"
+        "d ${homeDirectory}/Projects 0750 ${username} ${username} - -"
+        "v ${homeDirectory}/ludusavi-backup 0750 ${username} ${username} - -"
+        "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
+        "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
+        # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
+        "L+ ${homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
+        "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
+        "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
+        # Symlink game save data between multiple locations.
+        ## Kingdom Two Crowns
+        "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"
+        "L+ ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
+        ## Dome Keeper
+        "v '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
+        "L+ '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper' - - - - '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper'"
+      ]
+      ++ lib.optionals (hostname == "steamdeck") [
+        # Mask broken systemd units on the Steam Deck.
+        # app-firewall has a dependency problem with PyQt5
+        # I have no idea why the others are broken.
+        "L+ ${config.xdg.configHome}/systemd/user/app-defaultbrightness@autostart.service - - - - /dev/null"
+        "L+ ${config.xdg.configHome}/systemd/user/app-firewall\\x2dapplet@autostart.service - - - - /dev/null"
+        "L+ ${config.xdg.configHome}/systemd/user/app-ibus@autostart.service - - - - /dev/null"
+      ];
   };
 
   xdg = {
