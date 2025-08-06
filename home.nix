@@ -632,8 +632,8 @@ in
         "nextcloud" = {
           config = {
             type = "webdav";
-            url = "https://cloud.jwillikers.io/remote.php/dav/files/jordan/";
-            user = "jordan";
+            url = "https://cloud.jwillikers.io/remote.php/dav/files/${username}/";
+            user = username;
             vendor = "nextcloud";
           };
           secrets = {

@@ -116,6 +116,20 @@ cat ~/.ssh/id_ed25519.pub
 
 .. Upload that public SSH key to the Forgejo user's SSH keys.
 
+. Configure Nextcloud accounts on https://cloud.jwillikers.io[my Nextcloud instance] for `jordan` and `deck`.
+. Create the directory `ludusavi-backup` under the `jordan` account on Nextcloud and share it with the `deck` user.
+. Create the necessary Nextcloud App passwords for access and add them in the {Nix-Secrets} repository.
+The keys must be nested under the the host name and named as `nextcloud-ludusavi`.
+These will be used by Ludusavi and Rclone to sync game saves.
+In the YAML secrets file for the `deck` user it will look like this.
++
+.nix-secrets/users/deck.yaml
+[,yaml]
+----
+steamdeck:
+  nextcloud-ludusavi: <Nextcloud App Password>
+----
+
 . Create a directory in which to keep source code.
 I use the `~/Projects` directory for this.
 +
