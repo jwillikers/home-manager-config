@@ -632,17 +632,17 @@ in
         "nextcloud" = {
           config = {
             type = "webdav";
-            url = "https://cloud.jwillikers.io/remote.php/dav/files/jordan/";
-            user = "jordan";
+            url = "https://cloud.jwillikers.io/remote.php/dav/files/${username}/";
+            user = username;
             vendor = "nextcloud";
           };
           secrets = {
-            pass = config.sops.secrets."nextcloud-ludusavi".path;
+            pass = config.sops.secrets."${hostname}/nextcloud-ludusavi".path;
           };
         };
       };
       # Ensure that sops-nix is activated before the Rclone configuration, since it requires the secret to be available.
-      writeAfter = "sops-nix";
+      writeAfter = "reloadSystemd";
     };
     ssh = {
       enable = true;

@@ -1,6 +1,7 @@
 {
   inputs,
   config,
+  hostname,
   username,
   ...
 }:
@@ -16,7 +17,7 @@ in
     defaultSopsFile = "${sopsFolder}/users/${username}.yaml";
     age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
     secrets = {
-      "nextcloud-ludusavi" = {
+      "${hostname}/nextcloud-ludusavi" = {
         # path = "%r/sops-secrets/nextcloud-ludusavi.txt";
       };
     };

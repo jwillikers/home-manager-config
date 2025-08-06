@@ -260,10 +260,10 @@
     "nix-secrets": {
       "flake": false,
       "locked": {
-        "lastModified": 1754413649,
-        "narHash": "sha256-Q8zhxPq7XBPeYgGBa96whlz4NU2Nz3HfRZ4T+GJD0do=",
+        "lastModified": 1754509107,
+        "narHash": "sha256-tC9RLsxrFSYYiPXdGdI+PgXQAxTLhkpG595AQIRmlFQ=",
         "ref": "refs/heads/main",
-        "rev": "8111f6afbffeaa0730576cc84db75fb0db814853",
+        "rev": "63b9b3bdf72fb92e5a5bb03a4c5b4849bdb32166",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@forgejo.jwillikers.io/jwillikers/nix-secrets.git"
