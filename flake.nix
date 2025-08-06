@@ -215,7 +215,8 @@
         packages = {
           default = homeConfigurations."jordan@precision".activationPackage;
           inherit homeConfigurations;
-        } // packages;
+        }
+        // packages;
       }
     );
 }
