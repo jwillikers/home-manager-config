@@ -4,15 +4,15 @@
 }:
 
 stdenvNoCC.mkDerivation {
-  pname = "stretchly-config";
-  version = "0-unstable-2025-07-28";
+  pname = "stretchly-steam-deck-config";
+  version = "0-unstable-2025-08-04";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
-    repo = "stretchly-config";
-    rev = "ed194abf9e02c79cf2ad5a42e2d5773776ed2abc";
-    hash = "sha256-7dDEI4leLgrma+LkUNJnjeSZp0Qp6AbV0e0fAbTWH5A=";
+    repo = "stretchly-steam-deck-config";
+    rev = "fd3f117173090002febe51f6dbeff72a2dd8c3fb";
+    hash = "sha256-tECSng6+eZKGv8VV0tmTDa322gODPmp+7GG9Lx9Ubgo=";
   };
 
   installPhase = ''

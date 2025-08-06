@@ -59,6 +59,10 @@
       url = "github:Mic92/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-secrets = {
+      url = "git+ssh://git@forgejo.jwillikers.io/jwillikers/nix-secrets.git?shallow=1";
+      flake = false;
+    };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     # Add nixpkgs-unstable here so that it is part of the generated registries.json file
     nixpkgs-unstable.url = "github:NixOS/nixpkgs";
@@ -66,8 +70,10 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # todo inputs follows for sops?
-    # sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -89,12 +95,16 @@
       media-juggler,
       # deadnix: skip
       nix-index-database,
+      # deadnix: skip
+      nix-secrets,
       nix-update-scripts,
       nixgl,
       nixpkgs,
       # deadnix: skip
       nixpkgs-unstable,
       pre-commit-hooks,
+      # deadnix: skip
+      sops-nix,
       treefmt-nix,
     }@inputs:
     flake-utils.lib.eachDefaultSystem (
@@ -205,7 +215,8 @@
         packages = {
           default = homeConfigurations."jordan@precision".activationPackage;
           inherit homeConfigurations;
-        } // packages;
+        }
+        // packages;
       }
     );
 }

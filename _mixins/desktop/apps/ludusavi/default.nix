@@ -19,13 +19,14 @@
           After = [
             # "graphical-session.target"
             "nss-lookup.target"
+            "sops-nix.service" # For Rclone password
           ];
           # Requires = [ "graphical-session.target" ];
           Wants = [ "network-online.target" ];
         };
 
         Service = {
-          Type = "simple";
+          Type = "exec";
           ExecStart = "${lib.getExe pkgs.ludusavi} backup --force";
           Restart = "on-failure";
           RestartSec = 5;
