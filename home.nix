@@ -762,14 +762,12 @@ in
         Service = {
           Type = "exec";
           ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
-          # Can't use Nix's flatpak command with electron apps for reasons.
-          ExecStart = "${lib.getExe pkgs.stretchly}";
-          # TimeoutStopSec = 5;
+          # Don't trust Stretchly's exit code since it crashes when killed.
+          ExecStart = "-${lib.getExe pkgs.stretchly}";
           KillMode = "mixed";
           Restart = "on-failure";
           RestartSec = 10;
-          ExitType = "cgroup";
-          SuccessExitStatus = [ 7 ];
+          # ExitType = "cgroup";
         };
 
         Install = {
