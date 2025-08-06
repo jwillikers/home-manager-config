@@ -755,19 +755,33 @@ in
       "stretchly" = {
         Unit = {
           Description = "Start Stretchly";
-          After = [ "graphical-session.target" ];
-          Requires = [ "graphical-session.target" ];
+          After = [
+            "graphical-session.target"
+          ]
+          ++ lib.optionals (hostname == "steamdeck") [
+            "plasma-workspace.target"
+          ];
+          Requires = [
+            "graphical-session.target"
+          ]
+          ++ lib.optionals (hostname == "steamdeck") [
+            "plasma-workspace.target"
+          ];
         };
 
         Service = {
           Type = "exec";
           ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
-          # Don't trust Stretchly's exit code since it crashes when killed.
-          ExecStart = "-${lib.getExe pkgs.stretchly}";
+          ExecStart = "${lib.getExe pkgs.stretchly}";
           KillMode = "mixed";
           Restart = "always";
           RestartSec = 10;
           ExitType = "cgroup";
+          # Don't trust Stretchly's exit code since it crashes when killed.
+          SuccessExitStatus = [
+            "SUCCESS"
+            "NOTRUNNING"
+          ];
         };
 
         Install = {
@@ -857,11 +871,17 @@ in
     ]
     ++ lib.optionals (hostname == "steamdeck") [
       # Mask broken systemd units on the Steam Deck.
+      #
       # app-firewall has a dependency problem with PyQt5
-      # I have no idea why the others are broken.
+      # I don't know why the other two fail.
       "L+ ${config.xdg.configHome}/systemd/user/app-defaultbrightness@autostart.service - - - - /dev/null"
       "L+ ${config.xdg.configHome}/systemd/user/app-firewall\\x2dapplet@autostart.service - - - - /dev/null"
       "L+ ${config.xdg.configHome}/systemd/user/app-ibus@autostart.service - - - - /dev/null"
+
+      # The drkonqi-coredump-pickup.service can be masked if KDE hangs when switching back to Gaming Mode.
+      # It's likely that a systemd user unit or some process is crashing on exit and drkonqi's crashdump process prevents fully exiting Plasma.
+      # drkonqi-coredump-launcher.socket
+      # "L+ ${config.xdg.configHome}/systemd/user/drkonqi-coredump-pickup.service - - - - /dev/null"
     ];
   };
 
