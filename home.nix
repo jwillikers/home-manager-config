@@ -637,7 +637,7 @@ in
             vendor = "nextcloud";
           };
           secrets = {
-            pass = config.sops.secrets."nextcloud-ludusavi".path;
+            pass = config.sops.secrets."${hostname}/nextcloud-ludusavi".path;
           };
         };
       };
