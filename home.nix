@@ -758,6 +758,9 @@ in
           After = [
             "graphical-session.target"
           ]
+          # When switching back to Gaming Mode on the Steam Deck, Stretchly won't be closed if it only requires graphical-session.target.
+          # It also needs to depend on Plasma so that Stretchly is closed along with Plasma when switching back to Gaming Mode.
+          # Without this, the Steam Deck will hang with a blank screen and cursor when switching from Desktop Mode to Gaming Mode.
           ++ lib.optionals (hostname == "steamdeck") [
             "plasma-workspace.target"
           ];
@@ -877,11 +880,6 @@ in
       "L+ ${config.xdg.configHome}/systemd/user/app-defaultbrightness@autostart.service - - - - /dev/null"
       "L+ ${config.xdg.configHome}/systemd/user/app-firewall\\x2dapplet@autostart.service - - - - /dev/null"
       "L+ ${config.xdg.configHome}/systemd/user/app-ibus@autostart.service - - - - /dev/null"
-
-      # The drkonqi-coredump-pickup.service can be masked if KDE hangs when switching back to Gaming Mode.
-      # It's likely that a systemd user unit or some process is crashing on exit and drkonqi's crashdump process prevents fully exiting Plasma.
-      # drkonqi-coredump-launcher.socket
-      # "L+ ${config.xdg.configHome}/systemd/user/drkonqi-coredump-pickup.service - - - - /dev/null"
     ];
   };
 

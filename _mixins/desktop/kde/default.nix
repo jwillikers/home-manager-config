@@ -2,9 +2,17 @@
   config,
   lib,
   pkgs,
+  # hostname,
   ...
 }:
 {
+  # imports = [
+
+  # ];
+
+  # Steam Deck hangs when switching to Gaming mode when the session is set to be restored.
+  # programs.plasma.session.restoreOpenApplicationsOnLogin = lib.mkIf (hostname == "steamdeck") "startWithEmptySession";
+
   home = {
     file = {
       "${config.home.homeDirectory}/.gnupg/gpg-agent.conf".text = ''
