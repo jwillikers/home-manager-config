@@ -765,9 +765,9 @@ in
           # Don't trust Stretchly's exit code since it crashes when killed.
           ExecStart = "-${lib.getExe pkgs.stretchly}";
           KillMode = "mixed";
-          Restart = "on-failure";
+          Restart = "always";
           RestartSec = 10;
-          # ExitType = "cgroup";
+          ExitType = "cgroup";
         };
 
         Install = {
