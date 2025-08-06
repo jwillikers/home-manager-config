@@ -388,7 +388,7 @@ The following command will delete the plugin.
 
 [,sh]
 ----
-rm ~/.config/calibre/plugins/ACSM\ Input.zip ~/.config/calibre/plugins/deacsm.json
+rm --force --recursive ~/.config/calibre/plugins/ACSM\ Input/ ~/.config/calibre/plugins/ACSM\ Input.zip ~/.config/calibre/plugins/deacsm.json
 ----
 ====
 --
