@@ -305,6 +305,13 @@ mkdir --parents ~/.config/sops/age
 nix shell nixpkgs#age --command age-keygen --output ~/.config/sops/age/keys.txt
 ----
 
+.. Restrict permissions on the key file.
++
+[,sh]
+----
+chmod 0600 ~/.config/sops/age/keys.txt
+----
+
 .. Back up this private key up in a secure password vault.
 The following command will print the private key to the console.
 +
