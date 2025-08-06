@@ -9,19 +9,194 @@ ifdef::env-github[]
 :caution-caption: :fire:
 :warning-caption: :warning:
 endif::[]
+:Forgejo: https://forgejo.org/[Forgejo]
 :Home-Manager: https://nix-community.github.io/home-manager/[Home Manager]
+:Lix: https://lix.systems/[Lix]
+:Nix: https://nixos.org/[Nix]
+:sops: https://getsops.io/[sops]
+:sops-nix: https://github.com/Mic92/sops-nix[sops-nix]
+:Tailscale: https://tailscale.com/[Tailscale]
+:Tailscale-on-the-Steam-Deck: https://github.com/tailscale-dev/deck-tailscale[Tailscale on the Steam Deck]
+:Nix-Secrets: https://forgejo.jwillikers.io/jwillikers/nix-secrets/[Nix Secrets]
 
-This is my {Home-Manager} configuration.
-
-// todo Configure theme for KDE?
+This is my Nix {Home-Manager} configuration.
 
 == Getting Started
 
-This Home Manager configuration is currently intended for Fedora Atomic Sway.
+This Home Manager configuration is currently intended for Fedora Atomic Sway, Fedora Kinoite, and the Steam Deck running SteamOS.
+Secrets are managed with {nix-sops}.
+The secrets are stored, encrypted in my {Nix-Secrets} repository hosted on my private {Forgejo} instance.
+As such, it's only possible to build this configuration with access to my tailnet, a Forgejo user with permissions to access the repository, a configured SSH key for said user, and the necessary age key to decrypt the secrets.
+For completeness and for myself, I'm documenting everything here, including setting all of that up.
+For anyone wishing to use this configuration in part or in whole, I'm planning on making a Nix Secrets Example repository which shows how my secrets are organized and how they are named.
+This could be used to create your own Nix Secrets repository in place of the mine used in this flake.
+
+. Set up the Steam Deck.
+.. On the Steam Deck, switch to _Desktop Mode_.
+.. Open the Konsole terminal.
+.. Run the `passwd` command.
+.. Follow the prompts to configure a password for your user account.
+.. Configure KDE as desired.
+I usually have to set up KDE to only use second display when it's docked.
+.. Optionally, setup SSH for an easier experience going forward.
+... On the Steam Deck, start the SSH server.
++
+--
+[,sh]
+----
+sudo systemctl start sshd
+----
+
+[CAUTION]
+====
+This will enable the SSH server on the Steam Deck, which is configured to accept connections using insecure password-based connections.
+Only do this on a trusted network.
+I would recommend never enabling the SSH server to avoid it being available on an untrusted network.
+Stop the SSH server with `sudo systemctl stop sshd`.
+====
+
+The rest of these commands can be carried out on another device to configure the Steam Deck from here on.
+--
+
+.. On your computer that isn't the Steam Deck, generate an SSH key if you haven't already.
++
+[,sh]
+----
+ssh-keygen
+----
+
+.. Follow the prompts, making sure to enter a password for your SSH key.
+Do it.
+
+.. Run the command `ssh-copy-id` to copy the SSH public key to the Steam Deck to not have to enter a password every time.
++
+--
+[,sh]
+----
+ssh-copy-id deck@steamdeck
+----
+
+[NOTE]
+====
+The Steam Deck advertises itself using the name `steamdeck` over multicast DNS.
+This will probably only work on a local network like your home network.
+Depending on your network set up mDNS may not be supported.
+If this host isn't found, locate the IP address on the Steam Deck by running the `ip addr` command or checking Plasma's networking settings.
+====
+--
+
+.. Enter the password you created for the Steam Deck user account when prompted.
+
+.. Connect to the Steam Deck over SSH.
++
+[,sh]
+----
+ssh deck@steamdeck
+----
+
+. Configure access as necessary for the local Forgejo instance at https://forgejo.jwillikers.io in order to have access to the {Nix-Secrets} repository.
+.. Create a dedicated user account for a system which only requires read access to the repository.
+For the Steam Deck, I created the `deck` user account for this purpose and shared the {Nix-Secrets} repository with this user, giving it read-only access in the repository's settings.
+On my development systems, I don't need to create an account as I'll use the `jordan` account that owns the {Nix-Secrets} repository.
+.. Generate an SSH key for this user.
++
+[,sh]
+----
+ssh-keygen
+----
+
+.. Use a password for the SSH key, when prompted.
+.. Print out the public SSH key.
+Assuming the key previously generated was `~/.ssh/id_ed25519`, the command will be as follows.
++
+[,sh]
+----
+cat ~/.ssh/id_ed25519.pub
+----
+
+.. Upload that public SSH key to the Forgejo user's SSH keys.
+
+. Create a directory in which to keep source code.
+I use the `~/Projects` directory for this.
++
+[,sh]
+----
+mkdir --parents ~/Projects
+----
+
+. Install and configure {Tailscale}.
++
+Fedora Atomic::
++
+.. Install Tailscale.
++
+[,sh]
+----
+sudo rpm-ostree install tailscale
+----
+
+.. Reboot to apply the change.
++
+[,sh]
+----
+sudo systemctl reboot
+----
+
+.. Authenticate Tailscale.
++
+[,sh]
+----
+sudo tailscale up --qr --operator=jordan
+----
+
+Steam Deck:: Install Tailscale using the installer script from the {Tailscale-on-the-Steam-Deck} repository.
++
+.. Clone the repository.
++
+[,sh]
+----
+git -C ~/Projects clone https://github.com/tailscale-dev/deck-tailscale.git
+----
+
+.. Change to the repository's directory.
++
+[,sh]
+----
+cd ~/Projects/deck-tailscale
+----
+
+.. Execute the `tailscale.sh` script.
+This script installs Tailscale under `/opt/tailscale`.
++
+[,sh]
+----
+sudo bash tailscale.sh
+----
+
+.. Authenticate Tailscale.
++
+[,sh]
+----
+sudo /opt/tailscale/tailscale up --qr --operator=deck
+----
+
+.. Run the command to update Tailscale.
++
+[,sh]
+----
+sudo /opt/tailscale/tailscale update
+----
+
+.. If that works, enable automatic updates.
++
+[,sh]
+----
+sudo /opt/tailscale/tailscale set --auto-update
+----
 
 Sway::
 +
-.. Install `gcr` package for secret management.
+.. Install the `gcr` package for secret management.
 +
 [,sh]
 ----
@@ -42,16 +217,39 @@ sudo systemctl reboot
 systemctl --user enable --now gcr-ssh-agent.socket
 ----
 
-//-
+. In order to install Nix on Fedora Atomic distributions, enable a transient root to fix issues with `composefs` not allowing the creation of the `/nix` directory.
+This is at least the case with Fedora 42.
+We'll see if it gets fixed in later versions.
+
+.. Create the file `/etc/ostree/prepare-root.conf` with the following contents.
++
+./etc/ostree/prepare-root.conf
+[,ini]
+----
+[composefs]
+enabled = yes
+[root]
+transient = true
+----
+
+.. Apply this file to the initramfs.
++
+[,sh]
+----
+sudo rpm-ostree initramfs-etc --reboot --track=/etc/ostree/prepare-root.conf
+----
 
 . Install https://lix.systems[Lix].
+On the Steam Deck, the Determinate Nix installer used here has a dedicated profile that just works.
+Of course, I've just jinxed it now.
 +
 [,sh]
 ----
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
 
-. Create the `ccache` directory the Nix.
+. Create the `ccache` directory for Nix.
+I configure Nix to use `ccache` to cache compiler outputs to speed up rebuilds.
 +
 [,sh]
 ----
@@ -75,18 +273,50 @@ extra-sandbox-paths = /nix/var/cache/ccache
 sudo systemctl restart nix-daemon.service
 ----
 
+. Configure the age key for the user to decrypt the secrets in the {Nix-Secrets} repository.
+
+.. Create the age config directory where the key will reside.
++
+[,sh]
+----
+mkdir --parents ~/.config/sops/age
+----
+
+. Either restore a private age key to the file `~/.config/sops/age/keys.txt` or generate a new by following these steps.
+
+.. Generate a private age key at `~/.config/sops/age/keys.txt`.
++
+[,sh]
+----
+nix shell nixpkgs#age --command age-keygen --output ~/.config/sops/age/keys.txt
+----
+
+.. Back up this private key up in a secure password vault.
+The following command will print the private key to the console.
++
+[,sh]
+----
+cat ~/.config/sops/age/keys.txt
+----
+
+.. A new key must be configured in the {Nix-Secrets} repository.
+Since existing users should have had their age key restored, this isn't necessary for existing users.
+Refer to the {Nix-Secrets} README for the most up-to-date instructions necessary to add a new user.
+It's necessary to have SSH write access to the {Nix-Secrets} repository and that the Forgejo instance is available over Tailscale.
+See the previous instructions which document how to configure these prerequisites.
+
 . Clone the repository.
 +
 [,sh]
 ----
-git clone git@github.com:jwillikers/home-manager-config.git
+git -C ~/Projects clone git@github.com:jwillikers/home-manager-config.git
 ----
 
 . Change into the repository's directory.
 +
 [,sh]
 ----
-cd home-manager-config
+cd ~/Projects/home-manager-config
 ----
 
 . Create a symlink to this repository at `~/.config/home-manager` for convenience.
@@ -97,7 +327,7 @@ rm --recursive ~/.config/home-manager
 ln --force --relative --symbolic . ~/.config/home-manager
 ----
 
-. Build and activate the Home Manager configuration
+. Build and activate the Home Manager configuration for this user and host.
 +
 --
 [,sh]

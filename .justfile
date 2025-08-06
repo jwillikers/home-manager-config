@@ -1,5 +1,18 @@
 default: build
 
+alias i := init
+
+init:
+    # if Steam Deck
+    mkdir ~/Projects
+    git -C ~/Projects clone https://github.com/tailscale-dev/deck-tailscale.git
+    cd ~/Projects/deck-tailscale
+    sudo bash tailscale.sh
+    source /etc/profile.d/tailscale.sh
+    sudo tailscale up --qr --operator=deck --ssh
+    # Else Fedora Atomic
+
+
 alias b := build
 
 build:
