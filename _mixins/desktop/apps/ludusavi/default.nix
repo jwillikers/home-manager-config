@@ -26,8 +26,9 @@
         };
 
         Service = {
-          Type = "simple";
-          ExecStart = "${lib.getExe pkgs.ludusavi} backup --force";
+          Type = "exec";
+          # Ignore the exit code in case we interrupt it.
+          ExecStart = "-${lib.getExe pkgs.ludusavi} backup --force";
           Restart = "on-failure";
           RestartSec = 5;
           NoNewPrivileges = true;
