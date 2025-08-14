@@ -208,13 +208,22 @@ sudo /opt/tailscale/tailscale update
 sudo /opt/tailscale/tailscale set --auto-update
 ----
 
+Hyprland::
++
+.. Install the hyprlock PAM config.
++
+[,sh]
+----
+curl --location https://raw.githubusercontent.com/hyprwm/hyprlock/refs/heads/main/pam/hyprlock | sudo tee /etc/pam.d/hyprlock
+----
+
 Sway::
 +
 .. Install the `gcr` package for secret management.
 +
 [,sh]
 ----
-sudo rpm-ostree install gcr # fctix5-autostart?
+sudo rpm-ostree install gcr
 ----
 
 .. Reboot to apply the changes.

@@ -30,6 +30,7 @@
     "gptfdisk",
     "gtkrc",
     "hovancik",
+    "hyprlock",
     "ifdef",
     "justfile",
     "jwillikers",
@@ -88,6 +89,7 @@
     "treefmt",
     "uaccess",
     "vimrc",
+    "waybar",
     "webdav",
     "XCURSOR"
   ],

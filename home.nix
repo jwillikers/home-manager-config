@@ -1,6 +1,5 @@
 {
   config,
-  desktop,
   hostname,
   inputs,
   lib,
@@ -126,73 +125,78 @@ in
     # release notes.
     stateVersion = "24.05"; # Please read the comment before changing.
 
-    packages = with pkgs; [
-      nerd-fonts.noto
-      chapterz
-      minuimus
-      pdfsizeopt
-      advancecomp
-      age
-      android-tools # Tools for Android mobile OS
-      appstream
-      # librsvg?
-      asciidoctor
-      # beets # Music collection organizer
-      # (config.lib.nixGL.wrap calibre) # EBook manager
-      efficient-compression-tool # Image optimization tool
-      calibre # EBook manager
-      cbconvert # Comic book converter
-      ccache # Compiler cache
-      chromaprint # Utility to calculate AcoustID audio fingerprint
-      clipse # Clipboard manager
-      deadnix # Nix dead code finder
-      deploy-rs # Nix deployment
-      flatpak-builder # Build Flatpaks
-      ghc # Glasgow Haskell Compiler
-      gcr # A library for accessing key stores
-      # gptfdisk
-      # h # Modern Unix autojump for git projects
-      julia # Julia programming language
-      just # Command runner
-      image_optim # Image optimizer
-      kakasi # Japanese Kanji to Kana converter
-      libtree # Tree output for ldd
-      (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
-      (config.lib.nixGL.wrap lutris) # Game launcher
-      m4b-tool # Audiobook merging, splitting, and chapters tool
-      minio-client
-      mupdf-headless
-      net-snmp # SNMP manager tools
-      nil # Nix language engine for IDEs
-      nixfmt-rfc-style # Nix code formatter
-      # todo Set GITHUB_TOKEN in environment for pull-request reviews.
-      nixpkgs-review # Nix code review
-      nix-tree # Examine dependencies of Nix derivations
-      nix-update # Update Nix packages
-      nu_scripts # Nushell scripts
-      nurl # Nix URL fetcher
-      picard # Music tagger
-      pipx
-      pre-commit # Git pre-commit hooks manager
-      probe-rs # Debug probe tool
-      python3Packages.python # Python
-      rpiboot
-      rustup # Rust toolchain installer
-      # qemu # Emulator
-      # quickemu # Quickly spin up virtual machines
-      sops # Secret management
-      ssh-to-age # Convert SSH keys to age keys
-      (config.lib.nixGL.wrap github-desktop) # Git GUI
-      (config.lib.nixGL.wrap stretchly) # Break timer
-      (config.lib.nixGL.wrap sublime-merge) # Git GUI
-      tailscale # WireGuard-based VPN
-      tesseract
-      tio # Serial device I/O tool
-      tone
-      treefmt # Code formatter
-      # todo Use wl-clipboard-rs?
-      wl-clipboard # Wayland clipboard program
-    ];
+    packages =
+      with pkgs;
+      [
+        nerd-fonts.noto
+        chapterz
+        minuimus
+        pdfsizeopt
+        advancecomp
+        age
+        android-tools # Tools for Android mobile OS
+        appstream
+        # librsvg?
+        asciidoctor
+        # beets # Music collection organizer
+        # (config.lib.nixGL.wrap calibre) # EBook manager
+        efficient-compression-tool # Image optimization tool
+        calibre # EBook manager
+        cbconvert # Comic book converter
+        ccache # Compiler cache
+        chromaprint # Utility to calculate AcoustID audio fingerprint
+        clipse # Clipboard manager
+        deadnix # Nix dead code finder
+        deploy-rs # Nix deployment
+        flatpak-builder # Build Flatpaks
+        ghc # Glasgow Haskell Compiler
+        gcr # A library for accessing key stores
+        # gptfdisk
+        # h # Modern Unix autojump for git projects
+        julia # Julia programming language
+        just # Command runner
+        image_optim # Image optimizer
+        kakasi # Japanese Kanji to Kana converter
+        libtree # Tree output for ldd
+        (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
+        (config.lib.nixGL.wrap lutris) # Game launcher
+        m4b-tool # Audiobook merging, splitting, and chapters tool
+        minio-client
+        mupdf-headless
+        net-snmp # SNMP manager tools
+        nil # Nix language engine for IDEs
+        nixfmt-rfc-style # Nix code formatter
+        # todo Set GITHUB_TOKEN in environment for pull-request reviews.
+        nixpkgs-review # Nix code review
+        nix-tree # Examine dependencies of Nix derivations
+        nix-update # Update Nix packages
+        nu_scripts # Nushell scripts
+        nurl # Nix URL fetcher
+        picard # Music tagger
+        pipx
+        pre-commit # Git pre-commit hooks manager
+        probe-rs # Debug probe tool
+        python3Packages.python # Python
+        rpiboot
+        rustup # Rust toolchain installer
+        # qemu # Emulator
+        # quickemu # Quickly spin up virtual machines
+        sops # Secret management
+        ssh-to-age # Convert SSH keys to age keys
+        (config.lib.nixGL.wrap github-desktop) # Git GUI
+        (config.lib.nixGL.wrap stretchly) # Break timer
+        (config.lib.nixGL.wrap sublime-merge) # Git GUI
+        tailscale # WireGuard-based VPN
+        tesseract
+        tio # Serial device I/O tool
+        tone
+        treefmt # Code formatter
+        # todo Use wl-clipboard-rs?
+        wl-clipboard # Wayland clipboard program
+      ]
+      ++ lib.optionals (hostname != "steamdeck") [
+        (config.lib.nixGL.wrap steam)
+      ];
 
     sessionVariables = {
       EDITOR = "vim";
@@ -746,7 +750,6 @@ in
     # };
     gpg-agent = {
       enable = true;
-      pinentry.package = if desktop == "kde" then null else pkgs.pinentry-gnome3;
     };
   };
 

@@ -17,6 +17,9 @@
       sway-audio-idle-inhibit # Pause SwayLock when audio is playing
     ];
   };
+  services = {
+    gpg-agent.pinentry.package = lib.mkForce pkgs.pinentry-gnome3;
+  };
   systemd.user = {
     sessionVariables = {
       _JAVA_AWT_WM_NONREPARENTING = "1";
