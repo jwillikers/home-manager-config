@@ -34,8 +34,6 @@ in
     # Setting them here ensures they are available in the shell.
     sessionVariables = {
       _JAVA_AWT_WM_NONREPARENTING = 1;
-      # gcr
-      SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/gcr/ssh";
       # Hint for Electron apps to use Wayland:
       NIXOS_OZONE_WL = 1;
     };
@@ -43,15 +41,18 @@ in
   imports = [
     ./clipse
     ./dunst
+    ./gcr
     ./hardware
     ./hypridle
     ./hyprland-config
+    ./hyprland-qt-support
     # ./hyprlock
-    ./swaylock
     ./hyprpaper
+    ./hyprpolkitagent
     ./kitty
     ./opentabletdriver
     ./swayidle
+    ./swaylock
     # ./tumbler
     ./waybar
     ./wofi
@@ -63,9 +64,6 @@ in
   systemd.user = {
     sessionVariables = {
       _JAVA_AWT_WM_NONREPARENTING = "1";
-
-      # gcr
-      SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/gcr/ssh";
 
       # Optional, hint Electron apps to use Wayland
       NIXOS_OZONE_WL = "1";
@@ -82,8 +80,6 @@ in
         # Workaround issues with the Hyprland Home Manager module not setting systemd.user.sessionVariables
         env = [
           "_JAVA_AWT_WM_NONREPARENTING,1"
-          # gcr
-          "SSH_AUTH_SOCK,$XDG_RUNTIME_DIR/gcr/ssh"
           # Hint for Electron apps to use Wayland:
           "NIXOS_OZONE_WL,1"
           "ELECTRON_OZONE_PLATFORM_HINT,auto"
@@ -124,25 +120,12 @@ in
         windowrule =
           let
             # todo lutris game
-            stretchlyBreak = "class:Stretchly, title:Time to take a break!";
-            steamGame = "class:steam_app_[0-9]*";
             kdeconnect-pointer = "class:org.kdeconnect.daemon";
-            wineTray = "class:explorer.exe";
-            steamBigPicture = "title:Steam Big Picture Mode";
             firefoxPictureInPicture = "class:firefox, title:Picture-in-Picture";
           in
           [
             # todo Use a variable to set the monitor
-            "monitor DP-7, ${stretchlyBreak}"
-            "float, ${stretchlyBreak}"
-            "pin, ${stretchlyBreak}"
-            "fullscreen, ${stretchlyBreak}"
-            "stayfocused, ${stretchlyBreak}"
-            "noclosefor 10000, ${stretchlyBreak}"
-            # "noscreenshare, ${stretchlyBreak}"
             # todo idleinhibit
-            "immediate, ${steamGame}"
-            "idleinhibit focus, ${steamGame}"
 
             "size 100% 100%, ${kdeconnect-pointer}"
             "float, ${kdeconnect-pointer}"
@@ -154,22 +137,15 @@ in
             "plugin:hyprbars:nobar, ${kdeconnect-pointer}"
             "suppressevent fullscreen, ${kdeconnect-pointer}"
 
-            "workspace special silent, ${wineTray}"
-
-            "fullscreen, ${steamBigPicture}"
-
             "float, ${firefoxPictureInPicture}"
             "pin, ${firefoxPictureInPicture}"
           ];
-        xwayland = {
-          force_zero_scaling = true;
-          # use_nearest_neighbor = false;
-        };
+        # xwayland = {
+        #   force_zero_scaling = true;
+        # };
       };
       # System is Hyprland variant of Wayblue, so the system manages the Hyprland session.
-      # todo copy from wimpy
       systemd = {
-        # enable = true;
         enableXdgAutostart = true;
         variables = [ "--all" ];
       };

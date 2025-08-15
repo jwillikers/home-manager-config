@@ -5,6 +5,7 @@
   ...
 }:
 {
+  # This is primarily the wayblue Hyprland config
   # https://wiki.hyprland.org/Configuring/
   wayland.windowManager.hyprland.settings = {
     # See https://wiki.hyprland.org/Configuring/Keywords/
@@ -240,9 +241,8 @@
     ];
 
     exec-once = [
-      # "/usr/bin/gnome-keyring-daemon --start --components=secrets"
+      # Don't use Home Manager for anything dealing with PAM.
       "exec /usr/libexec/pam_kwallet_init"
-      # "waybar & /usr/libexec/xfce-polkit & nm-applet"
     ];
 
     ##############################

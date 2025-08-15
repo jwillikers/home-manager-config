@@ -1,5 +1,4 @@
-_:
-{
+_: {
   # NVIDIA requires using the --impure flag.
   nixGL = {
     defaultWrapper = "nvidia";

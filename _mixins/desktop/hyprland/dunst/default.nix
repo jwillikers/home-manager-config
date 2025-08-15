@@ -17,7 +17,7 @@
     # See dunst(5) for all configuration options
     settings = {
       global = {
-        monitor = 1; # DP-7
+        monitor = 0; # DP-7
         follow = "none";
         width = 300;
         height = "(0, 300)";

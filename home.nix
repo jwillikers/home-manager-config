@@ -141,7 +141,6 @@ in
       deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
       ghc # Glasgow Haskell Compiler
-      gcr # A library for accessing key stores
       # gptfdisk
       # h # Modern Unix autojump for git projects
       julia # Julia programming language
@@ -636,31 +635,6 @@ in
     };
   };
 
-  # https://dl.thalheim.io/
-  # sops = lib.mkIf (username == "jordan") {
-  #   age = {
-  #     keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-  #     generateKey = false;
-  #   };
-  #   defaultSopsFile = ../secrets/secrets.yaml;
-  #   secrets = {
-  #     asciinema.path = "${config.home.homeDirectory}/.config/asciinema/config";
-  #     atuin_key.path = "${config.home.homeDirectory}/.local/share/atuin/key";
-  #     gh_token = { };
-  #     gpg_private = { };
-  #     gpg_public = { };
-  #     gpg_ownertrust = { };
-  #     hueadm.path = "${config.home.homeDirectory}/.hueadm.json";
-  #     obs_secrets = { };
-  #     ssh_config.path = "${config.home.homeDirectory}/.ssh/config";
-  #     ssh_key.path = "${config.home.homeDirectory}/.ssh/id_rsa";
-  #     ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_rsa.pub";
-  #     ssh_semaphore_key.path = "${config.home.homeDirectory}/.ssh/id_rsa_semaphore";
-  #     ssh_semaphore_pub.path = "${config.home.homeDirectory}/.ssh/id_rsa_semaphore.pub";
-  #     transifex.path = "${config.home.homeDirectory}/.transifexrc";
-  #   };
-  # };
-
   services = {
     # flatpak = {
     #   enable = true;
@@ -679,49 +653,6 @@ in
 
   systemd.user = {
     services = {
-      "stretchly" = {
-        Unit = {
-          Description = "Start Stretchly";
-          After = [
-            "graphical-session.target"
-          ]
-          # When switching back to Gaming Mode on the Steam Deck, Stretchly won't be closed if it only requires graphical-session.target.
-          # It also needs to depend on Plasma so that Stretchly is closed along with Plasma when switching back to Gaming Mode.
-          # Without this, the Steam Deck will hang with a blank screen and cursor when switching from Desktop Mode to Gaming Mode.
-          ++ lib.optionals (hostname == "steamdeck") [
-            "plasma-workspace.target"
-          ];
-          Requires = [
-            "graphical-session.target"
-          ]
-          ++ lib.optionals (hostname == "steamdeck") [
-            "plasma-workspace.target"
-          ];
-        };
-
-        Service = {
-          Type = "exec";
-          ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
-          # Add Electron flags to force X11
-          # --ozone-platform-hint=wayland
-          # ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
-          # The flags below force Wayland
-          ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
-          KillMode = "mixed";
-          Restart = "always";
-          RestartSec = 10;
-          ExitType = "cgroup";
-          # Don't trust Stretchly's exit code since it crashes when killed.
-          SuccessExitStatus = [
-            "SUCCESS"
-            "NOTRUNNING"
-          ];
-        };
-
-        Install = {
-          WantedBy = [ "graphical-session.target" ];
-        };
-      };
       #      "nix-garbage-collection" = {
       #        Unit = {
       #          Description = "Initiate Nix garbage collection";

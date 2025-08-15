@@ -18,12 +18,13 @@ endif::[]
 :Tailscale: https://tailscale.com/[Tailscale]
 :Tailscale-on-the-Steam-Deck: https://github.com/tailscale-dev/deck-tailscale[Tailscale on the Steam Deck]
 :Nix-Secrets: https://forgejo.jwillikers.io/jwillikers/nix-secrets/[Nix Secrets]
+:wayblue: https://github.com/wayblueorg/wayblue[wayblue]
 
 This is my Nix {Home-Manager} configuration.
 
 == Getting Started
 
-This Home Manager configuration is currently intended for Fedora Atomic Sway, Fedora Kinoite, and the Steam Deck running SteamOS.
+This Home Manager configuration is currently intended for {wayblue} Hyprland, Fedora Kinoite, and the Steam Deck running SteamOS.
 Secrets are managed with {nix-sops}.
 The secrets are stored, encrypted in my {Nix-Secrets} repository hosted on my private {Forgejo} instance.
 As such, it's only possible to build this configuration with access to my tailnet, a Forgejo user with permissions to access the repository, a configured SSH key for said user, and the necessary age key to decrypt the secrets.
@@ -206,38 +207,6 @@ sudo /opt/tailscale/tailscale update
 [,sh]
 ----
 sudo /opt/tailscale/tailscale set --auto-update
-----
-
-// Hyprland::
-// +
-// .. Install the hyprlock PAM config.
-// +
-// [,sh]
-// ----
-// curl --location https://raw.githubusercontent.com/hyprwm/hyprlock/refs/heads/main/pam/hyprlock | sudo tee /etc/pam.d/hyprlock
-// ----
-
-Sway::
-+
-.. Install the `gcr` package for secret management.
-+
-[,sh]
-----
-sudo rpm-ostree install gcr
-----
-
-.. Reboot to apply the changes.
-+
-[,sh]
-----
-sudo systemctl reboot
-----
-
-.. Enable the `gcr-ssh-agent.socket` systemd socket.
-+
-[,sh]
-----
-systemctl --user enable --now gcr-ssh-agent.socket
 ----
 
 . In order to install Nix on Fedora Atomic distributions, enable a transient root to fix issues with `composefs` not allowing the creation of the `/nix` directory.

@@ -116,6 +116,7 @@
           chapterz.overlays.chapterz
           m4b-tool.overlay
           nixgl.overlay
+          overlays.gcr
           overlays.ludusavi-rclone
           # overlays.packages
         ];

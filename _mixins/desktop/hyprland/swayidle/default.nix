@@ -3,6 +3,7 @@
   ...
 }:
 {
+  # Make swayidle ineffective, since hypridle is used in its place.
   home.file = {
     "${config.xdg.configHome}/swayidle/config".text = ''
       timeout 9999999 'echo "pseudo timeout"'
