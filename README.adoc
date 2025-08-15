@@ -208,14 +208,14 @@ sudo /opt/tailscale/tailscale update
 sudo /opt/tailscale/tailscale set --auto-update
 ----
 
-Hyprland::
-+
-.. Install the hyprlock PAM config.
-+
-[,sh]
-----
-curl --location https://raw.githubusercontent.com/hyprwm/hyprlock/refs/heads/main/pam/hyprlock | sudo tee /etc/pam.d/hyprlock
-----
+// Hyprland::
+// +
+// .. Install the hyprlock PAM config.
+// +
+// [,sh]
+// ----
+// curl --location https://raw.githubusercontent.com/hyprwm/hyprlock/refs/heads/main/pam/hyprlock | sudo tee /etc/pam.d/hyprlock
+// ----
 
 Sway::
 +
@@ -363,6 +363,7 @@ ln --force --relative --symbolic . ~/.config/home-manager
 [,sh]
 ----
 nix develop --command home-manager --flake .#$(id --user --name)@$(hostname --short) switch
+NIXPKGS_ALLOW_UNFREE=1 nix develop --impure --command home-manager --impure --flake .#$(id --user --name)@$(hostname --short) switch
 ----
 
 [TIP]

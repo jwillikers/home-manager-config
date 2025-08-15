@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   ...
@@ -9,9 +10,9 @@
     # See https://wiki.hyprland.org/Configuring/Keywords/
 
     # Set programs that you use
-    "$terminal" = lib.getExe pkgs.kitty;
-    "$fileManager" = lib.getExe pkgs.kdePackages.dolphin;
-    "$menu" = "${lib.getExe pkgs.wofi} --show drun";
+    "$terminal" = lib.getExe config.programs.kitty.package;
+    "$fileManager" = lib.getExe (config.lib.nixGL.wrap pkgs.kdePackages.dolphin);
+    "$menu" = "${lib.getExe config.programs.wofi.package} --show drun";
 
     # See https://wiki.hyprland.org/Configuring/Environment-variables/
     env = [
@@ -239,10 +240,9 @@
     ];
 
     exec-once = [
-      "dbus-update-activation-environment --all"
       # "/usr/bin/gnome-keyring-daemon --start --components=secrets"
       "exec /usr/libexec/pam_kwallet_init"
-      "waybar & /usr/libexec/xfce-polkit & nm-applet"
+      # "waybar & /usr/libexec/xfce-polkit & nm-applet"
     ];
 
     ##############################
@@ -259,10 +259,10 @@
     # windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
 
     # Ignore maximize requests from apps. You'll probably like this.
-    windowrulev2 = [
+    windowrule = [
       "suppressevent maximize, class:.*"
       # Fix some dragging issues with XWayland
-      "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
+      "nofocus, class:^$, title:^$, xwayland:1, floating:1, fullscreen:0, pinned:0"
     ];
   };
 }

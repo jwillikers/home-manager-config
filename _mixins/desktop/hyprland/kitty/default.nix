@@ -4,6 +4,9 @@
   ...
 }:
 {
+  home.packages = [
+    config.programs.kitty.package
+  ];
   programs.kitty = {
     enable = true;
     package = config.lib.nixGL.wrap pkgs.kitty;

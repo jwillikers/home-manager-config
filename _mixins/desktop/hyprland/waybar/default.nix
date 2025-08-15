@@ -5,47 +5,169 @@
   ...
 }:
 {
+  # home.packages = [
+  #   config.programs.waybar.package
+  # ];
   programs.waybar = {
-    enable = false;
-    # enable = true;
+    enable = true;
     package = config.lib.nixGL.wrap pkgs.waybar;
-    settings = {
-      mainBar = {
+    # https://gitlab.com/fedora/sigs/sway/sway-config-fedora/-/merge_requests/25
+    settings = [
+      {
         layer = "top";
-        position = "top";
         height = 30;
-        # output = [
-        #   "eDP-1"
-        # ];
+        spacing = 4;
         modules-left = [
-          "sway/workspaces"
-          "sway/mode"
-          "wlr/taskbar"
+          "hyprland/workspaces"
+          "hyprland/submap"
+          # "sway/scratchpad"
         ];
         modules-center = [
-          "sway/window"
-          "custom/hello-from-waybar"
+          "hyprland/window"
         ];
         modules-right = [
-          "mpd"
-          "custom/mymodule#with-css-id"
+          "idle_inhibitor"
+          "pulseaudio"
+          "network"
+          "power-profiles-daemon"
+          "cpu"
+          "memory"
           "temperature"
+          "backlight"
+          "battery"
+          "clock"
+          "tray"
         ];
-
-        "sway/workspaces" = {
-          disable-scroll = true;
-          all-outputs = true;
+        # Modules configuration
+        "hyprland/submap" = {
+          format = "<span style=\"italic\">{}</span>";
         };
-        "custom/hello-from-waybar" = {
-          format = "hello {}";
-          max-length = 40;
-          interval = "once";
-          exec = pkgs.writeShellScript "hello-from-waybar" ''
-            echo "from within waybar"
-          '';
+        "sway/scratchpad" = {
+          format = "{icon} {count}";
+          show-empty = false;
+          format-icons = [
+            ""
+            ""
+          ];
+          tooltip = true;
+          tooltip-format = "{app}: {title}";
         };
-      };
-    };
+        idle_inhibitor = {
+          format = "{icon}";
+          format-icons = {
+            activated = "";
+            deactivated = "";
+          };
+        };
+        tray = {
+          # icon-size = 21;
+          spacing = 5;
+        };
+        clock = {
+          # "timezone": "America/Chicago",
+          tooltip-format = ''<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>'';
+          format-alt = "{:%Y-%m-%d}";
+        };
+        cpu = {
+          format = "{usage}% ";
+          tooltip = false;
+        };
+        memory = {
+          format = "{}% ";
+        };
+        temperature = {
+          # thermal-zone = 2;
+          # hwmon-path = "/sys/class/hwmon/hwmon2/temp1_input";
+          critical-threshold = 80;
+          # format-critical = "{temperatureC}°C {icon}";
+          format = "{temperatureC}°C {icon}";
+          format-icons = [
+            ""
+            ""
+            ""
+          ];
+        };
+        backlight = {
+          # "device": "acpi_video1",
+          format = "{percent}% {icon}";
+          format-icons = [
+            "🌑"
+            "🌘"
+            "🌗"
+            "🌖"
+            "🌕"
+          ];
+        };
+        battery = {
+          states = {
+            # good = 95;
+            warning = 30;
+            critical = 15;
+          };
+          format = "{capacity}% {icon}";
+          format-full = "{capacity}% {icon}";
+          format-charging = "{capacity}% ";
+          format-plugged = "{capacity}% ";
+          format-alt = "{time} {icon}";
+          # format-good = ""; # An empty format will hide the module
+          # format-full = "";
+          format-icons = [
+            ""
+            ""
+            ""
+            ""
+            ""
+          ];
+        };
+        "battery#bat2" = {
+          bat = "BAT2";
+        };
+        power-profiles-daemon = {
+          format = "{icon}";
+          tooltip-format = ''Power profile: {profile}\nDriver: {driver}'';
+          tooltip = true;
+          format-icons = {
+            default = "";
+            performance = "";
+            balanced = "";
+            power-saver = "";
+          };
+        };
+        network = {
+          # "interface": "wlp2*", // (Optional) To force the use of this interface
+          format-wifi = "{essid} ({signalStrength}%) ";
+          format-ethernet = "{ipaddr}/{cidr} ";
+          tooltip-format = "{ifname} via {gwaddr} ";
+          format-linked = "{ifname} (No IP) ";
+          format-disconnected = "Disconnected ⚠";
+          format-alt = "{ifname}: {ipaddr}/{cidr}";
+        };
+        pulseaudio = {
+          # scroll-step = 1; # %, can be a float
+          format = "{volume}% {icon} {format_source}";
+          format-bluetooth = "{volume}% {icon} {format_source}";
+          format-bluetooth-muted = " {icon} {format_source}";
+          format-muted = " {format_source}";
+          format-source = "{volume}% ";
+          format-source-muted = "";
+          format-icons = {
+            headphone = "";
+            hands-free = "";
+            headset = "";
+            phone = "";
+            portable = "";
+            car = "";
+            default = [
+              ""
+              ""
+              ""
+            ];
+          };
+          on-click = "${lib.getExe (config.lib.nixGL.wrap pkgs.pavucontrol)}";
+        };
+      }
+    ];
+    style = ./style.css;
     systemd = {
       enable = true;
       target = "hyprland-session.target";

@@ -1,17 +1,18 @@
 {
   config,
+  hostname,
   lib,
   pkgs,
   ...
 }:
-# let
-#   installOn = [
-#     "precision5350"
-#     "x1-yoga"
-#   ];
-# in
-# lib.mkIf (lib.elem hostname installOn) {
-{
+let
+  installOn = [
+    "steamdeck"
+    "precision5350"
+    "x1-yoga"
+  ];
+in
+lib.mkIf (lib.elem hostname installOn) {
   home.packages = [
     (config.lib.nixGL.wrap pkgs.steamback) # Steam game save snapshotting tool
   ];

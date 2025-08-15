@@ -1,4 +1,7 @@
 _: {
+  packages = _final: prev: {
+    opentabletdriver-plugins = prev.recurseIntoAttrs (prev.callPackage ./opentabletdriver-plugins { });
+  };
   ludusavi-rclone = final: prev: {
     ludusavi = prev.ludusavi.overrideAttrs (_prevAttrs: {
       postFixup =

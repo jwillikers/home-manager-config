@@ -12,9 +12,9 @@
     # exec-once = [
     #   "${lib.getExe pkgs.clipse} -listen"
     # ];
-    windowrulev2 = [
-      "float,class:(clipse)" # ensure you have a floating window class set if you want this behavior
-      "size 622 652,class:(clipse)" # set the size of the window as necessary
+    windowrule = [
+      "float, class:(clipse)" # ensure you have a floating window class set if you want this behavior
+      "size 622 652, class:(clipse)" # set the size of the window as necessary
     ];
     bind = [
       # "SUPER, V, exec, kitty --class clipse -e 'clipse'"

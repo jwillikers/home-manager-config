@@ -5,6 +5,8 @@
   pkgs,
   ...
 }:
+# todo tumbler service that runs on Wayblue.
+# todo snapshotting tool.
 let
   monitors = (import ./monitors.nix { }).${hostname};
 in
@@ -12,21 +14,21 @@ in
   home = {
     packages = with pkgs; [
       (config.lib.nixGL.wrap kdePackages.dolphin)
+      (config.lib.nixGL.wrap hyprpicker)
       (config.lib.nixGL.wrap hyprsysteminfo)
-      config.programs.kitty.package
-      # (config.lib.nixGL.wrap swaybg)
-      (config.lib.nixGL.wrap wofi)
-      (config.lib.nixGL.wrap waybar)
+      # grim
+      # slurp
     ];
     pointerCursor = {
       hyprcursor.enable = true;
-      name = "dark/default";
-      package = pkgs.phinger-cursors;
+      # todo Pick out a nicer cursor.
+      # name = "dark/default";
+      # package = pkgs.phinger-cursors;
+      package = pkgs.bibata-cursors;
+      name = "Bibata-Modern-Classic";
       size = 32;
-      # gtk.enable = true;
-      # # x11.enable = true;
-      # package = pkgs.bibata-cursors;
-      # name = "Bibata-Modern-Classic";
+      gtk.enable = true;
+      x11.enable = true;
     };
     # Workaround issues with the Home Manager module not setting systemd.user.sessionVariables.
     # Setting them here ensures they are available in the shell.
@@ -38,31 +40,21 @@ in
       NIXOS_OZONE_WL = 1;
     };
   };
-  # gtk = {
-  #   enable = true;
-  #   theme = {
-  #     package = pkgs.flat-remix-gtk;
-  #     name = "Flat-Remix-GTK-Grey-Darkest";
-  #   };
-  #   iconTheme = {
-  #     package = pkgs.adwaita-icon-theme;
-  #     name = "Adwaita";
-  #   };
-  #   font = {
-  #     name = "Sans";
-  #     size = 11;
-  #   };
-  # };
   imports = [
     ./clipse
+    ./dunst
+    ./hardware
     ./hypridle
     ./hyprland-config
-    ./hyprlock
+    # ./hyprlock
+    ./swaylock
     ./hyprpaper
     ./kitty
     ./opentabletdriver
     ./swayidle
-    # ./waybar
+    # ./tumbler
+    ./waybar
+    ./wofi
   ];
   services = {
     gpg-agent.pinentry.package = lib.mkForce pkgs.pinentry-gnome3;
@@ -75,7 +67,7 @@ in
       # gcr
       SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/gcr/ssh";
 
-      # Optional, hint Electron apps to use Wayland:
+      # Optional, hint Electron apps to use Wayland
       NIXOS_OZONE_WL = "1";
     };
   };
@@ -83,18 +75,9 @@ in
   wayland = {
     systemd.target = "hyprland-session.target";
     windowManager.hyprland = {
-      package = config.lib.nixGL.wrap pkgs.hyprland;
-      # https://www.reddit.com/r/NixOS/comments/1gkrota/nixos_nvidia_hyprland_vscode_blinking/
-      # package = config.lib.nixGL.wrap (pkgs.hyprland.override {
-      #   wrapRuntimeDeps = false;
-      # });
-      # portalPackage = (config.lib.nixGL.wrap pkgs.xdg-desktop-portal-hyprland);
       enable = true;
       settings = {
-        # Inherit the default system config.
-        # source = "/usr/share/hypr/hyprland.conf";
-
-        inherit (monitors) monitor;
+        inherit (monitors) monitor workspace;
 
         # Workaround issues with the Hyprland Home Manager module not setting systemd.user.sessionVariables
         env = [
@@ -103,18 +86,12 @@ in
           "SSH_AUTH_SOCK,$XDG_RUNTIME_DIR/gcr/ssh"
           # Hint for Electron apps to use Wayland:
           "NIXOS_OZONE_WL,1"
-
-          # NVIDIA
-          # https://wiki.hypr.land/Configuring/Environment-variables/#nvidia-specific
-          # "GBM_BACKEND,nvidia-drm"
-          # "__GLX_VENDOR_LIBRARY_NAME,nvidia"
-          # "LIBVA_DRIVER_NAME,nvidia"
-          # "__GL_GSYNC_ALLOWED,1"
-          # "__GL_VRR_ALLOWED,0"
+          "ELECTRON_OZONE_PLATFORM_HINT,auto"
+          # --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj
         ];
 
         cursor = {
-          default_monitor = monitors.monitor [ 0 ];
+          default_monitor = builtins.elemAt (lib.strings.splitString "," (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0)) 0;
         };
         device = {
           name = "9610:30:Pine64_Pinebook_Pro";
@@ -125,11 +102,17 @@ in
         input = {
           tablet = {
             output = [ ];
-            # relative_input = true;
           };
           touchpad = {
             tap-to-click = true;
           };
+        };
+        misc = {
+          vrr = 3;
+        };
+        render = {
+          direct_scanout = 2;
+          # new_render_scheduling = true;
         };
         exec-once = [
           (lib.getExe pkgs.sway-audio-idle-inhibit)
@@ -137,11 +120,56 @@ in
         exec = [
           "${lib.getBin pkgs.glib}/bin/gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
         ];
+
+        windowrule =
+          let
+            # todo lutris game
+            stretchlyBreak = "class:Stretchly, title:Time to take a break!";
+            steamGame = "class:steam_app_[0-9]*";
+            kdeconnect-pointer = "class:org.kdeconnect.daemon";
+            wineTray = "class:explorer.exe";
+            steamBigPicture = "title:Steam Big Picture Mode";
+            firefoxPictureInPicture = "class:firefox, title:Picture-in-Picture";
+          in
+          [
+            # todo Use a variable to set the monitor
+            "monitor DP-7, ${stretchlyBreak}"
+            "float, ${stretchlyBreak}"
+            "pin, ${stretchlyBreak}"
+            "fullscreen, ${stretchlyBreak}"
+            "stayfocused, ${stretchlyBreak}"
+            "noclosefor 10000, ${stretchlyBreak}"
+            # "noscreenshare, ${stretchlyBreak}"
+            # todo idleinhibit
+            "immediate, ${steamGame}"
+            "idleinhibit focus, ${steamGame}"
+
+            "size 100% 100%, ${kdeconnect-pointer}"
+            "float, ${kdeconnect-pointer}"
+            "nofocus, ${kdeconnect-pointer}"
+            "noblur, ${kdeconnect-pointer}"
+            "noanim, ${kdeconnect-pointer}"
+            "noshadow, ${kdeconnect-pointer}"
+            "noborder, ${kdeconnect-pointer}"
+            "plugin:hyprbars:nobar, ${kdeconnect-pointer}"
+            "suppressevent fullscreen, ${kdeconnect-pointer}"
+
+            "workspace special silent, ${wineTray}"
+
+            "fullscreen, ${steamBigPicture}"
+
+            "float, ${firefoxPictureInPicture}"
+            "pin, ${firefoxPictureInPicture}"
+          ];
+        xwayland = {
+          force_zero_scaling = true;
+          # use_nearest_neighbor = false;
+        };
       };
       # System is Hyprland variant of Wayblue, so the system manages the Hyprland session.
       # todo copy from wimpy
-      # systemd.enable = true;
       systemd = {
+        # enable = true;
         enableXdgAutostart = true;
         variables = [ "--all" ];
       };

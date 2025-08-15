@@ -2,17 +2,10 @@
   config,
   lib,
   pkgs,
-  # hostname,
+  hostname,
   ...
 }:
 {
-  # imports = [
-
-  # ];
-
-  # Steam Deck hangs when switching to Gaming mode when the session is set to be restored.
-  # programs.plasma.session.restoreOpenApplicationsOnLogin = lib.mkIf (hostname == "steamdeck") "startWithEmptySession";
-
   home = {
     file = {
       "${config.home.homeDirectory}/.gnupg/gpg-agent.conf".text = ''
@@ -90,6 +83,15 @@
       SSH_ASKPASS = lib.getExe pkgs.kdePackages.ksshaskpass;
       SSH_ASKPASS_REQUIRE = "prefer";
     };
+    tmpfiles.rules = lib.mkIf (hostname == "steamdeck") [
+      # Mask broken systemd units on the Steam Deck.
+      #
+      # app-firewall has a dependency problem with PyQt5
+      # I don't know why the other two fail.
+      "L+ ${config.xdg.configHome}/systemd/user/app-defaultbrightness@autostart.service - - - - /dev/null"
+      "L+ ${config.xdg.configHome}/systemd/user/app-firewall\\x2dapplet@autostart.service - - - - /dev/null"
+      "L+ ${config.xdg.configHome}/systemd/user/app-ibus@autostart.service - - - - /dev/null"
+    ];
   };
   xdg.portal = {
     config = {

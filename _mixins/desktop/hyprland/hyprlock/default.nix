@@ -1,12 +1,19 @@
 { config, lib, ... }:
+let
+  monitor = builtins.elemAt (lib.strings.splitString "," (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0)) 0;
+in
 {
   programs.hyprlock = {
     enable = true;
-    # package = ;
+    # Mixing /etc/pam.d/login from Fedora with PAM modules from Nix breaks things.
+    # PAM unable to dlopen(/nix/store/.../lib/security/pam_fprintd.so)
+    # Hyprlock must be installed from source
+    # package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
       general = {
         grace = 5;
         hide_cursor = true;
+        immediate_render = true;
       };
       animations = {
         enabled = true;
@@ -24,6 +31,7 @@
         blur_passes = 4;
       };
       input-field = {
+        inherit monitor;
         #   font_color = "rgb(${lib.removePrefix "#" config.colorscheme.colors.on_surface})";
         # font_family = config.fontProfiles.regular.name;
 
@@ -38,12 +46,13 @@
         fail_color = "rgba(00000000)";
       };
       label = {
+        inherit monitor;
         text = "$TIME";
         # color = "rgb(${lib.removePrefix "#" config.colorscheme.colors.on_surface})";
         # font_family = config.fontProfiles.regular.name;
         font_size = "180";
 
-        position = "0 0";
+        position = "0, 0";
         halign = "center";
         valign = "center";
       };

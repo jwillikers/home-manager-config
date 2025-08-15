@@ -59,6 +59,7 @@
     "nurl",
     "Nushell",
     "oneshot",
+    "opentabletdriver",
     "optim",
     "optimise",
     "ostree",
@@ -86,12 +87,14 @@
     "swaymsg",
     "tailnet",
     "tailscale",
+    "tmpfiles",
     "treefmt",
     "uaccess",
     "vimrc",
     "waybar",
     "webdav",
-    "XCURSOR"
+    "XCURSOR",
+    "xwaylandvideobridge"
   ],
   "files.watcherExclude": {
     ".direnv/**": true,

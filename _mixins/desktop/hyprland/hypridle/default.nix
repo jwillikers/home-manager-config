@@ -9,12 +9,12 @@
     enable = true;
     settings =
       let
-        isLocked = "${lib.getBin pkgs.procps}/bin/pgrep hyprlock";
+        isLocked = "${lib.getBin pkgs.procps}/bin/pgrep swaylock";
         isDischarging = "${lib.getExe pkgs.gnugrep} Discharging /sys/class/power_supply/BAT{0,1}/status -q";
       in
       {
         general = {
-          lock_cmd = "if ! ${isLocked}; then ${lib.getExe config.programs.hyprlock.package}; fi";
+          lock_cmd = "if ! ${isLocked}; then ${lib.getExe config.programs.swaylock.package}; fi";
           before_sleep_cmd = "loginctl lock-session";
           after_sleep_cmd = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on";
           inhibit_sleep = 3; # Wait for lock before suspend
