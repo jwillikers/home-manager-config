@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   ...
@@ -25,7 +26,7 @@
           Environment = [
             "SSH_AUTH_SOCK=%t/gcr/ssh"
           ];
-          ExecStart = "${pkgs.gcr}/libexec/gcr-ssh-agent %t/gcr";
+          ExecStart = "${(config.lib.nixGL.wrap pkgs.gcr)}/libexec/gcr-ssh-agent %t/gcr";
           Restart = "on-failure";
         };
 
@@ -47,7 +48,7 @@
           Priority = 6;
           Backlog = 5;
           ListenStream = "%t/gcr/ssh";
-          ExecStartPost = "-${lib.getBin pkgs.systemdMinimal}/bin/systemctl --user set-environment SSH_AUTH_SOCK=%t/gcr/ssh";
+          # ExecStartPost = "-${lib.getBin pkgs.systemdMinimal}/bin/systemctl --user set-environment SSH_AUTH_SOCK=%t/gcr/ssh";
           DirectoryMode = "0700";
         };
         Install = {

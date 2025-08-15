@@ -39,9 +39,12 @@ in
     };
   };
   imports = [
+    ../kde/ksshaskpass
+    ../kde/kwallet
     ./clipse
     ./dunst
-    ./gcr
+    # ./gcr
+    # ./gnome-keyring
     ./hardware
     ./hypridle
     ./hyprland-config
@@ -57,9 +60,6 @@ in
     ./waybar
     ./wofi
   ];
-  services = {
-    gpg-agent.pinentry.package = lib.mkForce pkgs.pinentry-gnome3;
-  };
 
   systemd.user = {
     sessionVariables = {
@@ -161,7 +161,6 @@ in
           "hyprland"
           "gtk"
         ];
-        "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
       };
     };
     configPackages = [ config.wayland.windowManager.hyprland.package ];
