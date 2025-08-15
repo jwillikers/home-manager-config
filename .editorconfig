@@ -12,6 +12,9 @@ trim_trailing_whitespace = true
 [*.adoc]
 indent_size = unset
 
+[*.css]
+indent_style = unset
+
 [*.{adoc,envrc,lock,nix,nu,rules,yaml,yml}]
 max_line_length = off
 

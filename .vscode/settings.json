@@ -30,6 +30,7 @@
     "gptfdisk",
     "gtkrc",
     "hovancik",
+    "hyprlock",
     "ifdef",
     "justfile",
     "jwillikers",
@@ -58,6 +59,7 @@
     "nurl",
     "Nushell",
     "oneshot",
+    "opentabletdriver",
     "optim",
     "optimise",
     "ostree",
@@ -85,11 +87,16 @@
     "swaymsg",
     "tailnet",
     "tailscale",
+    "tmpfiles",
     "treefmt",
     "uaccess",
     "vimrc",
+    "waybar",
+    "wayblue",
     "webdav",
-    "XCURSOR"
+    "windowrule",
+    "XCURSOR",
+    "xwaylandvideobridge"
   ],
   "files.watcherExclude": {
     ".direnv/**": true,

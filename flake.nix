@@ -116,7 +116,9 @@
           chapterz.overlays.chapterz
           m4b-tool.overlay
           nixgl.overlay
+          # overlays.gcr
           overlays.ludusavi-rclone
+          # overlays.packages
         ];
         pkgs = import nixpkgs {
           inherit system;
@@ -142,7 +144,7 @@
 
             extraSpecialArgs = {
               inherit inputs nixgl packages;
-              desktop = "sway";
+              desktop = "hyprland";
               hostname = "precision5350";
               username = "jordan";
             };
@@ -213,7 +215,7 @@
         formatter = treefmtEval.config.build.wrapper;
         # inherit packages;
         packages = {
-          default = homeConfigurations."jordan@precision".activationPackage;
+          default = homeConfigurations."jordan@5350precision".activationPackage;
           inherit homeConfigurations;
         }
         // packages;

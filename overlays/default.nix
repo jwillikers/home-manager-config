@@ -1,4 +1,15 @@
 _: {
+  packages = _final: prev: {
+    opentabletdriver-plugins = prev.recurseIntoAttrs (prev.callPackage ./opentabletdriver-plugins { });
+  };
+  gcr = _final: prev: {
+    gcr = prev.gcr.overrideAttrs (prevAttrs: {
+      mesonFlags = prevAttrs.mesonFlags ++ [
+        "-Dssh_agent=true"
+        # "-Dgpg_path=${lib.getBin prev.gnupg}/bin/gpg"
+      ];
+    });
+  };
   ludusavi-rclone = final: prev: {
     ludusavi = prev.ludusavi.overrideAttrs (_prevAttrs: {
       postFixup =

@@ -1,6 +1,5 @@
 {
   config,
-  desktop,
   hostname,
   inputs,
   lib,
@@ -11,10 +10,8 @@
   ...
 }:
 let
-  homeDirectory = "/home/${username}";
   flatpaks = [
     "com.bitwarden.desktop"
-    # "com.calibre_ebook.calibre"
     "com.discordapp.Discord"
     "com.github.geigi.cozy"
     "com.github.iwalton3.jellyfin-media-player"
@@ -25,8 +22,6 @@ let
     "io.github.ciromattia.kcc"
     "io.gitlab.azymohliad.WatchMate"
     "io.gitlab.news_flash.NewsFlash"
-    # "net.hovancik.Stretchly"
-    # "net.lutris.Lutris"
     "net.werwolv.ImHex"
     "org.fedoraproject.MediaWriter"
     # "org.fritzing.Fritzing"
@@ -49,7 +44,6 @@ let
     "one.flipperzero.qFlipper"
     "page.kramo.Sly"
     "us.zoom.Zoom"
-    # "com.valve.Steam"
   ];
   udevPackages = [
     pkgs.nrf-udev
@@ -69,8 +63,6 @@ in
     inputs.media-juggler.homeModules.media-juggler
     inputs.nix-index-database.homeModules.nix-index
     # inputs.sops-nix.homeManagerModules.sops
-    # ./_mixins/desktop
-    # ./_mixins/scripts
     ./_mixins
   ];
 
@@ -112,10 +104,10 @@ in
     };
   };
 
-  fonts.fontconfig.enable = true;
-
   home = {
-    inherit homeDirectory username;
+    inherit username;
+
+    homeDirectory = "/home/${username}";
 
     # This value determines the Home Manager release that your configuration is
     # compatible with. This helps avoid breakage when a new Home Manager release
@@ -127,7 +119,6 @@ in
     stateVersion = "24.05"; # Please read the comment before changing.
 
     packages = with pkgs; [
-      nerd-fonts.noto
       chapterz
       minuimus
       pdfsizeopt
@@ -144,12 +135,12 @@ in
       cbconvert # Comic book converter
       ccache # Compiler cache
       chromaprint # Utility to calculate AcoustID audio fingerprint
+      (config.lib.nixGL.wrap chromium) # Web browser
       clipse # Clipboard manager
       deadnix # Nix dead code finder
       deploy-rs # Nix deployment
       flatpak-builder # Build Flatpaks
       ghc # Glasgow Haskell Compiler
-      gcr # A library for accessing key stores
       # gptfdisk
       # h # Modern Unix autojump for git projects
       julia # Julia programming language
@@ -157,10 +148,9 @@ in
       image_optim # Image optimizer
       kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
-      (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
-      (config.lib.nixGL.wrap lutris) # Game launcher
       m4b-tool # Audiobook merging, splitting, and chapters tool
       minio-client
+      (config.lib.nixGL.wrap mumble) # Voice chat
       mupdf-headless
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
@@ -183,7 +173,6 @@ in
       sops # Secret management
       ssh-to-age # Convert SSH keys to age keys
       (config.lib.nixGL.wrap github-desktop) # Git GUI
-      (config.lib.nixGL.wrap stretchly) # Break timer
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
       tesseract
@@ -291,68 +280,10 @@ in
               run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=XCURSOR_THEME="$XCURSOR_THEME"
             fi
           '';
-
-      # Symlinking the Stretchly config won't work.
-      # It's also necessary to install the config when Stretchly isn't running.
-      stretchly = lib.hm.dag.entryAfter [ "flatpaks" ] (
-        let
-          stretchly-config =
-            if hostname == "steamdeck" then packages.stretchly-steam-deck-config else packages.stretchly-config;
-        in
-        ''
-          # We don't want the cmp command to cause the script to fail.
-          set +e
-          cmp --silent \
-            "${stretchly-config}/etc/Stretchly/config.json" \
-            "${config.xdg.configHome}/Stretchly/config.json"
-          exit_status=$?
-          set -e
-          if [ $exit_status -eq 1 ]; then
-            service_running=0
-            if ${lib.getBin pkgs.procps}/bin/pgrep --full --ignore-case Stretchly >/dev/null; then
-              if ${lib.getBin pkgs.systemdMinimal}/bin/systemctl --user is-active stretchly.service >/dev/null; then
-                service_running=1
-                run ${lib.getBin pkgs.systemdMinimal}/bin/systemctl --user stop stretchly.service
-              else
-                run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
-              fi
-            else
-              run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
-              run ${lib.getBin pkgs.coreutils}/bin/sleep 10
-              run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
-            fi
-            run ${lib.getBin pkgs.coreutils}/bin/sleep 1
-            run mkdir --parents ${config.xdg.configHome}/Stretchly/
-            run install -D --mode=0644 $VERBOSE_ARG \
-                "${stretchly-config}/etc/Stretchly/config.json" \
-                "${config.xdg.configHome}/Stretchly/config.json"
-            if [ "$service_running" -eq 1 ]; then
-              run ${pkgs.systemdMinimal}/bin/systemctl --user start stretchly.service
-            else
-              run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
-            fi
-          fi
-        ''
-      );
     };
 
     file = {
       "${config.xdg.configHome}/foot/foot.ini".source = packages.foot-config + "/etc/foot/foot.ini";
-      # Copy the file to make it writeable.
-      "${config.xdg.configHome}/ludusavi/config_source.yaml" = {
-        source =
-          let
-            ludusavi-config =
-              if hostname == "steamdeck" then packages.ludusavi-steam-deck-config else packages.ludusavi-config;
-          in
-          ludusavi-config + "/etc/ludusavi/config.yaml";
-        onChange = ''cat ${config.xdg.configHome}/ludusavi/config_source.yaml > ${config.xdg.configHome}/ludusavi/config.yaml'';
-      };
-      # Copy the file to make it writeable.
-      "${config.xdg.dataHome}/lutris/system_source.yml" = {
-        source = packages.lutris-config + "/etc/lutris/system.yml";
-        onChange = ''cat ${config.xdg.dataHome}/lutris/system_source.yml > ${config.xdg.dataHome}/lutris/system.yml'';
-      };
       "${config.xdg.configHome}/sublime-merge/Packages/User".source =
         packages.sublime-merge-config + "/etc/sublime-merge/Packages/User";
       "${config.xdg.configHome}/tio/config".source = packages.tio-config + "/etc/tio/config";
@@ -408,7 +339,7 @@ in
       extra-platforms = "aarch64-linux";
       extra-sandbox-paths = [ "/nix/var/cache/ccache" ];
       extra-trusted-public-keys = [ "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o=" ];
-      extra-trusted-substituters = [ "https://cache.lix.systems" ];
+      # extra-trusted-substituters = [ "https://cache.lix.systems" ];
       experimental-features = [
         "nix-command"
         "flakes"
@@ -425,14 +356,10 @@ in
   };
 
   nixGL = {
-    defaultWrapper = "mesa";
     installScripts = [
       "mesa"
-      # NVIDIA requires using the --impure flag.
-      # So don't use NVIDIA.
-      # "nvidiaPrime"
+      "mesaPrime"
     ];
-    # offloadWrapper = "nvidiaPrime";
     inherit (nixgl) packages;
     vulkan.enable = true;
   };
@@ -708,31 +635,6 @@ in
     };
   };
 
-  # https://dl.thalheim.io/
-  # sops = lib.mkIf (username == "jordan") {
-  #   age = {
-  #     keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-  #     generateKey = false;
-  #   };
-  #   defaultSopsFile = ../secrets/secrets.yaml;
-  #   secrets = {
-  #     asciinema.path = "${config.home.homeDirectory}/.config/asciinema/config";
-  #     atuin_key.path = "${config.home.homeDirectory}/.local/share/atuin/key";
-  #     gh_token = { };
-  #     gpg_private = { };
-  #     gpg_public = { };
-  #     gpg_ownertrust = { };
-  #     hueadm.path = "${config.home.homeDirectory}/.hueadm.json";
-  #     obs_secrets = { };
-  #     ssh_config.path = "${config.home.homeDirectory}/.ssh/config";
-  #     ssh_key.path = "${config.home.homeDirectory}/.ssh/id_rsa";
-  #     ssh_pub.path = "${config.home.homeDirectory}/.ssh/id_rsa.pub";
-  #     ssh_semaphore_key.path = "${config.home.homeDirectory}/.ssh/id_rsa_semaphore";
-  #     ssh_semaphore_pub.path = "${config.home.homeDirectory}/.ssh/id_rsa_semaphore.pub";
-  #     transifex.path = "${config.home.homeDirectory}/.transifexrc";
-  #   };
-  # };
-
   services = {
     # flatpak = {
     #   enable = true;
@@ -746,51 +648,11 @@ in
     # };
     gpg-agent = {
       enable = true;
-      pinentry.package = if desktop == "kde" then null else pkgs.pinentry-gnome3;
     };
   };
 
   systemd.user = {
     services = {
-      "stretchly" = {
-        Unit = {
-          Description = "Start Stretchly";
-          After = [
-            "graphical-session.target"
-          ]
-          # When switching back to Gaming Mode on the Steam Deck, Stretchly won't be closed if it only requires graphical-session.target.
-          # It also needs to depend on Plasma so that Stretchly is closed along with Plasma when switching back to Gaming Mode.
-          # Without this, the Steam Deck will hang with a blank screen and cursor when switching from Desktop Mode to Gaming Mode.
-          ++ lib.optionals (hostname == "steamdeck") [
-            "plasma-workspace.target"
-          ];
-          Requires = [
-            "graphical-session.target"
-          ]
-          ++ lib.optionals (hostname == "steamdeck") [
-            "plasma-workspace.target"
-          ];
-        };
-
-        Service = {
-          Type = "exec";
-          ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
-          ExecStart = "${lib.getExe pkgs.stretchly}";
-          KillMode = "mixed";
-          Restart = "always";
-          RestartSec = 10;
-          ExitType = "cgroup";
-          # Don't trust Stretchly's exit code since it crashes when killed.
-          SuccessExitStatus = [
-            "SUCCESS"
-            "NOTRUNNING"
-          ];
-        };
-
-        Install = {
-          WantedBy = [ "graphical-session.target" ];
-        };
-      };
       #      "nix-garbage-collection" = {
       #        Unit = {
       #          Description = "Initiate Nix garbage collection";
@@ -851,35 +713,18 @@ in
     tmpfiles.rules = [
       # Create age keys directory for SOPS.
       "d ${config.xdg.configHome}/sops/age 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Books 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Books/Books 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Games 0750 ${username} ${username} - -"
+      "d ${config.home.homeDirectory}/Books 0750 ${username} ${username} - -"
+      "d ${config.home.homeDirectory}/Books/Audiobooks 0750 ${username} ${username} - -"
+      "d ${config.home.homeDirectory}/Books/Books 0750 ${username} ${username} - -"
+      "d ${config.home.homeDirectory}/Games 0750 ${username} ${username} - -"
       # "v ${homeDirectory}/Games/gog 0750 ${username} ${username} - -"
-      "d ${homeDirectory}/Projects 0750 ${username} ${username} - -"
-      "v ${homeDirectory}/ludusavi-backup 0750 ${username} ${username} - -"
-      "L+ ${config.xdg.configHome}/ssh - - - - ${homeDirectory}/.ssh"
-      "L+ ${config.xdg.configHome}/gnupg - - - - ${homeDirectory}/.gnupg"
+      "d ${config.home.homeDirectory}/Projects 0750 ${username} ${username} - -"
+      "L+ ${config.xdg.configHome}/ssh - - - - ${config.home.homeDirectory}/.ssh"
+      "L+ ${config.xdg.configHome}/gnupg - - - - ${config.home.homeDirectory}/.gnupg"
       # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
-      "L+ ${homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
-      "L+ ${homeDirectory}/Documents - - - - ${homeDirectory}/Nextcloud/Documents"
-      "L+ ${homeDirectory}/Notes - - - - ${homeDirectory}/Nextcloud/Notes"
-      # Symlink game save data between multiple locations.
-      ## Kingdom Two Crowns
-      "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"
-      "L+ ${homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
-      ## Dome Keeper
-      "v '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
-      "L+ '${homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper' - - - - '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper'"
-    ]
-    ++ lib.optionals (hostname == "steamdeck") [
-      # Mask broken systemd units on the Steam Deck.
-      #
-      # app-firewall has a dependency problem with PyQt5
-      # I don't know why the other two fail.
-      "L+ ${config.xdg.configHome}/systemd/user/app-defaultbrightness@autostart.service - - - - /dev/null"
-      "L+ ${config.xdg.configHome}/systemd/user/app-firewall\\x2dapplet@autostart.service - - - - /dev/null"
-      "L+ ${config.xdg.configHome}/systemd/user/app-ibus@autostart.service - - - - /dev/null"
+      "L+ ${config.home.homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
+      "L+ ${config.home.homeDirectory}/Documents - - - - ${config.home.homeDirectory}/Nextcloud/Documents"
+      "L+ ${config.home.homeDirectory}/Notes - - - - ${config.home.homeDirectory}/Nextcloud/Notes"
     ];
   };
 
@@ -888,17 +733,10 @@ in
     enable = true;
     portal.xdgOpenUsePortal = true;
   };
-  # xdg.enable = true; ?
-  # xdg.userDirs.createDirectories = true;
 
   # todo Look into using these options.
-
   # accounts.email.accounts.<name>.thunderbird.enable
-
   # home.keyboard
   # home.language
   # home.language.measurement
-
-  # wayland.windowManager.sway.enable
-  # wayland.windowManager.sway.config
 }

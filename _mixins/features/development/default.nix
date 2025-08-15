@@ -1,14 +1,13 @@
 {
   hostname,
   lib,
-  pkgs,
   ...
 }:
 let
   installOn = [
-    "steamdeck"
+    "precision"
+    "x1-yoga"
   ];
 in
 lib.mkIf (lib.elem hostname installOn) {
-  home.packages = with pkgs; [ opengamepadui ];
 }
