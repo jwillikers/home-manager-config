@@ -61,15 +61,16 @@
         After = [
           "graphical-session.target"
         ]
-        # When switching back to Gaming Mode on the Steam Deck, Stretchly won't be closed if it only requires graphical-session.target.
-        # It also needs to depend on Plasma so that Stretchly is closed along with Plasma when switching back to Gaming Mode.
-        # Without this, the Steam Deck will hang with a blank screen and cursor when switching from Desktop Mode to Gaming Mode.
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
-        Requires = [
+        BindsTo = [
           "graphical-session.target"
         ]
+        # When switching back to Gaming Mode on the Steam Deck, Stretchly won't be closed if it only requires graphical-session.target.
+        # It also needs to depend on Plasma so that Stretchly is closed along with Plasma when switching back to Gaming Mode.
+        # Without this, the Steam Deck will hang with a blank screen and cursor when switching from Desktop Mode to Gaming Mode.
+        # todo See if BindsTo no longer requires this dependency here or if the graphical-session.target stays up anyways.
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
@@ -78,20 +79,15 @@
       Service = {
         Type = "exec";
         ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
-        # Add Electron flags to force X11
-        # --ozone-platform-hint=wayland
+        # Electron flags to force X11
         # ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
-        ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+        ExecStart = "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+        KillSignal = "SIGKILL";
         KillMode = "mixed";
         Restart = "always";
         RestartSec = 10;
-        ExitType = "cgroup";
-        # Don't trust Stretchly's exit code since it crashes when killed.
-        SuccessExitStatus = [
-          "SUCCESS"
-          "NOTRUNNING"
-        ];
+        # ExitType = "cgroup";
       };
 
       Install = {

@@ -41,7 +41,7 @@ lib.mkIf (lib.elem hostname installOn) {
             "nss-lookup.target"
             "sops-nix.service" # For Rclone password
           ];
-          # Requires = [ "graphical-session.target" ];
+          Requires = [ "sops-nix.service" ];
           Wants = [ "network-online.target" ];
         };
 
@@ -55,7 +55,6 @@ lib.mkIf (lib.elem hostname installOn) {
         };
       };
     };
-
     tmpfiles.rules = [
       "v ${config.home.homeDirectory}/ludusavi-backup 0750 ${config.home.username} ${config.home.username} - -"
     ];

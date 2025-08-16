@@ -19,12 +19,12 @@ lib.mkIf (lib.elem hostname installOn) {
             "graphical-session.target"
             "nss-lookup.target"
           ];
-          Requires = [ "graphical-session.target" ];
+          BindsTo = [ "graphical-session.target" ];
           # Wants = [ "network-online.target" ];
         };
 
         Service = {
-          Type = "simple";
+          Type = "exec";
           # Can't use Nix's flatpak command with electron apps for reasons.
           ExecStart = "/usr/bin/flatpak run im.riot.Riot --hidden";
           ExecStop = "/usr/bin/flatpak kill im.riot.Riot";

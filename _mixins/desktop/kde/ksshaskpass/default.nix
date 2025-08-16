@@ -1,4 +1,5 @@
 {
+  config,
   desktop,
   lib,
   pkgs,
@@ -30,13 +31,16 @@
             "plasma-polkit-agent.service"
           ]
           ++ lib.optionals (desktop == "hyprland") [
-            "hyprland-session.target"
+            "plasma-kwallet-pam.service"
           ];
           Requires = [
             "graphical-session.target"
             "ssh-agent.service"
           ]
           ++ lib.optionals (desktop == "kde") [
+            "plasma-kwallet-pam.service"
+          ]
+          ++ lib.optionals (desktop == "hyprland") [
             "plasma-kwallet-pam.service"
           ];
           Wants = lib.mkIf (desktop == "kde") [
@@ -57,7 +61,8 @@
         };
 
         Install = {
-          WantedBy = [ "graphical-session.target" ];
+          WantedBy =
+            if desktop == "kde" then [ "plasma-workspace.target" ] else [ config.wayland.systemd.target ];
         };
       };
     };

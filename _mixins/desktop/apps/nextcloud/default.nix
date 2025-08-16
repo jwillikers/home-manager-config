@@ -20,12 +20,12 @@ lib.mkIf (lib.elem hostname installOn) {
             "graphical-session.target"
             "nss-lookup.target"
           ];
-          Requires = [ "graphical-session.target" ];
+          BindsTo = [ "graphical-session.target" ];
           # Wants = [ "network-online.target" ];
         };
 
         Service = {
-          Type = "simple";
+          Type = "exec";
           ExecStart = "${pkgs.flatpak}/bin/flatpak run com.nextcloud.desktopclient.nextcloud --background";
           ExecStop = "${pkgs.flatpak}/bin/flatpak kill com.nextcloud.desktopclient.nextcloud";
           Restart = "on-failure";

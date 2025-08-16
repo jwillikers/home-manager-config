@@ -240,11 +240,6 @@
       ", XF86AudioPrev, exec, ${lib.getExe pkgs.playerctl} previous"
     ];
 
-    exec-once = [
-      # Don't use Home Manager for anything dealing with PAM.
-      "exec /usr/libexec/pam_kwallet_init"
-    ];
-
     ##############################
     ### WINDOWS AND WORKSPACES ###
     ##############################
