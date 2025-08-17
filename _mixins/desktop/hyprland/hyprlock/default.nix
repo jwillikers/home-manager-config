@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  monitor = builtins.elemAt (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0).output;
+  monitor = builtins.elemAt (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0)
+    .output;
 in
 {
   programs.hyprlock = {

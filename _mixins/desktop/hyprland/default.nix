@@ -74,7 +74,7 @@ in
     windowManager.hyprland = {
       enable = true;
       # todo Remove the following: https://github.com/nix-community/home-manager/pull/7507
-      importantPrefixes = ["output"];
+      importantPrefixes = [ "output" ];
       settings = {
         inherit (monitors) monitorv2 workspace;
 
@@ -89,7 +89,8 @@ in
 
         cursor = {
           # default_monitor = "DP-7";
-          default_monitor = (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitorv2 0).output;
+          default_monitor =
+            (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitorv2 0).output;
         };
         device = {
           name = "9610:30:Pine64_Pinebook_Pro";
