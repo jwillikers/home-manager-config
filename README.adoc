@@ -374,6 +374,29 @@ rm --force --recursive ~/.config/calibre/plugins/ACSM\ Input/ ~/.config/calibre/
 
 . Log out and back in for certain environment variable changes to take effect.
 
+== Todo
+
+.General Todo
+- [ ] Finish the OpenTabletDriver plugin support.
+- [ ] Finish optimizing installation of Calibre plugins in the media-juggler home-manager module.
+The optimizations are to avoid installing the Calibre plugins on every activation.
+The version of the plugin will be compared to what is installed, and only install it then.
+- [ ] Use sops-nix to store secrets for the drm Calibre plugin configuration.
+- [ ] Manage VSCode profile settings with Nix.
+- [ ] Use services.nextcloud-client.enable? How to log in via secrets?
+
+.Hyprland Todo
+- [ ] Fix scaling of the UI on the primary monitor.
+- [ ] Debug issues with scaling waybar on the primary monitor.
+It's too small.
+- [ ] Switch to monitorv2
+- [ ] Fix Hypridle not activating?
+
+.Stretchly Todo
+- [ ] Create a script to move break windows to the correct monitors using the hyprland socket.
+- [ ] Create a Wireplumber Lua script to inhibit breaks whenever audio is playing, mic is active, or webcam is recording.
+- [ ] Reset breaks in Hypridle
+
 == Resources
 
 * https://nix-community.github.io/home-manager/options.xhtml[Home Manager Configuration Options]
