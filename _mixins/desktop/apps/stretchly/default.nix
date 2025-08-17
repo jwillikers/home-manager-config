@@ -1,5 +1,6 @@
 {
   config,
+  desktop,
   hostname,
   lib,
   packages,
@@ -61,6 +62,9 @@
         After = [
           "graphical-session.target"
         ]
+        ++ lib.optionals (desktop == "hyprland") [
+          "waybar.service"
+        ]
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
@@ -74,6 +78,7 @@
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
+        Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
       };
 
       Service = {
@@ -87,11 +92,12 @@
         KillMode = "mixed";
         Restart = "always";
         RestartSec = 10;
+        # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
         # ExitType = "cgroup";
       };
 
       Install = {
-        WantedBy = [ "graphical-session.target" ];
+        WantedBy = [ "xdg-desktop-autostart.target" ];
       };
     };
   };
@@ -101,12 +107,13 @@
       stretchlyBreak = "class:Stretchly, title:Time to take a break!";
     in
     [
-      "monitor DP-7, ${stretchlyBreak}"
-      "float, ${stretchlyBreak}"
+      # "nomaxsize, ${stretchlyBreak}"
+      # "monitor DP-7, ${stretchlyBreak}"
+      # "float, ${stretchlyBreak}"
+      # "fullscreen, ${stretchlyBreak}"
       "pin, ${stretchlyBreak}"
-      "fullscreen, ${stretchlyBreak}"
       "stayfocused, ${stretchlyBreak}"
       "noclosefor 10000, ${stretchlyBreak}"
-      # "noscreenshare, ${stretchlyBreak}"
+      "noscreenshare, ${stretchlyBreak}"
     ];
 }

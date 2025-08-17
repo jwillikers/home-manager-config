@@ -34,7 +34,7 @@
       "L+ ${config.xdg.configHome}/systemd/user/app-ibus@autostart.service - - - - /dev/null"
     ];
   };
-  wayland.systemd.target = "plasma-wayland-session.target";
+  # wayland.systemd.target = "plasma-wayland-session.target";
   xdg.portal = {
     config = {
       common = {

@@ -30,6 +30,7 @@
     "gptfdisk",
     "gtkrc",
     "hovancik",
+    "hyprctl",
     "hyprlock",
     "ifdef",
     "justfile",

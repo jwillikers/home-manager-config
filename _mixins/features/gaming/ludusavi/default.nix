@@ -42,7 +42,8 @@ lib.mkIf (lib.elem hostname installOn) {
             "sops-nix.service" # For Rclone password
           ];
           Requires = [ "sops-nix.service" ];
-          Wants = [ "network-online.target" ];
+          # ConditionPathIsDirectory = ["%h/ludusavi-backup"];
+          # Wants = [ "network-online.target" ];
         };
 
         Service = {
@@ -52,6 +53,7 @@ lib.mkIf (lib.elem hostname installOn) {
           RestartSec = 5;
           NoNewPrivileges = true;
           RestrictRealtime = true;
+          Slice = "background.slice";
         };
       };
     };

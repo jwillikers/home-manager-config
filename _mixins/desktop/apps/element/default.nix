@@ -1,4 +1,5 @@
 {
+  desktop,
   hostname,
   lib,
   ...
@@ -18,8 +19,12 @@ lib.mkIf (lib.elem hostname installOn) {
           After = [
             "graphical-session.target"
             "nss-lookup.target"
+          ]
+          ++ lib.optionals (desktop == "hyprland") [
+            "waybar.service"
           ];
           BindsTo = [ "graphical-session.target" ];
+          Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
           # Wants = [ "network-online.target" ];
         };
 
@@ -35,7 +40,7 @@ lib.mkIf (lib.elem hostname installOn) {
         };
 
         Install = {
-          WantedBy = [ "graphical-session.target" ];
+          WantedBy = [ "xdg-desktop-autostart.target" ];
         };
       };
     };

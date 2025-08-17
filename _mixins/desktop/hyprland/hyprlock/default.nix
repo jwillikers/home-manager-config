@@ -1,6 +1,6 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
-  monitor = builtins.elemAt (lib.strings.splitString "," (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0)) 0;
+  monitor = builtins.elemAt (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0).output;
 in
 {
   programs.hyprlock = {
@@ -8,7 +8,7 @@ in
     # Mixing /etc/pam.d/login from Fedora with PAM modules from Nix breaks things.
     # PAM unable to dlopen(/nix/store/.../lib/security/pam_fprintd.so)
     # Hyprlock must be installed from source
-    # package = pkgs.runCommandLocal "empty" { } "mkdir $out";
+    package = pkgs.runCommandLocal "empty" { } "mkdir $out";
     settings = {
       general = {
         grace = 5;
