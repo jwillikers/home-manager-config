@@ -7,6 +7,7 @@
   pkgs,
   ...
 }:
+# Break timer
 {
   home = {
     # Symlinking the Stretchly config won't work.
@@ -52,7 +53,7 @@
       ''
     );
     packages = with pkgs; [
-      (config.lib.nixGL.wrap stretchly) # Break timer
+      (config.lib.nixGL.wrap stretchly)
     ];
   };
   systemd.user.services = {
@@ -126,7 +127,10 @@
       };
 
       Install = {
-        WantedBy = [ "hyprland-session.target" "xdg-desktop-autostart.target" ];
+        WantedBy = [
+          "hyprland-session.target"
+          "xdg-desktop-autostart.target"
+        ];
       };
     };
   };

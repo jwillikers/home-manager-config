@@ -79,6 +79,7 @@
     "reviewdog",
     "setsid",
     "SNMP",
+    "socat",
     "statix",
     "stdenv",
     "steamback",

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
+# set -x
 
 # A script to orient Stretchly breaks on their respective monitors on Hyprland.
 # It basically just moves an resizes windows to monitors based on the order they appear.
@@ -12,35 +14,37 @@
 # windowrule=noclosefor 10000, class:Stretchly, title:Time to take a break!
 # windowrule=noscreenshare, class:Stretchly, title:Time to take a break!
 #
-# Requires jq, hyprctl, and systemd-notify.
+# Requires jq, hyprctl, socat, and systemd-notify.
 
 # Example Hyprland socket output
 #
-# activewindowv2>>ba1f970
-# windowtitle>>ba2ad50
-# windowtitlev2>>ba2ad50,Time to take a break!
-# windowtitle>>ba181f0
-# windowtitlev2>>ba181f0,Time to take a break!
-# openwindow>>ba181f0,9,Stretchly,Time to take a break!
+# activewindowv2>>be1f970
+# windowtitle>>be2ad50
+# windowtitlev2>>be2ad50,Time to take a break!
+# windowtitle>>be181f0
+# windowtitlev2>>be181f0,Time to take a break!
+# openwindow>>be181f0,9,Stretchly,Time to take a break!
 # activewindow>>Stretchly,Time to take a break!
-# activewindowv2>>ba181f0
-# openwindow>>ba2ad50,9,Stretchly,Time to take a break!
+# activewindowv2>>be181f0
+# openwindow>>be2ad50,9,Stretchly,Time to take a break!
 # focusedmon>>eDP-1,2
 # focusedmonv2>>eDP-1,2
 # activewindow>>Stretchly,Time to take a break!
-# activewindowv2>>ba2ad50
+# activewindowv2>>be2ad50
 # activewindow>>Stretchly,Time to take a break!
-# activewindowv2>>ba181f0
+# activewindowv2>>be181f0
 # activewindow>>Stretchly,Time to take a break!
-# activewindowv2>>ba2ad50
+# activewindowv2>>be2ad50
 # activewindow>>Stretchly,Time to take a break!
-# activewindowv2>>ba181f0
+# activewindowv2>>be181f0
 # activewindow>>Stretchly,Time to take a break!
-# activewindowv2>>ba2ad50
-# closewindow>>ba2ad50
-# closewindow>>ba181f0
+# activewindowv2>>be2ad50
+# closewindow>>be2ad50
+# closewindow>>be181f0
 
-declare -a open_stretchly_windows
+open_stretchly_windows=()
+
+echo "Hyprland socket is: $XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
 
 # mapfile -t available_monitors < <(hyprctl monitors -j | jq --raw-output 'sort_by(.id) | reverse | .[].name')
 mapfile -t available_monitors < <(hyprctl monitors -j | jq --raw-output '.[].name')
@@ -49,7 +53,7 @@ echo "available_monitors:" "${available_monitors[@]}"
 # Detects when Stretchly break windows are displayed and moves them to the correct monitors.
 function handle {
   # openwindow>>WINDOWADDRESS,WORKSPACENAME,WINDOWCLASS,WINDOWTITLE
-  # openwindow>>ba2ad50,9,Stretchly,Time to take a break!
+  # openwindow>>be2ad50,9,Stretchly,Time to take a break!
 
   # todo handle attaching and detaching monitors
   if [[ ${1:0:10} == "openwindow" ]]; then
@@ -99,7 +103,10 @@ function handle {
   fi
 }
 
-systemd-notify --ready
-systemd-notify "--status=Monitoring Hyprland socket $XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+systemd-notify --ready "--status=Monitoring Hyprland socket $XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
 
-socat - "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" | while read -r line; do handle "$line"; done
+# Use -t 2147483647 in versions of socat 1.8.0.0-.2 https://stackoverflow.com/questions/79346955/how-to-set-infinite-timout-for-socat
+socat -t 2147483647 - "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" | while read -r line; do handle "$line"; done
+
+echo "Should never reach here! Try running socat with -t 2147483647 instead of -t 0"
+exit 1

@@ -2,19 +2,20 @@
   hyprland,
   jq,
   lib,
+  makeWrapper,
+  socat,
   stdenvNoCC,
   systemdMinimal,
-  wrapProgram,
 }:
 
 stdenvNoCC.mkDerivation {
   pname = "stretchly-hyprland";
-  version = "0.0.0";
+  version = "0.1.0";
 
   src = ./.;
 
   nativeBuildInputs = [
-    wrapProgram
+    makeWrapper
   ];
 
   installPhase = ''
@@ -25,6 +26,7 @@ stdenvNoCC.mkDerivation {
         lib.makeBinPath [
           hyprland
           jq
+          socat
           systemdMinimal
         ]
       }
@@ -34,7 +36,7 @@ stdenvNoCC.mkDerivation {
   meta = {
     description = "Places Stretchly break windows on their respective monitors in multi-monitor Hyprland setups";
     license = lib.licenses.mit;
-    platforms = lib.platforms.all;
+    platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ jwillikers ];
     mainProgram = "stretchly-hyprland.sh";
   };
