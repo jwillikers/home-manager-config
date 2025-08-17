@@ -100,6 +100,35 @@
         WantedBy = [ "xdg-desktop-autostart.target" ];
       };
     };
+    "stretchly-hyprland" = lib.mkIf (desktop == "hyprland") {
+      Unit = {
+        Description = "Move Stretchly break windows to multiple monitors in Hyprland";
+        After = [
+          "hyprland-session.target"
+          "stretchly.service"
+        ];
+        BindsTo = [
+          "hyprland-session.target"
+          "stretchly.service"
+        ];
+        ConditionEnvironment = [
+          "HYPRLAND_INSTANCE_SIGNATURE"
+          "XDG_RUNTIME_DIR"
+        ];
+      };
+
+      Service = {
+        Type = "notify";
+        ExecStart = lib.getExe pkgs.stretchly-hyprland;
+        NotifyAccess = "all";
+        Restart = "always";
+        Slice = "background.slice";
+      };
+
+      Install = {
+        WantedBy = [ "hyprland-session.target" "xdg-desktop-autostart.target" ];
+      };
+    };
   };
 
   wayland.windowManager.hyprland.settings.windowrule =
