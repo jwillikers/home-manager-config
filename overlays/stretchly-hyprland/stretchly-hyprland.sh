@@ -70,8 +70,8 @@ function handle {
         open_stretchly_windows+=( "$window_id" )
         echo "open_stretchly_windows: " "${open_stretchly_windows[@]}"
         if (( $index < ${#available_monitors[@]} )); then
-          echo "Running: hyprctl --batch \"focuswindow address:0x$window_id ; movewindow mon:${available_monitors[$index]} ; centerwindow address:0x$window_id\""
-          hyprctl --batch "focuswindow address:0x$window_id ; movewindow mon:${available_monitors[$index]} ; centerwindow address:0x$window_id"
+          echo "Running: hyprctl --batch \"dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${available_monitors[$index]} ; dispatch centerwindow address:0x$window_id\""
+          hyprctl --batch "dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${available_monitors[$index]} ; dispatch centerwindow address:0x$window_id"
           # hyprctl dispatch tagwindow "address:$window_id" "stretchly-break-${available_monitors[$index]}"
         fi
       fi
