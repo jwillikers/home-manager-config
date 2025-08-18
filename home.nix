@@ -119,11 +119,11 @@ in
     stateVersion = "24.05"; # Please read the comment before changing.
 
     packages = with pkgs; [
-      chapterz
-      minuimus
-      pdfsizeopt
-      advancecomp
-      age
+      chapterz # MusicBrainz utility for audiobook chapters
+      minuimus # Lossless file minimizer
+      pdfsizeopt # Lossless PDF size optimizer
+      advancecomp # Compression utilities
+      age # Cryptography utility
       android-tools # Tools for Android mobile OS
       appstream
       # librsvg?
@@ -149,9 +149,9 @@ in
       kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
       m4b-tool # Audiobook merging, splitting, and chapters tool
-      minio-client
+      minio-client # S3-compatible object storage client
       (config.lib.nixGL.wrap mumble) # Voice chat
-      mupdf-headless
+      mupdf-headless # PDF utility
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
@@ -162,11 +162,11 @@ in
       nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
       picard # Music tagger
-      pipx
+      pipx # Python executable installer
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
       python3Packages.python # Python
-      rpiboot
+      rpiboot # Raspberry Pi bootloader utility
       rustup # Rust toolchain installer
       # qemu # Emulator
       # quickemu # Quickly spin up virtual machines
@@ -175,9 +175,9 @@ in
       (config.lib.nixGL.wrap github-desktop) # Git GUI
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
-      tesseract
+      tesseract # OCR tool
       tio # Serial device I/O tool
-      tone
+      tone # Audiobook metadata tool
       treefmt # Code formatter
       # todo Use wl-clipboard-rs?
       wl-clipboard # Wayland clipboard program
