@@ -65,6 +65,7 @@
     "optimise",
     "ostree",
     "ownertrust",
+    "pactl",
     "pgrep",
     "picoprobe",
     "pinentry",
@@ -97,6 +98,7 @@
     "wayblue",
     "webdav",
     "windowrule",
+    "wpctl",
     "XCURSOR",
     "xwaylandvideobridge"
   ],

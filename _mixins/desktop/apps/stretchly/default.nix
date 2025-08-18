@@ -133,6 +133,39 @@
         ];
       };
     };
+    "stretchly-inhibit" = {
+      Unit = {
+        Description = "Inhibit Stretchly breaks audio or webcam streams are active";
+        After = [
+          "graphical-session.target"
+          "pipewire-pulse.service"
+          "stretchly.service"
+        ];
+        BindsTo = [
+          "graphical-session.target"
+          "pipewire-pulse.service"
+          "stretchly.service"
+        ];
+        ConditionEnvironment = [
+          "XDG_RUNTIME_DIR"
+        ];
+      };
+
+      Service = {
+        Type = "notify";
+        ExecStart = lib.getExe pkgs.stretchly-inhibit;
+        NotifyAccess = "all";
+        Restart = "always";
+        Slice = "background.slice";
+      };
+
+      Install = {
+        WantedBy = [
+          "hyprland-session.target"
+          "xdg-desktop-autostart.target"
+        ];
+      };
+    };
   };
 
   wayland.windowManager.hyprland.settings.windowrule =

@@ -70,12 +70,8 @@ function handle {
         open_stretchly_windows+=( "$window_id" )
         echo "open_stretchly_windows: " "${open_stretchly_windows[@]}"
         if (( $index < ${#available_monitors[@]} )); then
-          echo "Running: hyprctl dispatch focuswindow address:0x$window_id"
-          hyprctl dispatch focuswindow "address:0x$window_id"
-          echo "Running: hyprctl dispatch movewindow mon:${available_monitors[$index]}"
-          hyprctl dispatch movewindow "mon:${available_monitors[$index]}"
-          echo "Running: hyprctl dispatch centerwindow address:0x$window_id"
-          hyprctl dispatch centerwindow "address:0x$window_id"
+          echo "Running: hyprctl --batch \"focuswindow address:0x$window_id ; movewindow mon:${available_monitors[$index]} ; centerwindow address:0x$window_id\""
+          hyprctl --batch "focuswindow address:0x$window_id ; movewindow mon:${available_monitors[$index]} ; centerwindow address:0x$window_id"
           # hyprctl dispatch tagwindow "address:$window_id" "stretchly-break-${available_monitors[$index]}"
         fi
       fi
@@ -103,7 +99,9 @@ function handle {
   fi
 }
 
-systemd-notify --ready "--status=Monitoring Hyprland socket $XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+if [ ! -z ${NOTIFY_SOCKET+x} ]; then
+  systemd-notify --ready "--status=Monitoring Hyprland socket $XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
+fi
 
 # Use -t 2147483647 in versions of socat 1.8.0.0-.2 https://stackoverflow.com/questions/79346955/how-to-set-infinite-timout-for-socat
 socat -t 2147483647 - "UNIX-CONNECT:$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" | while read -r line; do handle "$line"; done
