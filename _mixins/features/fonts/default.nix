@@ -6,6 +6,7 @@
   # https://yildiz.dev/posts/packing-custom-fonts-for-nixos/
   home = {
     packages = with pkgs; [
+      nerd-fonts.adwaita-mono
       nerd-fonts.fira-code
       nerd-fonts.fira-mono
       nerd-fonts.noto

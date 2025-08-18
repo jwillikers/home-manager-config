@@ -28,7 +28,7 @@ lib.mkIf (lib.elem hostname installOn) {
   #       };
 
   #       Service = {
-  #         Type = "simple";
+  #         Type = "exec";
   #         ExecStart = "${lib.getExe pkgs.steamback} --daemon";
   #         Restart = "on-failure";
   #         RestartSec = 5;

@@ -1,11 +1,13 @@
 {
   config,
+  desktop,
   hostname,
   lib,
   packages,
   pkgs,
   ...
 }:
+# Break timer
 {
   home = {
     # Symlinking the Stretchly config won't work.
@@ -51,7 +53,7 @@
       ''
     );
     packages = with pkgs; [
-      (config.lib.nixGL.wrap stretchly) # Break timer
+      (config.lib.nixGL.wrap stretchly)
     ];
   };
   systemd.user.services = {
@@ -61,41 +63,113 @@
         After = [
           "graphical-session.target"
         ]
-        # When switching back to Gaming Mode on the Steam Deck, Stretchly won't be closed if it only requires graphical-session.target.
-        # It also needs to depend on Plasma so that Stretchly is closed along with Plasma when switching back to Gaming Mode.
-        # Without this, the Steam Deck will hang with a blank screen and cursor when switching from Desktop Mode to Gaming Mode.
-        ++ lib.optionals (hostname == "steamdeck") [
-          "plasma-workspace.target"
-        ];
-        Requires = [
-          "graphical-session.target"
+        ++ lib.optionals (desktop == "hyprland") [
+          "waybar.service"
         ]
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
+        BindsTo = [
+          "graphical-session.target"
+        ]
+        # When switching back to Gaming Mode on the Steam Deck, Stretchly won't be closed if it only requires graphical-session.target.
+        # It also needs to depend on Plasma so that Stretchly is closed along with Plasma when switching back to Gaming Mode.
+        # Without this, the Steam Deck will hang with a blank screen and cursor when switching from Desktop Mode to Gaming Mode.
+        # todo See if BindsTo no longer requires this dependency here or if the graphical-session.target stays up anyways.
+        ++ lib.optionals (hostname == "steamdeck") [
+          "plasma-workspace.target"
+        ];
+        Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
       };
 
       Service = {
         Type = "exec";
-        ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
-        # Add Electron flags to force X11
-        # --ozone-platform-hint=wayland
+        # todo Is this sleep necessary?
+        # ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
+        # Electron flags to force X11
         # ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
-        ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+        # The Steam Deck still uses X11 in desktop mode.
+        ExecStart =
+          if (hostname == "steamdeck") then
+            "-${lib.getExe pkgs.stretchly}"
+          else
+            "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+        KillSignal = "SIGKILL";
         KillMode = "mixed";
         Restart = "always";
         RestartSec = 10;
-        ExitType = "cgroup";
-        # Don't trust Stretchly's exit code since it crashes when killed.
-        SuccessExitStatus = [
-          "SUCCESS"
-          "NOTRUNNING"
-        ];
+        # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
+        # ExitType = "cgroup";
       };
 
       Install = {
-        WantedBy = [ "graphical-session.target" ];
+        WantedBy = [ "xdg-desktop-autostart.target" ];
+      };
+    };
+    "stretchly-hyprland" = lib.mkIf (desktop == "hyprland") {
+      Unit = {
+        Description = "Move Stretchly break windows to multiple monitors in Hyprland";
+        After = [
+          "hyprland-session.target"
+          "stretchly.service"
+        ];
+        BindsTo = [
+          "hyprland-session.target"
+          "stretchly.service"
+        ];
+        ConditionEnvironment = [
+          "HYPRLAND_INSTANCE_SIGNATURE"
+          "XDG_RUNTIME_DIR"
+        ];
+      };
+
+      Service = {
+        Type = "notify";
+        ExecStart = lib.getExe pkgs.stretchly-hyprland;
+        NotifyAccess = "all";
+        Restart = "always";
+        Slice = "background.slice";
+      };
+
+      Install = {
+        WantedBy = [
+          "hyprland-session.target"
+          "xdg-desktop-autostart.target"
+        ];
+      };
+    };
+    "stretchly-inhibit" = {
+      Unit = {
+        Description = "Inhibit Stretchly breaks audio or webcam streams are active";
+        After = [
+          "graphical-session.target"
+          "pipewire-pulse.service"
+          "stretchly.service"
+        ];
+        BindsTo = [
+          "graphical-session.target"
+          "pipewire-pulse.service"
+          "stretchly.service"
+        ];
+        ConditionEnvironment = [
+          "XDG_RUNTIME_DIR"
+        ];
+      };
+
+      Service = {
+        Type = "notify";
+        ExecStart = lib.getExe pkgs.stretchly-inhibit;
+        NotifyAccess = "all";
+        Restart = "always";
+        Slice = "background.slice";
+      };
+
+      Install = {
+        WantedBy = [
+          "hyprland-session.target"
+          "xdg-desktop-autostart.target"
+        ];
       };
     };
   };
@@ -105,12 +179,13 @@
       stretchlyBreak = "class:Stretchly, title:Time to take a break!";
     in
     [
-      "monitor DP-7, ${stretchlyBreak}"
-      "float, ${stretchlyBreak}"
+      # "nomaxsize, ${stretchlyBreak}"
+      # "monitor DP-7, ${stretchlyBreak}"
+      # "float, ${stretchlyBreak}"
+      # "fullscreen, ${stretchlyBreak}"
       "pin, ${stretchlyBreak}"
-      "fullscreen, ${stretchlyBreak}"
       "stayfocused, ${stretchlyBreak}"
       "noclosefor 10000, ${stretchlyBreak}"
-      # "noscreenshare, ${stretchlyBreak}"
+      "noscreenshare, ${stretchlyBreak}"
     ];
 }

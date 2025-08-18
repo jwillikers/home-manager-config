@@ -21,7 +21,7 @@
         };
 
         Service = {
-          Type = "simple";
+          Type = "exec";
           StandardError = "journal";
           Environment = [
             "SSH_AUTH_SOCK=%t/gcr/ssh"

@@ -62,6 +62,7 @@
         };
 
         Service = {
+          Type = "exec";
           ExecStart = "${lib.getBin pkgs.opentabletdriver}/bin/otd-daemon";
           Restart = "always";
           RestartSec = 3;

@@ -50,4 +50,22 @@
       };
     };
   };
+  # Create our own service to initiate the kwallet pam service on Hyprland.
+  # Wayblue uses kwallet for secret storage.
+  systemd.user.services."plasma-kwallet-pam" = lib.mkIf (desktop == "hyprland") {
+    Unit = {
+      Description = "Unlock kwallet from pam credentials";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      # Anything PAM-related has to be done outside of Nix.
+      # Otherwise, things will most likely break because Nix and the OS might not agree on what PAM modules are available.
+      ExecStart = "/usr/libexec/pam_kwallet_init";
+      Type = "exec";
+      Slice = "background.slice";
+      Restart = false;
+    };
+    # todo Install?
+  };
 }

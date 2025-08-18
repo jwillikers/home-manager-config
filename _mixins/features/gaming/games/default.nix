@@ -2,6 +2,7 @@
   config,
   hostname,
   lib,
+  pkgs,
   username,
   ...
 }:
@@ -13,6 +14,9 @@ let
   ];
 in
 lib.mkIf (lib.elem hostname installOn) {
+  home.packages = with pkgs; [
+    mono # For Stardew Valley SMAPI
+  ];
   systemd.user.tmpfiles.rules = [
     # Symlink game save data between multiple locations.
     ## Kingdom Two Crowns

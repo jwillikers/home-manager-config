@@ -59,8 +59,14 @@
       url = "github:Mic92/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Secrets repository that uses sops-nix.
+    # This is a private repository hosted on my private Forgejo server.
+    # It is only available on my local LAN and Tailscale network.
+    # Always keep a local copy for backup purposes.
     nix-secrets = {
       url = "git+ssh://git@forgejo.jwillikers.io/jwillikers/nix-secrets.git?shallow=1";
+      # If the repository is unavailable for whatever reason, switch to using the local repository with the following line.
+      # url = "git+file:///home/jordan/Projects/nix-secrets";
       flake = false;
     };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -117,8 +123,7 @@
           m4b-tool.overlay
           nixgl.overlay
           # overlays.gcr
-          overlays.ludusavi-rclone
-          # overlays.packages
+          overlays.packages
         ];
         pkgs = import nixpkgs {
           inherit system;

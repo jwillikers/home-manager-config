@@ -1,4 +1,5 @@
 {
+  desktop,
   hostname,
   lib,
   pkgs,
@@ -19,13 +20,17 @@ lib.mkIf (lib.elem hostname installOn) {
           After = [
             "graphical-session.target"
             "nss-lookup.target"
+          ]
+          ++ lib.optionals (desktop == "hyprland") [
+            "waybar.service"
           ];
-          Requires = [ "graphical-session.target" ];
+          BindsTo = [ "graphical-session.target" ];
+          Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
           # Wants = [ "network-online.target" ];
         };
 
         Service = {
-          Type = "simple";
+          Type = "exec";
           ExecStart = "${pkgs.flatpak}/bin/flatpak run com.nextcloud.desktopclient.nextcloud --background";
           ExecStop = "${pkgs.flatpak}/bin/flatpak kill com.nextcloud.desktopclient.nextcloud";
           Restart = "on-failure";
@@ -35,7 +40,7 @@ lib.mkIf (lib.elem hostname installOn) {
         };
 
         Install = {
-          WantedBy = [ "graphical-session.target" ];
+          WantedBy = [ "xdg-desktop-autostart.target" ];
         };
       };
     };

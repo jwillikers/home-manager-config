@@ -11,39 +11,44 @@
 }:
 let
   flatpaks = [
-    "com.bitwarden.desktop"
-    "com.discordapp.Discord"
-    "com.github.geigi.cozy"
-    "com.github.iwalton3.jellyfin-media-player"
-    "com.github.tchx84.Flatseal"
-    "com.nextcloud.desktopclient.nextcloud"
-    "de.haeckerfelix.Fragments"
-    "im.riot.Riot"
-    "io.github.ciromattia.kcc"
-    "io.gitlab.azymohliad.WatchMate"
-    "io.gitlab.news_flash.NewsFlash"
-    "net.werwolv.ImHex"
-    "org.fedoraproject.MediaWriter"
+    "com.bitwarden.desktop" # Password vault
+    "com.discordapp.Discord" # Chat and meetings
+    "com.github.Anuken.Mindustry" # Factorio-like tower defense game
+    "com.github.geigi.cozy" # Audiobook player
+    "com.github.iwalton3.jellyfin-media-player" # Media server client
+    "com.github.tchx84.Flatseal" # Flatpak permissions manager
+    "com.nextcloud.desktopclient.nextcloud" # File sync service
+    "com.play0ad.zeroad" # 0 A.D. is a real-time strategy (RTS) game of ancient warfare, like Age of Empires II
+    "de.haeckerfelix.Fragments" # Torrent downloader
+    "im.riot.Riot" # Chat
+    # todo Use Nix KCC in 25.11
+    "io.github.ciromattia.kcc" # Kindle Comic Converter
+    "io.gitlab.azymohliad.WatchMate" # PineTime watch utility
+    "io.gitlab.news_flash.NewsFlash" # News feed reader
+    "net.werwolv.ImHex" # Hex editor
+    "net.veloren.airshipper" # Launcher for Veloren RPG
+    "org.fedoraproject.MediaWriter" # USB writer
     # "org.fritzing.Fritzing"
-    "org.gnome.Maps"
+    "org.gnome.Maps" # Maps
     # "org.gnome.Calendar"
     # "org.gnome.Contacts"
     # "org.gnome.Lollypop"
     # "org.gnome.Podcasts"
     # "org.gnome.Seahorse"
     # "org.gnome.Todo"
-    "org.gtk.Gtk3theme.Adwaita-dark"
-    "org.kde.itinerary"
-    "org.kde.krita"
+    "org.gtk.Gtk3theme.Adwaita-dark" # Flatpak icon theme
+    "org.kde.itinerary" # Travel planner
+    "org.kde.krita" # Drawing tool
     # "org.keepassxc.KeePassXC"
-    "org.libreoffice.LibreOffice"
-    "org.mozilla.Thunderbird"
-    "org.raspberrypi.rpi-imager"
-    "org.thonny.Thonny"
-    "org.torproject.torbrowser-launcher"
-    "one.flipperzero.qFlipper"
+    "org.libreoffice.LibreOffice" # Office software suite
+    "org.luanti.luanti" # Block-based sandbox game platform, like Minecraft
+    "org.mozilla.Thunderbird" # Email client
+    "org.raspberrypi.rpi-imager" # Raspberry Pi imaging tool
+    "org.thonny.Thonny" # Python IDE
+    "org.torproject.torbrowser-launcher" # Anonymous browser
+    "one.flipperzero.qFlipper" # FlipperZero desktop application
     "page.kramo.Sly"
-    "us.zoom.Zoom"
+    "us.zoom.Zoom" # Meetings
   ];
   udevPackages = [
     pkgs.nrf-udev
@@ -119,11 +124,11 @@ in
     stateVersion = "24.05"; # Please read the comment before changing.
 
     packages = with pkgs; [
-      chapterz
-      minuimus
-      pdfsizeopt
-      advancecomp
-      age
+      chapterz # MusicBrainz utility for audiobook chapters
+      minuimus # Lossless file minimizer
+      pdfsizeopt # Lossless PDF size optimizer
+      advancecomp # Compression utilities
+      age # Cryptography utility
       android-tools # Tools for Android mobile OS
       appstream
       # librsvg?
@@ -149,9 +154,9 @@ in
       kakasi # Japanese Kanji to Kana converter
       libtree # Tree output for ldd
       m4b-tool # Audiobook merging, splitting, and chapters tool
-      minio-client
+      minio-client # S3-compatible object storage client
       (config.lib.nixGL.wrap mumble) # Voice chat
-      mupdf-headless
+      mupdf-headless # PDF utility
       net-snmp # SNMP manager tools
       nil # Nix language engine for IDEs
       nixfmt-rfc-style # Nix code formatter
@@ -162,11 +167,11 @@ in
       nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
       picard # Music tagger
-      pipx
+      pipx # Python executable installer
       pre-commit # Git pre-commit hooks manager
       probe-rs # Debug probe tool
       python3Packages.python # Python
-      rpiboot
+      rpiboot # Raspberry Pi bootloader utility
       rustup # Rust toolchain installer
       # qemu # Emulator
       # quickemu # Quickly spin up virtual machines
@@ -175,9 +180,9 @@ in
       (config.lib.nixGL.wrap github-desktop) # Git GUI
       (config.lib.nixGL.wrap sublime-merge) # Git GUI
       tailscale # WireGuard-based VPN
-      tesseract
+      tesseract # OCR tool
       tio # Serial device I/O tool
-      tone
+      tone # Audiobook metadata tool
       treefmt # Code formatter
       # todo Use wl-clipboard-rs?
       wl-clipboard # Wayland clipboard program
