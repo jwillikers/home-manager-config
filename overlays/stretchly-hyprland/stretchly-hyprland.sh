@@ -3,8 +3,8 @@ set -euo pipefail
 # set -x
 
 # A script to orient Stretchly breaks on their respective monitors on Hyprland.
-# It basically just moves an resizes windows to monitors based on the order they appear.
-# Should probably do it based on resolutions to be precise.
+# It basically just moves windows to monitors, based on their respective sizes.
+#
 # Stretchly must be configured to show breaks on all monitors.
 # Adding additional window rules in hyprland.conf can help prevent skipping breaks.
 # Here's an example of some additional window rules for Stretchly breaks.
@@ -14,9 +14,14 @@ set -euo pipefail
 # windowrule=noclosefor 10000, class:Stretchly, title:Time to take a break!
 # windowrule=noscreenshare, class:Stretchly, title:Time to take a break!
 #
-# Requires jq, hyprctl, socat, and systemd-notify.
+# Requires bc, jq, hyprctl, socat, and when run from systemd, systemd-notify.
+#
+# This Bash script is slow and takes a couple of seconds to position the monitors after the breaks have started.
+# Ideally this would happen immediately, but this is in part due to processing every single event from Hyprland and using an interpreted language like Bash.
+# I should probably consider making a plugin and/or using a compiled language to speed things up.
+# Or maybe I can just get this fixed in Hyprland or Electron/Stretchly?
 
-# Example Hyprland socket output
+# Example Hyprland socket output.
 #
 # activewindowv2>>be1f970
 # windowtitle>>be2ad50
@@ -42,13 +47,32 @@ set -euo pipefail
 # closewindow>>be2ad50
 # closewindow>>be181f0
 
-open_stretchly_windows=()
+function calculate_euclidean_distance {
+  local x1
+  local dx
+  local dy
+  local dist_sq
+  local distance
+  x1=$1 y1=$2 x2=$3 y2=$4
+  dx=$(echo "$x2 - $x1" | bc -l)
+  dy=$(echo "$y2 - $y1" | bc -l)
+  dist_sq=$(echo "$dx*$dx + $dy*$dy" | bc -l)
+  distance=$(echo "sqrt($dist_sq)" | bc -l)
+  echo "$distance"
+}
+
+declare -A open_stretchly_windows=()
 
 echo "Hyprland socket is: $XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
 
-# mapfile -t available_monitors < <(hyprctl monitors -j | jq --raw-output 'sort_by(.id) | reverse | .[].name')
-mapfile -t available_monitors < <(hyprctl monitors -j | jq --raw-output '.[].name')
-echo "available_monitors:" "${available_monitors[@]}"
+function update_monitors {
+  readarray -t monitors < <(hyprctl monitors -j | jq --compact-output 'map({id, name, width, height}) | sort_by(.id) | .[]')
+}
+
+update_monitors
+echo "Monitors:" "${monitors[@]}"
+
+available_monitors=( "${monitors[@]}" )
 
 # Detects when Stretchly break windows are displayed and moves them to the correct monitors.
 function handle {
@@ -65,37 +89,108 @@ function handle {
       # window_title=${1##*,}
       echo "window_title: $window_title"
       if [[ $window_title == "Time to take a break!" ]]; then
-        index=${#open_stretchly_windows[@]}
-        echo "window index: $index"
-        open_stretchly_windows+=( "$window_id" )
+        # index=${#open_stretchly_windows[@]}
+        # echo "window index: $index"
+
+        # Get the width and height of the window.
+        local width
+        local height
+        {
+          read -r width
+          read -r height
+        } < <(hyprctl clients -j | jq --raw-output ".[] | select(.address == \"0x$window_id\").size | .[0], .[1]")
+
+        local min_distance
+        local min_monitor
+        # Price is right rules
+        for monitor in "${available_monitors[@]}"; do
+          local monitor_name
+          monitor_name=$(jq --raw-output '.name' <<< "$monitor")
+          echo "monitor_name: $monitor_name"
+          local monitor_width
+          monitor_width=$(jq --raw-output '.width' <<< "$monitor")
+          echo "monitor_width: $monitor_width"
+          local monitor_height
+          monitor_height=$(jq --raw-output '.height' <<< "$monitor")
+          echo "monitor_height: $monitor_height"
+
+          if (( width > monitor_width )) || (( height > monitor_height )); then
+            continue
+          fi
+
+          local distance
+          distance=$(calculate_euclidean_distance "$width" "$height" "$monitor_width" "$monitor_height")
+          echo "distance: $distance"
+
+          if [ -z ${min_distance+x} ] || (( distance < min_distance )); then
+            min_monitor=$monitor_name
+            min_distance=$distance
+          fi
+        done
+
+        echo "Matched window $window_id with monitor $min_monitor"
+        open_stretchly_windows[$window_id]="$min_monitor"
         echo "open_stretchly_windows: " "${open_stretchly_windows[@]}"
-        if (( $index < ${#available_monitors[@]} )); then
-          echo "Running: hyprctl --batch \"dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${available_monitors[$index]} ; dispatch centerwindow address:0x$window_id\""
-          hyprctl --batch "dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${available_monitors[$index]} ; dispatch centerwindow address:0x$window_id"
-          # hyprctl dispatch tagwindow "address:$window_id" "stretchly-break-${available_monitors[$index]}"
-        fi
+
+        # Remove min_monitor from available_monitors
+        for i in "${!available_monitors[@]}"; do
+          local monitor_name
+          monitor_name=$(jq --raw-output '.name' <<< "${available_monitors[i]}")
+          if [[ "$monitor_name" = "$min_monitor" ]]; then
+            unset 'available_monitors[i]'
+            break
+          fi
+        done
+        echo "available_monitors: " "${available_monitors[@]}"
+
+        echo "Running: hyprctl --batch \"dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch centerwindow address:0x$window_id\""
+        hyprctl --batch "dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch centerwindow address:0x$window_id"
+        # Add the following command to tag the window with the monitor.
+        # dispatch tagwindow ${open_stretchly_windows[$window_id] [address:0x$window_id]
       fi
     fi
   elif [[ ${1:0:11} == "closewindow" ]]; then
     # echo "command: ${1:0:11}"
     window_id=${1:13}
     # echo "winwdow_id: $window_id"
-    if [[ " ${open_stretchly_windows[*]} " =~ [[:space:]]${window_id}[[:space:]] ]]; then
+    if [ "${open_stretchly_windows[$window_id]+x}" ]; then
       echo "Remove winwdow_id: $window_id"
-      # Remove the window
-      for i in "${!open_stretchly_windows[@]}"; do
-        if [[ ${open_stretchly_windows[i]} = "$window_id" ]]; then
-          unset 'open_stretchly_windows[i]'
+
+      # Add the monitor back to available monitors.
+      for i in "${!monitors[@]}"; do
+        local monitor_name
+        monitor_name=$(jq --raw-output '.name' <<< "${monitors[i]}")
+        # echo "monitor_name: $monitor_name"
+        # echo "assigned monitor: ${open_stretchly_windows[$window_id]}"
+        if [[ "$monitor_name" = "${open_stretchly_windows[$window_id]}" ]]; then
+          available_monitors+=( "${monitors[$i]}" )
+          break
         fi
       done
-      # Update the array to have contiguous indices.
+      echo "available_monitors: " "${available_monitors[@]}"
+
+      # Remove the window
       for i in "${!open_stretchly_windows[@]}"; do
-        new_array+=( "${open_stretchly_windows[i]}" )
+        # echo "i: $i"
+        if [[ "$i" = "$window_id" ]]; then
+          unset 'open_stretchly_windows[$i]'
+          break
+        fi
       done
-      open_stretchly_windows=("${new_array[@]}")
-      unset new_array
       echo "open_stretchly_windows: " "${open_stretchly_windows[@]}"
     fi
+  # todo Handle interruptions during the time when setting the monitors for the windows?
+  # There is a race condition between receiving an event here and polling hyprctl for the updated list of monitors.
+  # This could lead to inconsistencies, so all monitors are refreshed every time there is a change.
+  # Because of this, it's not possible to elegantly handle monitor changes while break windows are being assigned to monitors.
+  # Things probably won't work quite right if that happens, depending on how Stretchly handles that case.
+  elif [[ ${1:0:14} == "monitoraddedv2" ]] || [[ ${1:0:16} == "monitorremovedv2" ]]; then
+    # todo Test this.
+    echo "Monitors have changed. Updating monitors."
+    update_monitors
+    echo "Updated monitors:" "${monitors[@]}"
+    available_monitors=( "${monitors[@]}" )
+    echo "Available monitors:" "${available_monitors[@]}"
   fi
 }
 

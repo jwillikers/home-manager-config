@@ -1,4 +1,5 @@
 {
+  bc,
   hyprland,
   jq,
   lib,
@@ -24,6 +25,7 @@ stdenvNoCC.mkDerivation {
     wrapProgram $out/bin/stretchly-hyprland.sh \
       --prefix PATH : ${
         lib.makeBinPath [
+          bc
           hyprland
           jq
           socat
