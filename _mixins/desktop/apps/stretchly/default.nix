@@ -89,7 +89,12 @@
         # Electron flags to force X11
         # ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
-        ExecStart = "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+        # The Steam Deck still uses X11 in desktop mode.
+        ExecStart =
+          if (hostname == "steamdeck") then
+            "-${lib.getExe pkgs.stretchly}"
+          else
+            "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
         KillSignal = "SIGKILL";
         KillMode = "mixed";
         Restart = "always";
