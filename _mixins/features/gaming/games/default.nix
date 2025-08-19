@@ -1,29 +1,13 @@
 {
-  config,
-  hostname,
   lib,
-  pkgs,
-  username,
   ...
 }:
 let
-  installOn = [
-    "precision5350"
-    "steamdeck"
-    "x1-yoga"
-  ];
+  currentDir = ./.; # Represents the current directory
+  isDirectoryAndNotTemplate = _name: type: type == "directory";
+  directories = lib.filterAttrs isDirectoryAndNotTemplate (builtins.readDir currentDir);
+  importDirectory = name: import (currentDir + "/${name}");
 in
-lib.mkIf (lib.elem hostname installOn) {
-  home.packages = with pkgs; [
-    mono # For Stardew Valley SMAPI
-  ];
-  systemd.user.tmpfiles.rules = [
-    # Symlink game save data between multiple locations.
-    ## Kingdom Two Crowns
-    "v ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release 0750 ${username} ${username} - -"
-    "L+ ${config.home.homeDirectory}/Games/gog/kingdom-two-crowns/drive_c/users/${username}/AppData/LocalLow/noio/KingdomTwoCrowns/Release - - - - ${config.xdg.configHome}/unity3d/noio/KingdomTwoCrowns/Release"
-    ## Dome Keeper
-    "v '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
-    "L+ '${config.home.homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper' - - - - '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper'"
-  ];
+{
+  imports = lib.mapAttrsToList (name: _: importDirectory name) directories;
 }
