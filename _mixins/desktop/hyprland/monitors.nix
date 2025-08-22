@@ -1,11 +1,11 @@
 _: {
   precision5350 = {
-    # monitor = [
-    #   "DP-7, 2560x1440@74.780Hz, 1920x0, 1.5"
-    #   "eDP-1, 1920x1080@60.027Hz, 0x0, 1"
-    #   # "desc:Lenovo Group Limited LEN L24q-30 U560FBWV, 2560x1440@74.780Hz, 1920x0, 1.5" # DP-7
-    #   # "desc:BOE 0x06F1, 1920x1080@60.027Hz, 0x0, 1" # eDP-1
-    # ];
+    monitor = [
+      # "DP-7, 2560x1440@74.780Hz, 1920x0, 1.5"
+      # "eDP-1, 1920x1080@60.027Hz, 0x0, 1"
+      "desc:Lenovo Group Limited LEN L24q-30 U560FBWV, 2560x1440@74.780Hz, 1920x0, 1" # DP-7
+      "desc:BOE 0x06F1, 1920x1080@60.027Hz, 0x0, 1" # eDP-1
+    ];
     monitorv2 = [
 
       # First monitor is primary
@@ -16,7 +16,7 @@ _: {
         mode = "2560x1440@74.780Hz";
         # mode = "highres@highrr";
         position = "1920x0";
-        scale = 1.5; # todo Is this not having an effect?
+        scale = 1; # todo Is this not having an effect?
       }
       {
         # output = "eDP-1";
