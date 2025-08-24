@@ -6,7 +6,7 @@ set -euo pipefail
 # In other words, breaks are paused when a microphone is open.
 
 if [ ! -z ${NOTIFY_SOCKET+x} ]; then
-  systemd-notify --ready "--status=Monitoring PulseAudio server for events"
+  systemd-notify --ready --status="Monitoring PulseAudio server for events"
 fi
 
 if [[ $(pactl list source-outputs short) ]]; then
