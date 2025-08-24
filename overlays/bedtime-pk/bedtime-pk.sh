@@ -37,26 +37,27 @@ while :; do
       echo "active_window_id: $active_window_id"
 
       # Check if the window is in fullscreen mode
-      is_fullscreen=$(xprop -id "$active_window_id" _NET_WM_STATE | grep _NET_WM_STATE_FULLSCREEN)
-      echo "is_fullscreen: $is_fullscreen"
-
       # todo, Should probably check window name regardless of whether or not it is fullscreen.
-      if [[ -n "$is_fullscreen" ]]; then
-          window_name=$(xprop -id "$active_window_id" WM_NAME | awk -F '"' '{print $2}')
-          if [[ "$window_name" =~ "Lutris"|"Steam"|"Game"|"Engine"|"vulkan"|"opengl" ]]; then
-            echo "The fullscreen application '$window_name' likely to be a game is running. Killing."
-          else
-            echo "The fullscreen application '$window_name' is running, but it may not be a game. Killing anyways."
-          fi
-          xdotool getwindowfocus windowkill
+      if xprop -id "$active_window_id" _NET_WM_STATE | grep _NET_WM_STATE_FULLSCREEN; then
+        echo "Here!"
+        window_name=$(xprop -id "$active_window_id" WM_NAME | awk -F '"' '{print $2}')
+        echo "window_name: $window_name"
+        if [[ "$window_name" =~ "Lutris"|"Steam"|"Game"|"Engine"|"vulkan"|"opengl" ]]; then
+          echo "The fullscreen application '$window_name' likely to be a game is running. Killing."
+        else
+          echo "The fullscreen application '$window_name' is running, but it may not be a game. Killing anyways."
+        fi
+        xdotool getwindowfocus windowkill
       else
         # todo Check for other potential processes / Windows.
         echo "No fullscreen application is active."
       fi
-      else
-        # todo Check for other potential processes / Windows.
-        echo "The session is not X11."
+      echo "Here!!!!!!!"
+    else
+      # todo Check for other potential processes / Windows.
+      echo "The session is not X11."
     fi
+    echo "Here?"
     sleep 130 # 2.5 minutes
   else
     if [ ! -z ${NOTIFY_SOCKET+x} ]; then
