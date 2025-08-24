@@ -1,6 +1,7 @@
 {
   gawk,
   inotify-tools,
+  jq,
   lib,
   stdenvNoCC,
   systemdMinimal,
@@ -25,6 +26,7 @@ stdenvNoCC.mkDerivation {
         lib.makeBinPath [
           gawk
           inotify-tools
+          jq
           systemdMinimal
         ]
       }

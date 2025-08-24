@@ -1,4 +1,5 @@
 {
+  config,
   hostname,
   lib,
   pkgs,
@@ -7,6 +8,9 @@
 # Bedtime Process Killer
 {
   home = {
+    file = {
+      "${config.xdg.configHome}/bedtime-pk/config.json".source = ./config.json;
+    };
     packages = with pkgs; [
       bedtime-pk
     ];
@@ -35,7 +39,7 @@
           Type = "notify";
           ExecStart = lib.getExe pkgs.bedtime-pk;
           NotifyAccess = "all";
-          Restart = "always";
+          Restart = "on-failure";
           Slice = "background.slice";
         };
       };

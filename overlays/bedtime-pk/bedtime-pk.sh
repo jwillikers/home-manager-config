@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# set -x
 
 # bedtime-pk aka bedtime process killer is a simple utility for monitoring and killing specific processes during bedtime.
 
@@ -19,7 +20,18 @@ set -euo pipefail
 # https://doc.opensuse.org/documentation/leap/archive/15.0/security/html/book.security/cha.audit.comp.html#sec.audit.audisp
 
 bedtime_start="21:14"
+bedtime_second_cutoff="22:00"
 bedtime_end="06:59"
+
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+config_directory="$XDG_CONFIG_HOME/bedtime-pk"
+config_file="$config_directory/config.json"
+
+if [ -f "$config_file" ]; then
+  bedtime_start=$(jq --raw-output ".bedtime.start" "$config_file")
+  bedtime_second_cutoff=$(jq --raw-output ".bedtime.second_cutoff" "$config_file")
+  bedtime_end=$(jq --raw-output ".bedtime.end" "$config_file")
+fi
 
 # Run forever.
 while :; do
@@ -39,25 +51,27 @@ while :; do
       # Check if the window is in fullscreen mode
       # todo, Should probably check window name regardless of whether or not it is fullscreen.
       if xprop -id "$active_window_id" _NET_WM_STATE | grep _NET_WM_STATE_FULLSCREEN; then
-        echo "Here!"
         window_name=$(xprop -id "$active_window_id" WM_NAME | awk -F '"' '{print $2}')
         echo "window_name: $window_name"
-        if [[ "$window_name" =~ "Lutris"|"Steam"|"Game"|"Engine"|"vulkan"|"opengl" ]]; then
-          echo "The fullscreen application '$window_name' likely to be a game is running. Killing."
+        # Permitted until "10:00"
+        if [[ "$current_time" < "$bedtime_second_cutoff" ]] && [[ "$window_name" =~ "Chromium"|"Firefox"|"Jellyfin"|"Youtube" ]]; then
+          echo "The fullscreen application '$window_name' is allowed to run until the second cutoff."
         else
-          echo "The fullscreen application '$window_name' is running, but it may not be a game. Killing anyways."
+          if [[ "$window_name" =~ "Lutris"|"Steam"|"Game"|"Engine"|"vulkan"|"opengl" ]]; then
+            echo "The fullscreen application '$window_name' likely to be a game is running. Killing."
+          else
+            echo "The fullscreen application '$window_name' is running, but it may not be a game. Killing anyways."
+          fi
+          xdotool getwindowfocus windowkill
         fi
-        xdotool getwindowfocus windowkill
       else
         # todo Check for other potential processes / Windows.
         echo "No fullscreen application is active."
       fi
-      echo "Here!!!!!!!"
     else
       # todo Check for other potential processes / Windows.
       echo "The session is not X11."
     fi
-    echo "Here?"
     sleep 130 # 2.5 minutes
   else
     if [ ! -z ${NOTIFY_SOCKET+x} ]; then
