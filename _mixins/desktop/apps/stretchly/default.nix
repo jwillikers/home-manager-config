@@ -186,6 +186,6 @@
       "pin, ${stretchlyBreak}"
       "stayfocused, ${stretchlyBreak}"
       "noclosefor 10000, ${stretchlyBreak}"
-      "noscreenshare, ${stretchlyBreak}"
+      # todo "noscreenshare, ${stretchlyBreak}"
     ];
 }

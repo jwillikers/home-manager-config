@@ -54,10 +54,10 @@ function calculate_euclidean_distance {
   local dist_sq
   local distance
   x1=$1 y1=$2 x2=$3 y2=$4
-  dx=$(echo "$x2 - $x1" | bc -l)
-  dy=$(echo "$y2 - $y1" | bc -l)
-  dist_sq=$(echo "$dx*$dx + $dy*$dy" | bc -l)
-  distance=$(echo "sqrt($dist_sq)" | bc -l)
+  dx=$(echo "$x2 - $x1" | bc --mathlib)
+  dy=$(echo "$y2 - $y1" | bc --mathlib)
+  dist_sq=$(echo "$dx*$dx + $dy*$dy" | bc --mathlib)
+  distance=$(echo "sqrt($dist_sq)" | bc --mathlib)
   echo "$distance"
 }
 
@@ -79,7 +79,9 @@ function handle {
   # openwindow>>WINDOWADDRESS,WORKSPACENAME,WINDOWCLASS,WINDOWTITLE
   # openwindow>>be2ad50,9,Stretchly,Time to take a break!
 
-  # todo handle attaching and detaching monitors
+  # todo:
+  # Wait for all of the open windows before moving them to their matching windows?
+  # This avoids missing open window events while commands are being sent to Hyprland?
   if [[ ${1:0:10} == "openwindow" ]]; then
     # echo "command: ${1:0:10}"
     IFS="," read -r window_id _workspace_name window_class window_title <<< "${1:12}"
@@ -88,8 +90,8 @@ function handle {
     if [[ $window_class == "Stretchly" ]]; then
       # window_title=${1##*,}
       echo "window_title: $window_title"
-      if [[ $window_title == "Time to take a break!" ]]; then
-        # index=${#open_stretchly_windows[@]}
+      # Sometimes, the window title is just "Stretchly" for some reason.
+      if [[ $window_title == "Time to take a break!" ]] || [[ $window_title == "Stretchly" ]]; then
         # echo "window index: $index"
 
         # Get the width and height of the window.
@@ -122,7 +124,7 @@ function handle {
           distance=$(calculate_euclidean_distance "$width" "$height" "$monitor_width" "$monitor_height")
           echo "distance: $distance"
 
-          if [ -z ${min_distance+x} ] || (( distance < min_distance )); then
+          if [ -z ${min_distance+x} ] || (( $(echo "$distance < $min_distance" | bc --mathlib) )); then
             min_monitor=$monitor_name
             min_distance=$distance
           fi
@@ -154,7 +156,7 @@ function handle {
     window_id=${1:13}
     # echo "winwdow_id: $window_id"
     if [ "${open_stretchly_windows[$window_id]+x}" ]; then
-      echo "Remove winwdow_id: $window_id"
+      echo "Remove window_id: $window_id"
 
       # Add the monitor back to available monitors.
       for i in "${!monitors[@]}"; do

@@ -74,9 +74,14 @@ in
     windowManager.hyprland = {
       enable = true;
       # todo Remove the following: https://github.com/nix-community/home-manager/pull/7507
-      importantPrefixes = [ "output" ];
+      importantPrefixes = [
+        "enabled"
+        "bezier"
+        "name"
+        "output"
+      ];
       settings = {
-        inherit (monitors) monitorv2 workspace;
+        inherit (monitors) monitor workspace;
 
         # Workaround issues with the Hyprland Home Manager module not setting systemd.user.sessionVariables
         env = [
@@ -90,7 +95,10 @@ in
         cursor = {
           # default_monitor = "DP-7";
           default_monitor =
-            (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitorv2 0).output;
+            # (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitorv2 0).output;
+            builtins.elemAt (lib.strings.splitString "," (
+              builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0
+            )) 0;
         };
         device = {
           name = "9610:30:Pine64_Pinebook_Pro";
