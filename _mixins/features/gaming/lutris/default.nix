@@ -25,10 +25,23 @@ lib.mkIf (lib.elem hostname installOn) {
   };
   programs.lutris = {
     enable = true;
+    extraPackages = with pkgs; [
+      mangohud
+      winetricks
+      gamescope
+      gamemode
+      umu-launcher
+    ];
+    protonPackages = with pkgs; [ proton-ge-bin ];
     package = config.lib.nixGL.wrap pkgs.lutris;
     runners = {
       scummvm.package = config.lib.nixGL.wrap pkgs.scummvm;
     };
-    steamPackage = lib.mkIf (hostname != "steamdeck") (config.lib.nixGL.wrap pkgs.steam);
+    steamPackage =
+      if hostname == "steamdeck" then
+        (pkgs.runCommandLocal "empty" { } "mkdir $out")
+      else
+        (config.lib.nixGL.wrap pkgs.steam);
+    winePackages = with pkgs; [ wineWow64Packages.full ];
   };
 }
