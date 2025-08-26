@@ -3,6 +3,7 @@
   inotify-tools,
   jq,
   lib,
+  libnotify,
   stdenvNoCC,
   systemdMinimal,
   makeWrapper,
@@ -27,6 +28,7 @@ stdenvNoCC.mkDerivation {
           gawk
           inotify-tools
           jq
+          libnotify
           systemdMinimal
         ]
       }
