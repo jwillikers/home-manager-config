@@ -91,7 +91,8 @@
         # The flags below force Wayland
         # The Steam Deck still uses X11 in desktop mode.
         ExecStart =
-          if (hostname == "steamdeck") then
+          # todo Need to fix Stretchly breaks running under KDE Wayland.
+          if (desktop == "kde") then
             "-${lib.getExe pkgs.stretchly}"
           else
             "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
