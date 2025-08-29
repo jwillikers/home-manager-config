@@ -72,7 +72,10 @@ while :; do
           sleep 60
           active_window_id=$(xdotool getwindowfocus)
           if xprop -id "$active_window_id" _NET_WM_STATE | grep _NET_WM_STATE_FULLSCREEN; then
-            xdotool getwindowfocus windowkill
+            # todo Just sleep after bed time without checking active window?
+            systemctl sleep
+            # Kill the active window
+            # xdotool getwindowfocus windowkill
           fi
         fi
       else
