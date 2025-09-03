@@ -41,9 +41,9 @@ lib.mkIf (lib.elem hostname installOn) {
     package = config.lib.nixGL.wrap pkgs.lutris;
     runners = {
       scummvm.package = config.lib.nixGL.wrap pkgs.scummvm;
-      steam.settings = {
+      steam.settings = lib.mkIf (hostname == "steamdeck") {
         # system.disable_screen_saver = true;
-        runner.runner_executable = lib.mkIf (hostname == "steamdeck") "/usr/bin/steam";
+        runner.runner_executable = "/usr/bin/steam";
       };
     };
     steamPackage =
