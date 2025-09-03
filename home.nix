@@ -728,8 +728,11 @@ in
       "L+ ${config.xdg.configHome}/gnupg - - - - ${config.home.homeDirectory}/.gnupg"
       # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
       "L+ ${config.home.homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
+    ]
+    ++ lib.optionals (hostname != "steamdeck") [
       "L+ ${config.home.homeDirectory}/Documents - - - - ${config.home.homeDirectory}/Nextcloud/Documents"
       "L+ ${config.home.homeDirectory}/Notes - - - - ${config.home.homeDirectory}/Nextcloud/Notes"
+
     ];
   };
 
