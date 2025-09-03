@@ -5,14 +5,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "lutris-config";
-  version = "0-unstable-2025-08-06";
+  version = "0-unstable-2025-09-03";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "lutris-config";
-    rev = "76d99609e5bdca9da4316070ab70d4b856b89775";
-    hash = "sha256-p3wQOwrZ9Gsk5ogCbw1hf85qvdD5mCITU4lZQF4vrpQ=";
+    rev = "8249b24e2490aab119b15353c1b6469be21b7dec";
+    hash = "sha256-8XC5yM7sv4O0qq/yBeMZWW03SwAGd2VuzdB7Y3yoi2E=";
   };
 
   installPhase = ''
