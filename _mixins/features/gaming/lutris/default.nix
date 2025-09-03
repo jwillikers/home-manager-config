@@ -41,16 +41,8 @@ lib.mkIf (lib.elem hostname installOn) {
     package = config.lib.nixGL.wrap pkgs.lutris;
     runners = {
       scummvm.package = config.lib.nixGL.wrap pkgs.scummvm;
-      steam.settings = lib.mkIf (hostname == "steamdeck") {
-        # system.disable_screen_saver = true;
-        runner.runner_executable = "/usr/bin/steam";
-      };
     };
-    steamPackage =
-      if hostname == "steamdeck" then
-        (pkgs.runCommandLocal "empty" { } "mkdir $out")
-      else
-        (config.lib.nixGL.wrap pkgs.steam);
+    steamPackage = config.lib.nixGL.wrap pkgs.steam;
     winePackages = with pkgs; [ wineWow64Packages.full ];
   };
 }
