@@ -6,7 +6,7 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "steam-deck-auto-disable-steam-controller";
-  version = "0";
+  version = "0-unstable-2024-04-05";
 
   src = fetchFromGitHub {
     owner = "scawp";
