@@ -56,6 +56,9 @@ let
     pkgs.qFlipper
     pkgs.steam-unwrapped
     packages.udev-rules
+  ]
+  ++ lib.optionals (hostname == "steamdeck") [
+    packages.steam-deck-auto-disable-steam-controller
   ];
 in
 {

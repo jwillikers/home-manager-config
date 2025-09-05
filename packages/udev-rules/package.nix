@@ -3,7 +3,7 @@
 }:
 
 stdenvNoCC.mkDerivation {
-  pname = "foot-config";
+  pname = "udev-rules";
   version = "0";
 
   src = ./.;
