@@ -32,9 +32,9 @@ lib.mkIf (lib.elem hostname installOn) {
     enable = true;
     extraPackages = with pkgs; [
       mangohud
-      winetricks
+      (config.lib.nixGL.wrap winetricks)
       (config.lib.nixGL.wrap gamescope)
-      gamemode
+      (config.lib.nixGL.wrap gamemode)
       umu-launcher
     ];
     protonPackages = with pkgs; [ proton-ge-bin ];
