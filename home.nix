@@ -19,6 +19,7 @@ let
     "com.github.tchx84.Flatseal" # Flatpak permissions manager
     "com.nextcloud.desktopclient.nextcloud" # File sync service
     "com.play0ad.zeroad" # 0 A.D. is a real-time strategy (RTS) game of ancient warfare, like Age of Empires II
+    "com.usebottles.bottles"
     "de.haeckerfelix.Fragments" # Torrent downloader
     "im.riot.Riot" # Chat
     # todo Use Nix KCC in 25.11
