@@ -6,6 +6,7 @@
   pkgs,
   ...
 }:
+# todo Use the Home Manager integration for Ludusavi.
 let
   installOn = [
     "precision5350"
