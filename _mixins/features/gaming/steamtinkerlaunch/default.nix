@@ -21,6 +21,10 @@ lib.mkIf (lib.elem hostname installOn) {
         source = ./default_template.conf;
         onChange = ''cat ${config.xdg.configHome}/steamtinkerlaunch/default_template_source.conf > ${config.xdg.configHome}/steamtinkerlaunch/default_template.conf'';
       };
+      "${config.xdg.configHome}/steamtinkerlaunch/gamecfgs/id/1158850_source.conf" = {
+        source = ./gamecfgs/id/1158850.conf;
+        onChange = ''cat ${config.xdg.configHome}/steamtinkerlaunch/gamecfgs/id/1158850_source.conf > ${config.xdg.configHome}/steamtinkerlaunch/gamecfgs/id/1158850.conf'';
+      };
     };
     packages = with pkgs; [
       (config.lib.nixGL.wrap steamtinkerlaunch)
