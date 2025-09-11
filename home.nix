@@ -20,8 +20,10 @@ let
     "com.nextcloud.desktopclient.nextcloud" # File sync service
     "com.play0ad.zeroad" # 0 A.D. is a real-time strategy (RTS) game of ancient warfare, like Age of Empires II
     "com.usebottles.bottles"
-    "org.freedesktop.Platform.VulkanLayer.gamescope//25.08"
     "org.freedesktop.Platform.VulkanLayer.gamescope//24.08"
+    "org.freedesktop.Platform.VulkanLayer.gamescope//25.08"
+    "org.freedesktop.Platform.VulkanLayer.MangoHud//24.08"
+    "org.freedesktop.Platform.VulkanLayer.MangoHud//25.08"
     "org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08"
     "de.haeckerfelix.Fragments" # Torrent downloader
     "im.riot.Riot" # Chat
@@ -29,6 +31,7 @@ let
     "io.github.ciromattia.kcc" # Kindle Comic Converter
     "io.gitlab.azymohliad.WatchMate" # PineTime watch utility
     "io.gitlab.news_flash.NewsFlash" # News feed reader
+    "net.davidotek.pupgui2" # ProtonUp-Qt installs Wine and Proton compatibility tools
     "net.werwolv.ImHex" # Hex editor
     "net.veloren.airshipper" # Launcher for Veloren RPG
     "org.fedoraproject.MediaWriter" # USB writer
@@ -260,6 +263,11 @@ in
                 fi
               '') flatpaks
             )
+            + ''
+              # Override permissions for Bottles to access the Steam installation.
+              # todo Only run this if the Bottles flatpak is being installed and the Steam package is being installed.
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.usebottles.bottles --filesystem=xdg-data/Steam
+            ''
           );
       flatpakTheme =
         lib.hm.dag.entryAfter
