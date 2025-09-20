@@ -123,6 +123,7 @@
           m4b-tool.overlay
           nixgl.overlay
           # overlays.gcr
+          overlays.heroic
           overlays.packages
         ];
         pkgs = import nixpkgs {
