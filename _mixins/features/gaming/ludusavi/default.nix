@@ -30,6 +30,13 @@ lib.mkIf (lib.elem hostname installOn) {
     };
     packages = with pkgs; [
       (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
+      (writeShellApplication {
+        name = "heroic-ludusavi-wrapper.sh";
+        runtimeInputs = [ pkgs.ludusavi ];
+        text = ''
+          ludusavi --config "$HOME/.config/ludusavi" wrap --force --infer heroic --no-force-cloud-conflict -- "$@"
+        '';
+      })
     ];
   };
   systemd.user = {
