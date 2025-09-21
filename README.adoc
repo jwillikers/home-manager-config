@@ -374,6 +374,11 @@ rm --force --recursive ~/.config/calibre/plugins/ACSM\ Input/ ~/.config/calibre/
 
 . Log out and back in for certain environment variable changes to take effect.
 
+=== Gaming
+
+. Open the Heroic Games Launcher Flatpak and add `~/.nix-profile/bin/heroic-ludusavi-wrapper.sh` as the wrapper command in game config settings.
+This must be done per game for any already installed games after changing the global setting.
+
 == Todo
 
 .General Todo
