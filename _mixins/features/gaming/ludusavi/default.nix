@@ -33,8 +33,9 @@ lib.mkIf (lib.elem hostname installOn) {
       (writeShellApplication {
         name = "heroic-ludusavi-wrapper.sh";
         runtimeInputs = [ pkgs.ludusavi ];
+        # Need to run flatpak override to permit access?
         text = ''
-          ludusavi --config "$HOME/.config/ludusavi" wrap --force --infer heroic --no-force-cloud-conflict -- "$@"
+          ludusavi --config "$HOME/.config/ludusavi" wrap --force --infer heroic --no-force-cloud-conflict --gui -- "$@"
         '';
       })
     ];
