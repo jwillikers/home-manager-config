@@ -269,6 +269,13 @@ in
               # Override permissions for Bottles to access the Steam installation.
               # todo Only run this if the Bottles flatpak is being installed and the Steam package is being installed.
               run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.usebottles.bottles --filesystem=xdg-data/Steam
+              # Override permissions for Heroic Games Launcher to permit access to Ludusavi.
+              # todo Can multiple filesystem flags be used together?
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl --filesystem='~/.config/ludusavi'
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl --filesystem='~/.config/rclone:ro'
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl --filesystem='~/.nix-profile/bin/heroic-ludusavi-wrapper.sh'
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl --filesystem='~/ludusavi-backup'
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl --filesystem=/nix/store
             ''
           );
       flatpakTheme =
