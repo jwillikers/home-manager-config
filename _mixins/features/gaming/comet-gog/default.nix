@@ -30,7 +30,7 @@ lib.mkIf (lib.elem hostname installOn) {
           # Simple script to obtain GOG username from secrets file and run comet.
           name = "comet.sh";
           runtimeInputs = with pkgs; [
-            comet
+            comet-gog
             systemdMinimal
           ];
           # Requires signing in to GOG in Lutris.
