@@ -36,7 +36,7 @@ lib.mkIf (lib.elem hostname installOn) {
           # Requires signing in to GOG in Lutris.
           text = ''
             username=$(<${config.sops.secrets."${hostname}/gog-username".path})
-            if [ ! -z $${NOTIFY_SOCKET+x} ]; then
+            if [ ! -z ''${NOTIFY_SOCKET+x} ]; then
               systemd-notify --ready --status="Running comet with Lutris integration"
             fi
             comet --from-lutris --username "$username"
