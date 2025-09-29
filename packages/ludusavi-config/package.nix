@@ -5,14 +5,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "ludusavi-config";
-  version = "0-unstable-2025-09-20";
+  version = "0-unstable-2025-09-29";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "ludusavi-config";
-    rev = "41065127e2674b90711c976b9b105a6b220c1c71";
-    hash = "sha256-I5I0wMYjiWG+A8n0y4sRLVTvGVz58t8lqBm+u6d5a38=";
+    rev = "d644d1dceafd93004669a94c538bf2cdb694f26e";
+    hash = "sha256-yJpS3Ah6fuCYdN+hK4/CHrqS0Q0KPO2FMWF7xFLjU9I=";
   };
 
   installPhase = ''
