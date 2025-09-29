@@ -1,4 +1,5 @@
 {
+  config,
   hostname,
   lib,
   pkgs,
@@ -15,4 +16,40 @@ lib.mkIf (lib.elem hostname installOn) {
   home.packages = with pkgs; [
     comet-gog
   ];
+
+  systemd.user.services = {
+    "comet" = {
+      Unit = {
+        Description = "Run Comet GOG integration service";
+        After = [ "default.target" ];
+      };
+
+      Service = {
+        Type = "notify";
+        ExecStart = pkgs.writeShellApplication {
+          # Simple script to obtain GOG username from secrets file and run comet.
+          name = "comet.sh";
+          runtimeInputs = with pkgs; [
+            comet
+            systemdMinimal
+          ];
+          # Requires signing in to GOG in Lutris.
+          text = ''
+            username=$(<${config.sops.secrets."${hostname}/gog-username".path})
+            if [ ! -z $${NOTIFY_SOCKET+x} ]; then
+              systemd-notify --ready --status="Running comet with Lutris integration"
+            fi
+            comet --from-lutris --username "$username"
+          '';
+        };
+        Restart = "always";
+        NotifyAccess = "all";
+        Slice = "background.slice";
+      };
+
+      Install = {
+        WantedBy = [ "default.target" ];
+      };
+    };
+  };
 }

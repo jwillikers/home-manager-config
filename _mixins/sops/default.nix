@@ -20,6 +20,7 @@ in
       "${hostname}/nextcloud-ludusavi" = {
         # path = "%r/sops-secrets/nextcloud-ludusavi.txt";
       };
+      "${hostname}/gog-username" = { };
     };
   };
 }
