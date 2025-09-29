@@ -14,8 +14,10 @@ let
     "com.bitwarden.desktop" # Password vault
     "com.discordapp.Discord" # Chat and meetings
     "com.github.Anuken.Mindustry" # Factorio-like tower defense game
+    "com.github.bvschaik.julius" # A fully functional open-source adaptation of Caesar III
     "com.github.geigi.cozy" # Audiobook player
     "com.github.iwalton3.jellyfin-media-player" # Media server client
+    "com.github.keriew.augustus" # Open source re-implementation of the Caesar III game engine with changes to gameplay
     "com.github.tchx84.Flatseal" # Flatpak permissions manager
     "com.heroicgameslauncher.hgl" # Heroic Games Launcher
     "com.nextcloud.desktopclient.nextcloud" # File sync service
@@ -27,6 +29,7 @@ let
     "org.freedesktop.Platform.VulkanLayer.MangoHud//24.08" # For Bottles
     "org.freedesktop.Platform.VulkanLayer.MangoHud//25.08"
     "org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08"
+    "org.openjkdf2.OpenJKDF2" # Open source Jedi Knight Dark Forces 2 engine
     "de.haeckerfelix.Fragments" # Torrent downloader
     "im.riot.Riot" # Chat
     # todo Use Nix KCC in 25.11
