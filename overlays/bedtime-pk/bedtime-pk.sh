@@ -19,7 +19,7 @@ set -euo pipefail
 # https://unix.stackexchange.com/questions/688478/how-do-i-run-command-hooks-when-a-specific-process-is-started
 # https://doc.opensuse.org/documentation/leap/archive/15.0/security/html/book.security/cha.audit.comp.html#sec.audit.audisp
 
-bedtime_start="21:14"
+bedtime_start="21:09"
 bedtime_second_cutoff="22:00"
 bedtime_end="06:59"
 
@@ -56,13 +56,27 @@ while :; do
         # Permitted until "10:00"
         if [[ "$current_time" < "$bedtime_second_cutoff" ]] && [[ "$window_name" =~ "Chromium"|"Firefox"|"Jellyfin"|"Youtube" ]]; then
           echo "The fullscreen application '$window_name' is allowed to run until the second cutoff."
+          if [[ "$current_time" > "21:55" ]]; then
+            notify-send --app-name=bedtime-pk --urgency=critical --expire-time=30000 --urgency=critical "Less than 5 minutes until bedtime"
+          fi
+        elif [[ "$current_time" < "21:14" ]]; then
+          notify-send --app-name=bedtime-pk --urgency=critical --expire-time=30000 --urgency=critical "Less than 5 minutes until bedtime"
         else
           if [[ "$window_name" =~ "Lutris"|"Steam"|"Game"|"Engine"|"vulkan"|"opengl" ]]; then
             echo "The fullscreen application '$window_name' likely to be a game is running. Killing."
           else
             echo "The fullscreen application '$window_name' is running, but it may not be a game. Killing anyways."
           fi
-          xdotool getwindowfocus windowkill
+          # todo Add --icon
+          notify-send --app-name=bedtime-pk --urgency=critical --expire-time=30000 --urgency=critical "60 seconds until bedtime"
+          sleep 60
+          active_window_id=$(xdotool getwindowfocus)
+          if xprop -id "$active_window_id" _NET_WM_STATE | grep _NET_WM_STATE_FULLSCREEN; then
+            # todo Just sleep after bed time without checking active window?
+            systemctl sleep
+            # Kill the active window
+            # xdotool getwindowfocus windowkill
+          fi
         fi
       else
         # todo Check for other potential processes / Windows.

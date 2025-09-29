@@ -5,14 +5,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "ludusavi-steam-deck-config";
-  version = "0-unstable-2025-08-06";
+  version = "0-unstable-2025-09-29";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "ludusavi-steam-deck-config";
-    rev = "f617e3d6717c3dfbe377aa5f44df9d9b84b6e851";
-    hash = "sha256-N94+MASZO8pNVcoDgmcVNGsIlbPgQn7q/j+9UYUTSEo=";
+    rev = "e473a55a1cdaa096fd8637718f805073b81969ee";
+    hash = "sha256-unP/ihQbgx3ycoRVQW5/YlGqhXhZ1eOSGIPQBH0Tt1c=";
   };
 
   installPhase = ''

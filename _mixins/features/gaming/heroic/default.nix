@@ -13,9 +13,7 @@ let
   ];
 in
 lib.mkIf (lib.elem hostname installOn) {
-  home = {
-    packages = with pkgs; [
-      (config.lib.nixGL.wrap bottles)
-    ];
-  };
+  home.packages = with pkgs; [
+    (config.lib.nixGL.wrap heroic)
+  ];
 }

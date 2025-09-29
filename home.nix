@@ -14,17 +14,29 @@ let
     "com.bitwarden.desktop" # Password vault
     "com.discordapp.Discord" # Chat and meetings
     "com.github.Anuken.Mindustry" # Factorio-like tower defense game
+    "com.github.bvschaik.julius" # A fully functional open-source adaptation of Caesar III
     "com.github.geigi.cozy" # Audiobook player
     "com.github.iwalton3.jellyfin-media-player" # Media server client
+    "com.github.keriew.augustus" # Open source re-implementation of the Caesar III game engine with changes to gameplay
     "com.github.tchx84.Flatseal" # Flatpak permissions manager
+    "com.heroicgameslauncher.hgl" # Heroic Games Launcher
     "com.nextcloud.desktopclient.nextcloud" # File sync service
     "com.play0ad.zeroad" # 0 A.D. is a real-time strategy (RTS) game of ancient warfare, like Age of Empires II
+    "com.usebottles.bottles"
+    "org.freedesktop.Platform.VulkanLayer.gamescope//23.08" # For Heroic Games Launcher
+    "org.freedesktop.Platform.VulkanLayer.gamescope//24.08" # For Bottles
+    "org.freedesktop.Platform.VulkanLayer.gamescope//25.08"
+    "org.freedesktop.Platform.VulkanLayer.MangoHud//24.08" # For Bottles
+    "org.freedesktop.Platform.VulkanLayer.MangoHud//25.08"
+    "org.freedesktop.Platform.VulkanLayer.vkBasalt//24.08"
+    "org.openjkdf2.OpenJKDF2" # Open source Jedi Knight Dark Forces 2 engine
     "de.haeckerfelix.Fragments" # Torrent downloader
     "im.riot.Riot" # Chat
     # todo Use Nix KCC in 25.11
     "io.github.ciromattia.kcc" # Kindle Comic Converter
     "io.gitlab.azymohliad.WatchMate" # PineTime watch utility
     "io.gitlab.news_flash.NewsFlash" # News feed reader
+    "net.davidotek.pupgui2" # ProtonUp-Qt installs Wine and Proton compatibility tools
     "net.werwolv.ImHex" # Hex editor
     "net.veloren.airshipper" # Launcher for Veloren RPG
     "org.fedoraproject.MediaWriter" # USB writer
@@ -56,6 +68,9 @@ let
     pkgs.qFlipper
     pkgs.steam-unwrapped
     packages.udev-rules
+  ]
+  ++ lib.optionals (hostname == "steamdeck") [
+    packages.steam-deck-auto-disable-steam-controller
   ];
 in
 {
@@ -253,6 +268,18 @@ in
                 fi
               '') flatpaks
             )
+            + ''
+              # Override permissions for Bottles to access the Steam installation.
+              # todo Only run this if the Bottles flatpak is being installed and the Steam package is being installed.
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.usebottles.bottles --filesystem=xdg-data/Steam
+              # Override permissions for Heroic Games Launcher to permit access to Ludusavi.
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl \
+                --filesystem='~/.config/ludusavi' \
+                --filesystem='~/.config/rclone:ro' \
+                --filesystem='~/.nix-profile/bin/heroic-ludusavi-wrapper.sh' \
+                --filesystem='~/ludusavi-backup' \
+                --filesystem=/nix/store
+            ''
           );
       flatpakTheme =
         lib.hm.dag.entryAfter
@@ -728,8 +755,11 @@ in
       "L+ ${config.xdg.configHome}/gnupg - - - - ${config.home.homeDirectory}/.gnupg"
       # Symlink ~/.gitconfig to ~/.config/git due to GUI tools relying on it being there.
       "L+ ${config.home.homeDirectory}/.gitconfig - - - - ${config.xdg.configHome}/git/config"
+    ]
+    ++ lib.optionals (hostname != "steamdeck") [
       "L+ ${config.home.homeDirectory}/Documents - - - - ${config.home.homeDirectory}/Nextcloud/Documents"
       "L+ ${config.home.homeDirectory}/Notes - - - - ${config.home.homeDirectory}/Nextcloud/Notes"
+
     ];
   };
 

@@ -15,7 +15,7 @@ in
 lib.mkIf (lib.elem hostname installOn) {
   home = {
     packages = with pkgs; [
-      (config.lib.nixGL.wrap wineWow64Packages.stagingFull)
+      (config.lib.nixGL.wrap protontricks)
     ];
   };
 }

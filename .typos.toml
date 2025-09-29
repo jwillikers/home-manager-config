@@ -5,8 +5,9 @@ extend-ignore-re = [
   # "SHA256:[[:space:]]*[[a-zA-Z0-9+]]+[[:space:]]*",
 ]
 
-# [default.extend-identifiers]
-# tio = "tio"
+[default.extend-identifiers]
+UE4 = "UE4"
+UniversalUE4Unlocker = "UniversalUE4Unlocker"
 
 [default.extend-words]
 tio = "tio"

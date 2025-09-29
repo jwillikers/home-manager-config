@@ -6,6 +6,7 @@
   pkgs,
   ...
 }:
+# todo Use the Home Manager integration for Ludusavi.
 let
   installOn = [
     "precision5350"
@@ -29,6 +30,16 @@ lib.mkIf (lib.elem hostname installOn) {
     };
     packages = with pkgs; [
       (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
+      (writeShellApplication {
+        # Wrapper script for use by the Heroic Games Launcher.
+        # Use ~/.nix-profile/bin/heroic-ludusavi-wrapper.sh as the wrapper command in Heroic Games Launcher game config settings.
+        name = "heroic-ludusavi-wrapper.sh";
+        runtimeInputs = [ pkgs.ludusavi ];
+        # To use this script, it's necessary to add a bunch of Flatpak filesystem overrides for the Heroic Games Launcher Flatpak.
+        text = ''
+          ludusavi --config "$HOME/.config/ludusavi" wrap --force --infer heroic --no-force-cloud-conflict --gui -- "$@"
+        '';
+      })
     ];
   };
   systemd.user = {
