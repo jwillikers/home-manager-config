@@ -21,7 +21,11 @@ lib.mkIf (lib.elem hostname installOn) {
     "comet" = {
       Unit = {
         Description = "Run Comet GOG integration service";
-        After = [ "default.target" ];
+        After = [
+          "default.target"
+          "sops-nix.service"
+        ];
+        Requires = [ "sops-nix.service" ];
       };
 
       Service = {
