@@ -273,10 +273,10 @@ in
               # todo Only run this if the Bottles flatpak is being installed and the Steam package is being installed.
               run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.usebottles.bottles --filesystem=xdg-data/Steam
               # Override permissions for Heroic Games Launcher to permit access to Ludusavi.
-              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override com.heroicgameslauncher.hgl \
+              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl \
                 --filesystem='~/.config/ludusavi' \
                 --filesystem='~/.config/rclone:ro' \
-                --system com.heroicgameslauncher.hgl --filesystem='~/.nix-profile/bin/heroic-ludusavi-wrapper.sh' \
+                --filesystem='~/.nix-profile/bin/heroic-ludusavi-wrapper.sh' \
                 --filesystem='~/ludusavi-backup' \
                 --filesystem=/nix/store
             ''
