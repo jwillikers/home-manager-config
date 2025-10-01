@@ -33,9 +33,10 @@ let
     "de.haeckerfelix.Fragments" # Torrent downloader
     "im.riot.Riot" # Chat
     # todo Use Nix KCC in 25.11
-    "io.github.ciromattia.kcc" # Kindle Comic Converter
     "io.gitlab.azymohliad.WatchMate" # PineTime watch utility
+    "io.github.ciromattia.kcc" # Kindle Comic Converter
     "io.gitlab.news_flash.NewsFlash" # News feed reader
+    "io.github.theforceengine.tfe" # The Force Engine
     "net.davidotek.pupgui2" # ProtonUp-Qt installs Wine and Proton compatibility tools
     "net.werwolv.ImHex" # Hex editor
     "net.veloren.airshipper" # Launcher for Veloren RPG
