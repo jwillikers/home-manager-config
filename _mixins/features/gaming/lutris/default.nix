@@ -31,11 +31,12 @@ lib.mkIf (lib.elem hostname installOn) {
   programs.lutris = {
     enable = true;
     extraPackages = with pkgs; [
-      (config.lib.nixGL.wrap mangohud)
-      (config.lib.nixGL.wrap winetricks)
-      (config.lib.nixGL.wrap gamescope)
+      (config.lib.nixGL.wrap flatpak)
       (config.lib.nixGL.wrap gamemode)
+      (config.lib.nixGL.wrap gamescope)
+      (config.lib.nixGL.wrap mangohud)
       (config.lib.nixGL.wrap umu-launcher)
+      (config.lib.nixGL.wrap winetricks)
     ];
     protonPackages = with pkgs; [ proton-ge-bin ];
     package = config.lib.nixGL.wrap pkgs.lutris;
