@@ -35,6 +35,7 @@
     "hyprctl",
     "hyprlock",
     "ifdef",
+    "inputplumber",
     "justfile",
     "jwillikers",
     "keyboxd",

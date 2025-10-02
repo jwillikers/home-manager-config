@@ -95,6 +95,13 @@ If this host isn't found, locate the IP address on the Steam Deck by running the
 ssh deck@steamdeck
 ----
 
+.. Enable the InputPlumber suspend service.
++
+[,sh]
+----
+sudo systemctl enable inputplumber-suspend
+----
+
 . Configure access as necessary for the local Forgejo instance at https://forgejo.jwillikers.io in order to have access to the {Nix-Secrets} repository.
 .. Create a dedicated user account for a system which only requires read access to the repository.
 For the Steam Deck, I created the `deck` user account for this purpose and shared the {Nix-Secrets} repository with this user, giving it read-only access in the repository's settings.
