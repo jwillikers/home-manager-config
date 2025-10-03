@@ -1,6 +1,8 @@
 {
+  config,
   hostname,
   lib,
+  packages,
   pkgs,
   ...
 }:
@@ -11,12 +13,31 @@ let
     "x1-yoga"
   ];
 in
-# Currently, the InputPlumber service must run as root.
-# Luckily, it's already installed on the Steam Deck in SteamOS!
-# Run:
-# sudo systemctl enable inputplumber-suspend
 lib.mkIf (lib.elem hostname installOn) {
-  home.packages = with pkgs; [
-    inputplumber
-  ];
+  home = {
+    activation = {
+      inputplumber =
+        lib.hm.dag.entryAfter
+          [
+            "escalationProgram"
+            "writeBoundary"
+          ]
+          ''
+            run "$escalation_program" mkdir --parents /etc/inputplumber/{devices,profiles}.d
+            run "$escalation_program" cp --recursive ${packages.inputplumber-profiles}/etc/inputplumber/devices.d/* /etc/inputplumber/devices.d/
+            run "$escalation_program" cp --recursive ${packages.inputplumber-profiles}/etc/inputplumber/profiles.d/* /etc/inputplumber/profiles.d/
+            run "$escalation_program" systemctl enable inputplumber.service inputplumber-suspend.service
+            run "$escalation_program" systemctl restart inputplumber.service
+          '';
+    };
+    file = {
+      "${config.xdg.configHome}/lutris/scripts/lutris-inputplumber-pre-launch.sh".source =
+        packages.inputplumber-profiles + "/etc/lutris/scripts/lutris-inputplumber-pre-launch.sh";
+      "${config.xdg.configHome}/lutris/scripts/lutris-inputplumber-post-exit.sh".source =
+        packages.inputplumber-profiles + "/etc/lutris/scripts/lutris-inputplumber-post-exit.sh";
+    };
+    packages = with pkgs; [
+      inputplumber
+    ];
+  };
 }

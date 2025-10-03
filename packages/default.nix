@@ -4,6 +4,7 @@
 }:
 {
   foot-config = pkgs.callPackage ./foot-config/package.nix { };
+  inputplumber-profiles = pkgs.callPackage ./inputplumber-profiles/package.nix { };
   ludusavi-config = pkgs.callPackage ./ludusavi-config/package.nix { };
   ludusavi-steam-deck-config = pkgs.callPackage ./ludusavi-steam-deck-config/package.nix { };
   lutris-config = pkgs.callPackage ./lutris-config/package.nix { };

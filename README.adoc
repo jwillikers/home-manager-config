@@ -95,13 +95,6 @@ If this host isn't found, locate the IP address on the Steam Deck by running the
 ssh deck@steamdeck
 ----
 
-.. Enable the InputPlumber suspend service.
-+
-[,sh]
-----
-sudo systemctl enable inputplumber-suspend
-----
-
 . Configure access as necessary for the local Forgejo instance at https://forgejo.jwillikers.io in order to have access to the {Nix-Secrets} repository.
 .. Create a dedicated user account for a system which only requires read access to the repository.
 For the Steam Deck, I created the `deck` user account for this purpose and shared the {Nix-Secrets} repository with this user, giving it read-only access in the repository's settings.
@@ -214,6 +207,55 @@ sudo /opt/tailscale/tailscale update
 [,sh]
 ----
 sudo /opt/tailscale/tailscale set --auto-update
+----
+
+. Install InputPlumber.
++
+Fedora Atomic::
++
+.. Add the InputPlumber COPR repository to your system.
++
+[,sh]
+----
+curl --location https://copr.fedorainfracloud.org/coprs/shadowblip/InputPlumber/repo/fedora-42/shadowblip-InputPlumber-fedora-42.repo \
+  | sudo tee /etc/yum.repos.d/shadowblip-InputPlumber-fedora-42.repo
+----
+
+.. Install the `inputplumber` package.
++
+[,sh]
+----
+sudo rpm-ostree install inputplumber
+----
+
+.. Reboot to complete the installation.
++
+[,sh]
+----
+sudo systemctl reboot
+----
+
+.. Enable and start the InputPlumber service.
++
+[,sh]
+----
+sudo systemctl enable --now inputplumber.service
+----
+
+.. Enable the `inputplumber-suspend.service`.
++
+[,sh]
+----
+sudo systemctl enable inputplumber-suspend.service
+----
+
+SteamOS::
++
+.. Enable the InputPlumber suspend service.
++
+[,sh]
+----
+sudo systemctl enable inputplumber-suspend.service
 ----
 
 . In order to install Nix on Fedora Atomic distributions, enable a transient root to fix issues with `composefs` not allowing the creation of the `/nix` directory.
