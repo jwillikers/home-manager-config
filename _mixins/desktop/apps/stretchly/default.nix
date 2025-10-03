@@ -63,9 +63,6 @@
         After = [
           "graphical-session.target"
         ]
-        ++ lib.optionals (desktop == "hyprland") [
-          "waybar.service"
-        ]
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
@@ -79,7 +76,6 @@
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
-        Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
       };
 
       Service = {
