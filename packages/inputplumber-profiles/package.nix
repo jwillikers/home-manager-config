@@ -1,5 +1,6 @@
 {
   fetchFromGitea,
+  gawk,
   inputplumber,
   lib,
   makeWrapper,
@@ -14,8 +15,8 @@ stdenvNoCC.mkDerivation {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "inputplumber-profiles";
-    rev = "57f9a5b9480747053e283812c7659423212c9538";
-    hash = "sha256-J3m99anD0fYuevGcJj0aaSUE4G367w7cshALEJYIras=";
+    rev = "b6265b878658f79fa8aa71cb3eaeee84d51b9811";
+    hash = "sha256-C14XqT7c6JiTaHBXP2ietAglfpfmivEhJfmgrVtQz9U=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
@@ -28,12 +29,14 @@ stdenvNoCC.mkDerivation {
     wrapProgram $out/bin/lutris-inputplumber-pre-launch.sh \
       --prefix PATH : ${
         lib.makeBinPath [
+          gawk
           inputplumber
         ]
       }
     wrapProgram $out/bin/lutris-inputplumber-post-exit.sh \
       --prefix PATH : ${
         lib.makeBinPath [
+          gawk
           inputplumber
         ]
       }
