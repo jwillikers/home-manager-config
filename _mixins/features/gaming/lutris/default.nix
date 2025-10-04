@@ -18,7 +18,9 @@ lib.mkIf (lib.elem hostname installOn) {
     file = {
       # Copy the file to make it writeable.
       "${config.xdg.configHome}/lutris/system_source.yml" = {
-        source = packages.lutris-config + "/etc/lutris/system.yml";
+        text = builtins.replaceStrings [ "/home/jordan/.config" ] [ config.xdg.configHome ] (
+          builtins.readFile (packages.lutris-config + "/etc/lutris/system.yml")
+        );
         onChange = ''cat ${config.xdg.configHome}/lutris/system_source.yml > ${config.xdg.configHome}/lutris/system.yml'';
       };
     };

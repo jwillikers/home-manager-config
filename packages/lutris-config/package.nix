@@ -11,8 +11,8 @@ stdenvNoCC.mkDerivation {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "lutris-config";
-    rev = "bb637550b190a514598330c6150bdbd4bde5c140";
-    hash = "sha256-bUIMqdGdYTgbAG7xuECeTesasQyC9S1/i6gHjWBj5Y8=";
+    rev = "e3581b7683f9cf16426b5668e20b1c4954170e73";
+    hash = "sha256-sTO/7rxDJwuqv2yHwHNbwg7b3hHJ0zkfZloTmZQZPsc=";
   };
 
   installPhase = ''
