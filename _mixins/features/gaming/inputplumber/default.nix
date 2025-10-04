@@ -32,9 +32,9 @@ lib.mkIf (lib.elem hostname installOn) {
     };
     file = {
       "${config.xdg.configHome}/lutris/scripts/lutris-inputplumber-pre-launch.sh".source =
-        packages.inputplumber-profiles + "/etc/lutris/scripts/lutris-inputplumber-pre-launch.sh";
+        packages.inputplumber-profiles + "/bin/lutris-inputplumber-pre-launch.sh";
       "${config.xdg.configHome}/lutris/scripts/lutris-inputplumber-post-exit.sh".source =
-        packages.inputplumber-profiles + "/etc/lutris/scripts/lutris-inputplumber-post-exit.sh";
+        packages.inputplumber-profiles + "/bin/lutris-inputplumber-post-exit.sh";
     };
     packages = with pkgs; [
       inputplumber
