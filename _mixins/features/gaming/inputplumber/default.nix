@@ -27,6 +27,7 @@ lib.mkIf (lib.elem hostname installOn) {
             run "$escalation_program" cp --recursive ${packages.inputplumber-profiles}/etc/inputplumber/devices.d/* /etc/inputplumber/devices.d/
             mkdir --parents ${config.xdg.configHome}/inputplumber/profiles.d
             cp --force --recursive ${packages.inputplumber-profiles}/etc/inputplumber/profiles.d/* ${config.xdg.configHome}/inputplumber/profiles.d/
+            chmod --recursive +w ${config.xdg.configHome}/inputplumber/profiles.d/
             run "$escalation_program" systemctl enable inputplumber.service inputplumber-suspend.service
             run "$escalation_program" systemctl restart inputplumber.service
           '';
