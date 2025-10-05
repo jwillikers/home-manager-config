@@ -9,14 +9,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "inputplumber-profiles";
-  version = "0-unstable-2025-10-04";
+  version = "0-unstable-2025-10-05";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "inputplumber-profiles";
-    rev = "3f1ee43e05b24852cb52ce1dd505b298ce8be7c8";
-    hash = "sha256-Mt+Xfp6jXCVdFL3CTPZwr+aWiFQwZIppBm1w7GM82Yc=";
+    rev = "850febd5ef7de91211ff1445cf98479c4cd3fd29";
+    hash = "sha256-TGWKhlXNdFbBs8eQ/TPyCm/B6aZ9aRo0gVe67ECjW20=";
   };
 
   nativeBuildInputs = [ makeWrapper ];

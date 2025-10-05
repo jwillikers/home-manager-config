@@ -36,6 +36,8 @@ lib.mkIf (lib.elem hostname installOn) {
       (config.lib.nixGL.wrap flatpak)
       (config.lib.nixGL.wrap gamemode)
       (config.lib.nixGL.wrap gamescope)
+      inputplumber
+      packages.inputplumber-profiles
       (config.lib.nixGL.wrap mangohud)
       (config.lib.nixGL.wrap umu-launcher)
       (config.lib.nixGL.wrap winetricks)
