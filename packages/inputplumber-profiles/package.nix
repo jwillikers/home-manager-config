@@ -15,8 +15,8 @@ stdenvNoCC.mkDerivation {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "inputplumber-profiles";
-    rev = "850febd5ef7de91211ff1445cf98479c4cd3fd29";
-    hash = "sha256-TGWKhlXNdFbBs8eQ/TPyCm/B6aZ9aRo0gVe67ECjW20=";
+    rev = "e006ec8a238075a19dbece1dad8c984f6ef5fe33";
+    hash = "sha256-JE7APAMsjAWyLya7q2A6vBCfYLS0CTRyHAFgH+9obEQ=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
