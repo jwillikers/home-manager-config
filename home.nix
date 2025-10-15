@@ -632,28 +632,39 @@ in
         # cheshirekow.cmake-format
         # chrislajoie.icinga-language
         # chrislajoie.vscode-modelines
+        christian-kohler.npm-intellisense
         coolbear.systemd-unit-file
-        # DavidAnson.vscode-markdownlint
-        # EditorConfig.EditorConfig
+        davidanson.vscode-markdownlint
+        dbaeumer.vscode-eslint
+        editorconfig.editorconfig
+        esbenp.prettier-vscode
         # ESPHome.esphome-vscode
+        firefox-devtools.vscode-firefox-debug
         github.vscode-github-actions
-        # GitHub.vscode-pull-request-github
+        github.vscode-pull-request-github
+        gitlab.gitlab-workflow
         golang.go
         # hangxingliu.vscode-systemd-support
+        haskell.haskell
         # ibecker.treefmt-vscode
         jnoortheen.nix-ide
         jock.svg
+        julialang.language-julia
+        justusadam.language-haskell
         # lextudio.restructuredtext
         llvm-vs-code-extensions.vscode-clangd
         # luggage66.AWK
         mads-hartmann.bash-ide-vscode
+        mathiasfrohlich.kotlin
         mesonbuild.mesonbuild
         mkhl.direnv
         ms-python.python
         ms-python.vscode-pylance
         ms-vscode.cmake-tools
         ms-vscode.cpptools-extension-pack
+        ms-vscode-remote.remote-containers
         nefrob.vscode-just-syntax
+        octref.vetur
         redhat.vscode-xml
         redhat.vscode-yaml
         rust-lang.rust-analyzer
@@ -666,6 +677,7 @@ in
         timonwong.shellcheck
         # tuxtina.json2yaml
         vscodevim.vim
+        vue.volar
         # zamerick.vscode-caddyfile-syntax
       ];
     };
