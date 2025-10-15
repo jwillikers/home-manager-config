@@ -152,6 +152,7 @@ in
       # beets # Music collection organizer
       # (config.lib.nixGL.wrap calibre) # EBook manager
       efficient-compression-tool # Image optimization tool
+      eslint # JavaScript linter
       calibre # EBook manager
       cbconvert # Comic book converter
       ccache # Compiler cache
@@ -180,6 +181,8 @@ in
       nixpkgs-review # Nix code review
       nix-tree # Examine dependencies of Nix derivations
       nix-update # Update Nix packages
+      nodejs_24 # Node Javascript
+      # vue-language-server
       nu_scripts # Nushell scripts
       nurl # Nix URL fetcher
       picard # Music tagger
