@@ -1,0 +1,4 @@
+KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", ACTION=="add", RUN+="/usr/bin/disable_steam_input.sh disable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
+KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", ACTION=="remove", RUN+="/usr/bin/disable_steam_input.sh enable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
+# KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_KEYBOARD}=="1", ACTION=="add", RUN+="/usr/bin/disable_steam_input.sh disable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
+# KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_KEYBOARD}=="1", ACTION=="remove", RUN+="/usr/bin/disable_steam_input.sh enable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
