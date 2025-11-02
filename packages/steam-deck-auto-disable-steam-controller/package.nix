@@ -23,7 +23,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
     install -D --mode=0555 --target-directory=$out/bin/disable_steam_input.sh disable_steam_input.sh
-    install -D --mode=0644 --target-directory=$out/etc/udev/rules.d ${finalAttrs.udevRules}
+    install -D --mode=0644 ${finalAttrs.udevRules} $out/etc/udev/rules.d/99-disable-steam-input.rules
     runHook postInstall
   '';
 
