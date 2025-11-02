@@ -16,8 +16,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   };
 
   udevRules = writeText "99-disable-steam-input.rules" ''
-    KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", ACTION=="add", RUN+="${placeholder "out"}/bin/disable_steam_input.sh disable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
-    KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", ACTION=="remove", RUN+="${placeholder "out"}/bin/disable_steam_input.sh enable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
+    KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", ACTION=="add", RUN+="${finalAttrs.finalPackage}/bin/disable_steam_input.sh disable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
+    KERNEL=="input*", SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", ACTION=="remove", RUN+="${finalAttrs.finalPackage}/bin/disable_steam_input.sh enable %k %E{NAME} %E{UNIQ} %E{PRODUCT}"
   '';
 
   installPhase = ''
