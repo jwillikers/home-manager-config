@@ -603,8 +603,6 @@ in
           };
         };
       };
-      # Ensure that sops-nix is activated before the Rclone configuration, since it requires the secret to be available.
-      writeAfter = "reloadSystemd";
     };
     ssh = {
       enable = true;
