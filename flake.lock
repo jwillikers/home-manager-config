@@ -165,15 +165,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1764519849,
-        "narHash": "sha256-XnNABKfIYKSimQVvKc9FnlC2H0LurOhd9MS6l0Z67lE=",
+        "lastModified": 1761960361,
+        "narHash": "sha256-FvuAw56NIVJpS3Kr8Wv9PpU4eehZMcdIVkxjStuYmqc=",
         "ref": "refs/heads/main",
-        "rev": "6c95c0b6f73f831226453fc6905c216ab634c30f",
-        "revCount": 170,
+        "rev": "c47f62187601ea2991b79a9bacdbfdf76cd29fbe",
+        "revCount": 167,
         "type": "git",
         "url": "https://git.lix.systems/lix-project/nixos-module.git"
       },
       "original": {
+        "rev": "c47f62187601ea2991b79a9bacdbfdf76cd29fbe",
         "type": "git",
         "url": "https://git.lix.systems/lix-project/nixos-module.git"
       }
@@ -360,11 +361,11 @@
     },
     "nixpkgs-unstable_2": {
       "locked": {
-        "lastModified": 1764791914,
-        "narHash": "sha256-dN6AQ0b/Wwu/iMl0amiDXzgBfEBeMDo/oCih5MFhX3s=",
+        "lastModified": 1764794560,
+        "narHash": "sha256-QYnTh6yOu3Hc0G1o6dcu90ux68kdvZvxd/aAydkMZT4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "ba679ccdd8890bd281a33896aee78c771c816791",
+        "rev": "a263b078cd115034c451810575afabb99f389126",
         "type": "github"
       },
       "original": {

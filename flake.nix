@@ -24,9 +24,18 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    lix = {
+      # url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
+      # url = "https://git.lix.systems/lix-project/lix/archive/2.94.0.tar.gz";
+      url = "https://git.lix.systems/lix-project/lix/archive/release-2.94.tar.gz";
+      flake = false;
+    };
     lix-module = {
+      # Last commit for Lix 2.94.0
       url = "git+https://git.lix.systems/lix-project/nixos-module.git";
+      # url = "git+https://git.lix.systems/lix-project/nixos-module.git?rev=c47f62187601ea2991b79a9bacdbfdf76cd29fbe";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.lix.follows = "lix";
     };
     media-juggler = {
       url = "github:jwillikers/media-juggler";
@@ -94,6 +103,8 @@
       chapterz,
       flake-utils,
       home-manager,
+      # deadnix: skip
+      lix,
       lix-module,
       # deadnix: skip
       m4b-tool,
