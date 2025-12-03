@@ -15,7 +15,7 @@
       fira
       font-awesome
       liberation_ttf
-      noto-fonts-emoji
+      noto-fonts-color-emoji
       noto-fonts-monochrome-emoji
       source-serif
       work-sans

@@ -1,8 +1,4 @@
-{
-  config,
-  ...
-}:
-{
+_: {
   # home = {
   #   # packages = with pkgs; [ gcr ];
   #   sessionVariables = {

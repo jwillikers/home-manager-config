@@ -66,8 +66,10 @@ let
     pkgs.nrf-udev
     pkgs.picoprobe-udev-rules
     pkgs.qFlipper
-    pkgs.steam-unwrapped
     packages.udev-rules
+  ]
+  ++ lib.optionals (hostname != "steamdeck") [
+    pkgs.steam-unwrapped
   ]
   ++ lib.optionals (hostname == "steamdeck") [
     packages.steam-deck-auto-disable-steam-controller
@@ -80,9 +82,13 @@ in
     # outputs.homeManagerModules.example
 
     # Modules exported from other flakes:
-    inputs.media-juggler.homeModules.media-juggler
     inputs.nix-index-database.homeModules.nix-index
     # inputs.sops-nix.homeManagerModules.sops
+  ]
+  ++ lib.optionals (hostname != "steamdeck") [
+    inputs.media-juggler.homeModules.media-juggler
+  ]
+  ++ [
     ./_mixins
   ];
 
@@ -138,73 +144,77 @@ in
     # release notes.
     stateVersion = "24.05"; # Please read the comment before changing.
 
-    packages = with pkgs; [
-      chapterz # MusicBrainz utility for audiobook chapters
-      minuimus # Lossless file minimizer
-      pdfsizeopt # Lossless PDF size optimizer
-      advancecomp # Compression utilities
-      age # Cryptography utility
-      android-tools # Tools for Android mobile OS
-      appstream
-      # librsvg?
-      asciidoctor
-      # beets # Music collection organizer
-      # (config.lib.nixGL.wrap calibre) # EBook manager
-      efficient-compression-tool # Image optimization tool
-      eslint # JavaScript linter
-      calibre # EBook manager
-      cbconvert # Comic book converter
-      ccache # Compiler cache
-      chromaprint # Utility to calculate AcoustID audio fingerprint
-      (config.lib.nixGL.wrap chromium) # Web browser
-      clipse # Clipboard manager
-      deadnix # Nix dead code finder
-      deploy-rs # Nix deployment
-      flatpak-builder # Build Flatpaks
-      ghc # Glasgow Haskell Compiler
-      # gptfdisk
-      # h # Modern Unix autojump for git projects
-      julia # Julia programming language
-      just # Command runner
-      image_optim # Image optimizer
-      kakasi # Japanese Kanji to Kana converter
-      libtree # Tree output for ldd
-      m4b-tool # Audiobook merging, splitting, and chapters tool
-      minio-client # S3-compatible object storage client
-      (config.lib.nixGL.wrap mumble) # Voice chat
-      mupdf-headless # PDF utility
-      net-snmp # SNMP manager tools
-      nil # Nix language engine for IDEs
-      nixfmt-rfc-style # Nix code formatter
-      # todo Set GITHUB_TOKEN in environment for pull-request reviews.
-      nixpkgs-review # Nix code review
-      nix-tree # Examine dependencies of Nix derivations
-      nix-update # Update Nix packages
-      nodejs_24 # Node Javascript
-      # vue-language-server
-      nu_scripts # Nushell scripts
-      nurl # Nix URL fetcher
-      picard # Music tagger
-      pipx # Python executable installer
-      pre-commit # Git pre-commit hooks manager
-      probe-rs # Debug probe tool
-      python3Packages.python # Python
-      rpiboot # Raspberry Pi bootloader utility
-      rustup # Rust toolchain installer
-      # qemu # Emulator
-      # quickemu # Quickly spin up virtual machines
-      sops # Secret management
-      ssh-to-age # Convert SSH keys to age keys
-      (config.lib.nixGL.wrap github-desktop) # Git GUI
-      (config.lib.nixGL.wrap sublime-merge) # Git GUI
-      tailscale # WireGuard-based VPN
-      tesseract # OCR tool
-      tio # Serial device I/O tool
-      tone # Audiobook metadata tool
-      treefmt # Code formatter
-      # todo Use wl-clipboard-rs?
-      wl-clipboard # Wayland clipboard program
-    ];
+    packages =
+      with pkgs;
+      [
+        advancecomp # Compression utilities
+        age # Cryptography utility
+        android-tools # Tools for Android mobile OS
+        appstream
+        # librsvg?
+        asciidoctor
+        # beets # Music collection organizer
+        # (config.lib.nixGL.wrap calibre) # EBook manager
+        efficient-compression-tool # Image optimization tool
+        eslint # JavaScript linter
+        calibre # EBook manager
+        ccache # Compiler cache
+        chromaprint # Utility to calculate AcoustID audio fingerprint
+        (config.lib.nixGL.wrap chromium) # Web browser
+        clipse # Clipboard manager
+        deadnix # Nix dead code finder
+        deploy-rs # Nix deployment
+        flatpak-builder # Build Flatpaks
+        ghc # Glasgow Haskell Compiler
+        # gptfdisk
+        # h # Modern Unix autojump for git projects
+        julia # Julia programming language
+        just # Command runner
+        image_optim # Image optimizer
+        kakasi # Japanese Kanji to Kana converter
+        libtree # Tree output for ldd
+        m4b-tool # Audiobook merging, splitting, and chapters tool
+        minio-client # S3-compatible object storage client
+        (config.lib.nixGL.wrap mumble) # Voice chat
+        mupdf-headless # PDF utility
+        net-snmp # SNMP manager tools
+        nil # Nix language engine for IDEs
+        nixfmt-rfc-style # Nix code formatter
+        # todo Set GITHUB_TOKEN in environment for pull-request reviews.
+        nixpkgs-review # Nix code review
+        nix-tree # Examine dependencies of Nix derivations
+        nix-update # Update Nix packages
+        nodejs_24 # Node Javascript
+        # vue-language-server
+        nu_scripts # Nushell scripts
+        nurl # Nix URL fetcher
+        picard # Music tagger
+        pipx # Python executable installer
+        pre-commit # Git pre-commit hooks manager
+        probe-rs-tools # Debug probe tool
+        python3Packages.python # Python
+        rpiboot # Raspberry Pi bootloader utility
+        rustup # Rust toolchain installer
+        # qemu # Emulator
+        # quickemu # Quickly spin up virtual machines
+        sops # Secret management
+        ssh-to-age # Convert SSH keys to age keys
+        (config.lib.nixGL.wrap github-desktop) # Git GUI
+        (config.lib.nixGL.wrap sublime-merge) # Git GUI
+        tailscale # WireGuard-based VPN
+        tesseract # OCR tool
+        tio # Serial device I/O tool
+        tone # Audiobook metadata tool
+        treefmt # Code formatter
+        # todo Use wl-clipboard-rs?
+        wl-clipboard # Wayland clipboard program
+      ]
+      ++ lib.optionals (hostname != "steamdeck") [
+        chapterz # MusicBrainz utility for audiobook chapters
+        cbconvert # Comic book converter
+        pdfsizeopt # Lossless PDF size optimizer
+        minuimus # Lossless file minimizer
+      ];
 
     sessionVariables = {
       EDITOR = "vim";
@@ -390,7 +400,7 @@ in
     };
   };
 
-  nixGL = {
+  targets.genericLinux.nixGL = {
     installScripts = [
       "mesa"
       "mesaPrime"
@@ -399,10 +409,10 @@ in
     vulkan.enable = true;
   };
 
-  # nixpkgs.overlays = [
-  # inputs.media-juggler.overlays.calibre-acsm-plugin-libcrypto
-  # inputs.lix-module.overlays.default
-  # ];
+  nixpkgs.overlays = [
+    inputs.media-juggler.overlays.cbconvert
+    # inputs.lix-module.overlays.default
+  ];
 
   programs = {
     bat = {
@@ -413,7 +423,7 @@ in
     };
     beets = {
       enable = true;
-      package = pkgs.unstable.beets;
+      package = lib.mkIf (hostname != "steamdeck") pkgs.beets;
       # todo Add API keys when SOPS support is added.
       settings = {
         plugins = [
@@ -450,6 +460,23 @@ in
     };
     carapace = {
       enable = true;
+    };
+    delta = {
+      enable = true;
+      enableGitIntegration = true;
+      options = {
+        decorations = {
+          commit-decoration-style = "blue ol";
+          commit-style = "raw";
+          file-style = "omit";
+          hunk-header-decoration-style = "blue box";
+          hunk-header-file-style = "red";
+          hunk-header-line-number-style = "\"#067a00\"";
+          hunk-header-style = "file line-number syntax";
+        };
+        features = "decorations";
+        interactive.keep-plus-minus-markers = false;
+      };
     };
     # dircolors = {
     #   enable = true;
@@ -507,24 +534,20 @@ in
 
     foot.enable = true;
     git = {
-      delta = {
-        enable = true;
-        options = {
-          decorations = {
-            commit-decoration-style = "blue ol";
-            commit-style = "raw";
-            file-style = "omit";
-            hunk-header-decoration-style = "blue box";
-            hunk-header-file-style = "red";
-            hunk-header-line-number-style = "\"#067a00\"";
-            hunk-header-style = "file line-number syntax";
-          };
-          features = "decorations";
-          interactive.keep-plus-minus-markers = false;
-        };
-      };
       enable = true;
-      extraConfig = {
+      includes = [
+        {
+          condition = "gitdir:~/Projects/Work/";
+          contents = {
+            commit.gpgSign = false;
+            push.gpgSign = false;
+            tag.gpgSign = false;
+            user.email = "user@example.com";
+            user.signingKey = null;
+          };
+        }
+      ];
+      settings = {
         branch.sort = "-committerdate";
         color.ui = "auto";
         commit.gpgSign = true;
@@ -555,25 +578,15 @@ in
         rebase.rebaseMerges = true;
         rerere.enabled = true;
         tag.gpgSign = true;
+        user = {
+          email = "jordan@jwillikers.com";
+          name = "Jordan Williams";
+        };
       };
-      includes = [
-        {
-          condition = "gitdir:~/Projects/Work/";
-          contents = {
-            commit.gpgSign = false;
-            push.gpgSign = false;
-            tag.gpgSign = false;
-            user.email = "user@example.com";
-            user.signingKey = null;
-          };
-        }
-      ];
       signing = {
         key = "A6AB406AF5F1DE02CEA3B6F09FB42B0E7F657D8C";
         signByDefault = true;
       };
-      userEmail = "jordan@jwillikers.com";
-      userName = "Jordan Williams";
     };
     gpg.enable = true;
     # Let Home Manager install and manage itself.
@@ -603,11 +616,10 @@ in
           };
         };
       };
-      # Ensure that sops-nix is activated before the Rclone configuration, since it requires the secret to be available.
-      writeAfter = "reloadSystemd";
     };
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
       includes = [ "~/.ssh/config.d/*.conf" ];
     };
     starship = {
