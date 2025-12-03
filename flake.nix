@@ -21,7 +21,7 @@
     };
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix-module = {
@@ -69,7 +69,7 @@
       # url = "git+file:///home/jordan/Projects/nix-secrets";
       flake = false;
     };
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     # Add nixpkgs-unstable here so that it is part of the generated registries.json file
     nixpkgs-unstable.url = "github:NixOS/nixpkgs";
     pre-commit-hooks = {
