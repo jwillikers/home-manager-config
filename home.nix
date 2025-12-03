@@ -187,7 +187,7 @@ in
       picard # Music tagger
       pipx # Python executable installer
       pre-commit # Git pre-commit hooks manager
-      probe-rs # Debug probe tool
+      probe-rs-tools # Debug probe tool
       python3Packages.python # Python
       rpiboot # Raspberry Pi bootloader utility
       rustup # Rust toolchain installer
@@ -390,7 +390,7 @@ in
     };
   };
 
-  nixGL = {
+  targets.genericLinux.nixGL = {
     installScripts = [
       "mesa"
       "mesaPrime"
@@ -451,6 +451,23 @@ in
     carapace = {
       enable = true;
     };
+    delta = {
+      enable = true;
+      enableGitIntegration = true;
+      options = {
+        decorations = {
+          commit-decoration-style = "blue ol";
+          commit-style = "raw";
+          file-style = "omit";
+          hunk-header-decoration-style = "blue box";
+          hunk-header-file-style = "red";
+          hunk-header-line-number-style = "\"#067a00\"";
+          hunk-header-style = "file line-number syntax";
+        };
+        features = "decorations";
+        interactive.keep-plus-minus-markers = false;
+      };
+    };
     # dircolors = {
     #   enable = true;
     #   enableBashIntegration = true;
@@ -507,24 +524,20 @@ in
 
     foot.enable = true;
     git = {
-      delta = {
-        enable = true;
-        options = {
-          decorations = {
-            commit-decoration-style = "blue ol";
-            commit-style = "raw";
-            file-style = "omit";
-            hunk-header-decoration-style = "blue box";
-            hunk-header-file-style = "red";
-            hunk-header-line-number-style = "\"#067a00\"";
-            hunk-header-style = "file line-number syntax";
-          };
-          features = "decorations";
-          interactive.keep-plus-minus-markers = false;
-        };
-      };
       enable = true;
-      extraConfig = {
+      includes = [
+        {
+          condition = "gitdir:~/Projects/Work/";
+          contents = {
+            commit.gpgSign = false;
+            push.gpgSign = false;
+            tag.gpgSign = false;
+            user.email = "user@example.com";
+            user.signingKey = null;
+          };
+        }
+      ];
+      settings = {
         branch.sort = "-committerdate";
         color.ui = "auto";
         commit.gpgSign = true;
@@ -555,25 +568,15 @@ in
         rebase.rebaseMerges = true;
         rerere.enabled = true;
         tag.gpgSign = true;
+        user = {
+          email = "jordan@jwillikers.com";
+          name = "Jordan Williams";
+        };
       };
-      includes = [
-        {
-          condition = "gitdir:~/Projects/Work/";
-          contents = {
-            commit.gpgSign = false;
-            push.gpgSign = false;
-            tag.gpgSign = false;
-            user.email = "user@example.com";
-            user.signingKey = null;
-          };
-        }
-      ];
       signing = {
         key = "A6AB406AF5F1DE02CEA3B6F09FB42B0E7F657D8C";
         signByDefault = true;
       };
-      userEmail = "jordan@jwillikers.com";
-      userName = "Jordan Williams";
     };
     gpg.enable = true;
     # Let Home Manager install and manage itself.
@@ -606,6 +609,7 @@ in
     };
     ssh = {
       enable = true;
+      enableDefaultConfig = false;
       includes = [ "~/.ssh/config.d/*.conf" ];
     };
     starship = {

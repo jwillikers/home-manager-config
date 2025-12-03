@@ -132,7 +132,7 @@
           # todo Limit this to specific packages.
           config = {
             allowUnfree = true;
-            permittedInsecurePackages = [ "python-2.7.18.8" ];
+            permittedInsecurePackages = [ "python-2.7.18.12" ];
           };
         };
         pre-commit = pre-commit-hooks.lib.${system}.run (
