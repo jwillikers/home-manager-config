@@ -1,6 +1,6 @@
 _: {
   # NVIDIA requires using the --impure flag.
-  nixGL = {
+  targets.genericLinux.nixGL = {
     defaultWrapper = "nvidia";
     installScripts = [
       "nvidia"

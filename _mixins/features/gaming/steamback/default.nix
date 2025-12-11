@@ -7,9 +7,10 @@
 }:
 let
   installOn = [
-    "steamdeck"
-    "precision5350"
-    "x1-yoga"
+    # Disabled due to SteamUI issues.
+    # "steamdeck"
+    # "precision5350"
+    # "x1-yoga"
   ];
 in
 lib.mkIf (lib.elem hostname installOn) {

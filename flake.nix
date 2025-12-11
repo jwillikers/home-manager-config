@@ -21,12 +21,18 @@
     };
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    lix = {
+      url = "https://git.lix.systems/lix-project/lix/archive/release-2.94.tar.gz";
+      flake = false;
+    };
     lix-module = {
-      url = "git+https://git.lix.systems/lix-project/nixos-module.git";
+      # Last commit for Lix 2.94.0
+      url = "git+https://git.lix.systems/lix-project/nixos-module.git?rev=c47f62187601ea2991b79a9bacdbfdf76cd29fbe";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.lix.follows = "lix";
     };
     media-juggler = {
       url = "github:jwillikers/media-juggler";
@@ -69,7 +75,7 @@
       # url = "git+file:///home/jordan/Projects/nix-secrets";
       flake = false;
     };
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     # Add nixpkgs-unstable here so that it is part of the generated registries.json file
     nixpkgs-unstable.url = "github:NixOS/nixpkgs";
     pre-commit-hooks = {
@@ -94,6 +100,8 @@
       chapterz,
       flake-utils,
       home-manager,
+      # deadnix: skip
+      lix,
       lix-module,
       # deadnix: skip
       m4b-tool,
@@ -121,6 +129,7 @@
           lix-module.overlays.default
           chapterz.overlays.chapterz
           m4b-tool.overlay
+          media-juggler.overlays.cbconvert
           nixgl.overlay
           # overlays.gcr
           overlays.heroic
@@ -132,7 +141,7 @@
           # todo Limit this to specific packages.
           config = {
             allowUnfree = true;
-            permittedInsecurePackages = [ "python-2.7.18.8" ];
+            permittedInsecurePackages = [ "python-2.7.18.12" ];
           };
         };
         pre-commit = pre-commit-hooks.lib.${system}.run (
