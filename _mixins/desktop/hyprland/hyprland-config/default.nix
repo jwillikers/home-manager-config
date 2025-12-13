@@ -12,7 +12,7 @@
 
     # Set programs that you use
     "$terminal" = lib.getExe config.programs.kitty.package;
-    "$fileManager" = lib.getExe (config.lib.nixGL.wrap pkgs.kdePackages.dolphin);
+    "$fileManager" = lib.getExe pkgs.kdePackages.dolphin;
     "$menu" = "${lib.getExe config.programs.wofi.package} --show drun";
 
     # See https://wiki.hyprland.org/Configuring/Environment-variables/

@@ -9,6 +9,6 @@
   ];
   programs.wofi = {
     enable = true;
-    package = config.lib.nixGL.wrap pkgs.wofi;
+    package = pkgs.wofi;
   };
 }

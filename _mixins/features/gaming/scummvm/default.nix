@@ -1,5 +1,4 @@
 {
-  config,
   hostname,
   lib,
   pkgs,
@@ -14,6 +13,6 @@ let
 in
 lib.mkIf (lib.elem hostname installOn) {
   home.packages = with pkgs; [
-    (config.lib.nixGL.wrap scummvm)
+    scummvm
   ];
 }

@@ -3,7 +3,6 @@
   hostname,
   inputs,
   lib,
-  nixgl,
   packages,
   pkgs,
   username,
@@ -154,13 +153,13 @@ in
         # librsvg?
         asciidoctor
         # beets # Music collection organizer
-        # (config.lib.nixGL.wrap calibre) # EBook manager
+        # calibre # EBook manager
         efficient-compression-tool # Image optimization tool
         eslint # JavaScript linter
         calibre # EBook manager
         ccache # Compiler cache
         chromaprint # Utility to calculate AcoustID audio fingerprint
-        (config.lib.nixGL.wrap chromium) # Web browser
+        chromium # Web browser
         clipse # Clipboard manager
         deadnix # Nix dead code finder
         deploy-rs # Nix deployment
@@ -175,7 +174,7 @@ in
         libtree # Tree output for ldd
         m4b-tool # Audiobook merging, splitting, and chapters tool
         minio-client # S3-compatible object storage client
-        (config.lib.nixGL.wrap mumble) # Voice chat
+        mumble # Voice chat
         mupdf-headless # PDF utility
         net-snmp # SNMP manager tools
         nil # Nix language engine for IDEs
@@ -199,8 +198,8 @@ in
         # quickemu # Quickly spin up virtual machines
         sops # Secret management
         ssh-to-age # Convert SSH keys to age keys
-        (config.lib.nixGL.wrap github-desktop) # Git GUI
-        (config.lib.nixGL.wrap sublime-merge) # Git GUI
+        github-desktop # Git GUI
+        sublime-merge # Git GUI
         tailscale # WireGuard-based VPN
         tesseract # OCR tool
         tio # Serial device I/O tool
@@ -400,14 +399,7 @@ in
     };
   };
 
-  targets.genericLinux.nixGL = {
-    installScripts = [
-      "mesa"
-      "mesaPrime"
-    ];
-    inherit (nixgl) packages;
-    vulkan.enable = true;
-  };
+  targets.genericLinux.enable = true;
 
   nixpkgs.overlays = [
     inputs.media-juggler.overlays.cbconvert

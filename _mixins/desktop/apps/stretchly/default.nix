@@ -53,7 +53,7 @@
       ''
     );
     packages = with pkgs; [
-      (config.lib.nixGL.wrap stretchly)
+      stretchly
     ];
   };
   systemd.user.services = {
@@ -93,9 +93,9 @@
         ExecStart =
           # todo Need to fix Stretchly breaks running under KDE Wayland.
           if (desktop == "kde") then
-            "-${lib.getExe (config.lib.nixGL.wrap pkgs.stretchly)}"
+            "-${lib.getExe pkgs.stretchly}"
           else
-            "-${lib.getExe (config.lib.nixGL.wrap pkgs.stretchly)} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+            "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
         KillSignal = "SIGKILL";
         KillMode = "mixed";
         Restart = "always";
@@ -186,7 +186,7 @@
       # "fullscreen, ${stretchlyBreak}"
       "pin, ${stretchlyBreak}"
       "stayfocused, ${stretchlyBreak}"
-      "noclosefor 10000, ${stretchlyBreak}"
+      # "noclosefor 10000, ${stretchlyBreak}"
       # todo "noscreenshare, ${stretchlyBreak}"
     ];
 }

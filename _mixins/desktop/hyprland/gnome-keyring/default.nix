@@ -28,7 +28,7 @@ _: {
   #         Environment = [
   #           "SSH_AUTH_SOCK=%t/gcr/ssh"
   #         ];
-  #         ExecStart = "${(config.lib.nixGL.wrap pkgs.gcr)}/libexec/gcr-ssh-agent %t/gcr";
+  #         ExecStart = "${pkgs.gcr}/libexec/gcr-ssh-agent %t/gcr";
   #         Restart = "on-failure";
   #       };
 

@@ -1,5 +1,4 @@
 {
-  config,
   hostname,
   lib,
   pkgs,
@@ -15,7 +14,7 @@ in
 lib.mkIf (lib.elem hostname installOn) {
   home = {
     packages = with pkgs; [
-      (config.lib.nixGL.wrap protontricks)
+      protontricks
     ];
   };
 }

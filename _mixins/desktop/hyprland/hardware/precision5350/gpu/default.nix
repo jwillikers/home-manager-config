@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   ...
 }:
@@ -7,11 +6,11 @@
   wayland.windowManager.hyprland = {
     # On the Precision 5350, even exposing the NVIDIA proprietary drivers results in Hyprland failing to launch.
     # This occurs regardless of the graphics cards allowed for Hyprland.
-    package = config.lib.nixGL.wrappers.mesa pkgs.hyprland;
+    package = pkgs.hyprland;
     # https://www.reddit.com/r/NixOS/comments/1gkrota/nixos_nvidia_hyprland_vscode_blinking/
-    # package = config.lib.nixGL.wrap (pkgs.hyprland.override {
+    # package = pkgs.hyprland.override {
     #   wrapRuntimeDeps = false;
-    # });
+    # };
     settings.env = [
       # NVIDIA
       # https://wiki.hypr.land/Configuring/Environment-variables/#nvidia-specific

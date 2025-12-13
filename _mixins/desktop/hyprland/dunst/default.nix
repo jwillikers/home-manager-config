@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   ...
@@ -7,7 +6,7 @@
 {
   services.dunst = {
     enable = true;
-    package = config.lib.nixGL.wrap pkgs.dunst;
+    package = pkgs.dunst;
     iconTheme = {
       name = "Adwaita";
       package = pkgs.adwaita-icon-theme;
