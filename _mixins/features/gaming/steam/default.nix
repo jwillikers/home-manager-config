@@ -1,5 +1,4 @@
 {
-  config,
   hostname,
   lib,
   pkgs,
@@ -14,7 +13,7 @@ in
 lib.mkIf (lib.elem hostname installOn) {
   home.packages = with pkgs; [
     # config.programs.lutris.steamPackage
-    (config.lib.nixGL.wrap steam)
+    steam
   ];
 
   wayland.windowManager.hyprland.settings.windowrule =

@@ -22,27 +22,24 @@ lib.mkIf (lib.elem hostname installOn) {
         onChange = ''cat ${config.xdg.configHome}/lutris/system_source.yml > ${config.xdg.configHome}/lutris/system.yml'';
       };
     };
-    # packages = with pkgs; [
-    #   (config.lib.nixGL.wrap lutris)
-    # ];
   };
   # todo Installing Lutris this way breaks everything on the Steam Deck.
   # It seems to work okay otherwise, but the Ludusavi configuration isn't kept.
   programs.lutris = {
     enable = true;
     extraPackages = with pkgs; [
-      (config.lib.nixGL.wrap mangohud)
-      (config.lib.nixGL.wrap winetricks)
-      (config.lib.nixGL.wrap gamescope)
-      (config.lib.nixGL.wrap gamemode)
-      (config.lib.nixGL.wrap umu-launcher)
+      mangohud
+      winetricks
+      gamescope
+      gamemode
+      umu-launcher
     ];
     protonPackages = with pkgs; [ proton-ge-bin ];
-    package = config.lib.nixGL.wrap pkgs.lutris;
+    package = pkgs.lutris;
     runners = {
-      scummvm.package = config.lib.nixGL.wrap pkgs.scummvm;
+      scummvm.package = pkgs.scummvm;
     };
-    steamPackage = config.lib.nixGL.wrap pkgs.steam;
+    steamPackage = pkgs.steam;
     winePackages = with pkgs; [ wineWow64Packages.full ];
   };
 }

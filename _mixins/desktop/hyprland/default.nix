@@ -13,9 +13,9 @@ in
 {
   home = {
     packages = with pkgs; [
-      (config.lib.nixGL.wrap kdePackages.dolphin)
-      (config.lib.nixGL.wrap hyprpicker)
-      (config.lib.nixGL.wrap hyprsysteminfo)
+      kdePackages.dolphin
+      hyprpicker
+      hyprsysteminfo
       # grim
       # slurp
     ];
@@ -175,7 +175,6 @@ in
       };
     };
     configPackages = [ config.wayland.windowManager.hyprland.package ];
-    # configPackages = [ (config.lib.nixGL.wrap pkgs.hyprland) ];
     # enable = lib.mkForce false;
     enable = true;
     extraPortals = [

@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   ...
@@ -10,7 +9,7 @@
   # ];
   programs.waybar = {
     enable = true;
-    package = config.lib.nixGL.wrap pkgs.waybar;
+    package = pkgs.waybar;
     # https://gitlab.com/fedora/sigs/sway/sway-config-fedora/-/merge_requests/25
     settings = [
       {
@@ -163,7 +162,7 @@
               ""
             ];
           };
-          on-click = "${lib.getExe (config.lib.nixGL.wrap pkgs.pavucontrol)}";
+          on-click = "${lib.getExe pkgs.pavucontrol}";
         };
       }
     ];

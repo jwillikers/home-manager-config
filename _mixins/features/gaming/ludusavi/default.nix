@@ -29,7 +29,7 @@ lib.mkIf (lib.elem hostname installOn) {
       };
     };
     packages = with pkgs; [
-      (config.lib.nixGL.wrap ludusavi) # Game save data backup tool
+      ludusavi # Game save data backup tool
       (writeShellApplication {
         # Wrapper script for use by the Heroic Games Launcher.
         # Use ~/.nix-profile/bin/heroic-ludusavi-wrapper.sh as the wrapper command in Heroic Games Launcher game config settings.

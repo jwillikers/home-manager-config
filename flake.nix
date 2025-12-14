@@ -54,13 +54,6 @@
         treefmt-nix.follows = "treefmt-nix";
       };
     };
-    nixgl = {
-      url = "github:nix-community/nixGL";
-      inputs = {
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
     nix-index-database = {
       url = "github:Mic92/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -112,7 +105,6 @@
       # deadnix: skip
       nix-secrets,
       nix-update-scripts,
-      nixgl,
       nixpkgs,
       # deadnix: skip
       nixpkgs-unstable,
@@ -130,7 +122,6 @@
           chapterz.overlays.chapterz
           m4b-tool.overlay
           media-juggler.overlays.cbconvert
-          nixgl.overlay
           # overlays.gcr
           overlays.heroic
           overlays.packages
@@ -141,6 +132,7 @@
           # todo Limit this to specific packages.
           config = {
             allowUnfree = true;
+            nvidia.acceptLicense = true;
             permittedInsecurePackages = [ "python-2.7.18.12" ];
           };
         };
@@ -158,7 +150,7 @@
             ];
 
             extraSpecialArgs = {
-              inherit inputs nixgl packages;
+              inherit inputs packages;
               desktop = "hyprland";
               hostname = "precision5350";
               username = "jordan";
@@ -172,7 +164,7 @@
             ];
 
             extraSpecialArgs = {
-              inherit inputs nixgl packages;
+              inherit inputs packages;
               desktop = "kde";
               hostname = "steamdeck";
               username = "deck";
@@ -186,7 +178,7 @@
             ];
 
             extraSpecialArgs = {
-              inherit inputs nixgl packages;
+              inherit inputs packages;
               desktop = "kde";
               hostname = "x1-yoga";
               username = "jordan";

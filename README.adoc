@@ -265,6 +265,26 @@ extra-sandbox-paths = /nix/var/cache/ccache
 sudo systemctl restart nix-daemon.service
 ----
 
+. On Fedora Atomic systems, it's also necessary to ensure `/nix` is mounted early during the boot process so that systemd units in the Nix store can be started properly.
+
+.. Modify `/etc/fstab` to bind-mount `/var/home/nix` to `/nix` with the `x-initrd.mount` option and add the `x-initrd.mount` option to the dependent filesystems, i.e. `/var` and `/var/home`.
+The `/etc/fstab` file will look something like this with these changes.
++
+./etc/fstab
+[,fstab]
+----
+UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /var                    btrfs   subvol=var,compress=zstd:1,x-systemd.device-timeout=0,x-initrd.mount 0 0
+UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /var/home                   btrfs   subvol=home,compress=zstd:1,x-systemd.device-timeout=0,x-initrd.mount 0 0
+/var/home/nix /nix none bind,x-initrd.mount
+----
+
+.. Verify the changes to `/etc/fstab` are valid.
++
+[,sh]
+----
+sudo findmnt --verify --verbose
+----
+
 . Configure the age key for the user to decrypt the secrets in the {Nix-Secrets} repository.
 
 .. Create the age config directory where the key will reside.
@@ -332,7 +352,6 @@ ln --force --relative --symbolic . ~/.config/home-manager
 [,sh]
 ----
 nix develop --command home-manager --flake .#$(id --user --name)@$(hostname --short) switch
-NIXPKGS_ALLOW_UNFREE=1 nix develop --impure --command home-manager --impure --flake .#$(id --user --name)@$(hostname --short) switch
 ----
 
 [TIP]
@@ -371,6 +390,44 @@ rm --force --recursive ~/.config/calibre/plugins/ACSM\ Input/ ~/.config/calibre/
 ----
 ====
 --
+
+. Keep an eye on the console output for a message to install the `non-nixos-gpu.service`.
+If it appears, run the command shown to install the service.
+This is documented in detail https://github.com/nix-community/home-manager/blob/master/docs/manual/usage/gpu-non-nixos.md[here]
+When using the NVidia drivers, whenever the system's drivers change it's necessary to update the home-manager configuration so that the Nix driver's version matches the system driver's version exactly.
+This requires modifying the version in the configuration file and its associated hash, then rebuilding and running the command from the output to update the systemd unit.
+The configuration is located in the file at `_mixins/hardware/<host>/gpu/default.nix`, where `<host>` is the hostname of the machine.
++
+[IMPORTANT]
+====
+On SELinux-enabled systems, it's necessary to relabel the service file in the Nix store so that systemd can load it.
+Use the following command to create a permanent SELinux rule for service files matching the pattern of the `non-nixos-gpu.service` in the Nix store.
+This rule ensures that the service file is labeled with the `systemd_unit_file_t` type.
+This command only needs to be run once.
+
+[,sh]
+----
+sudo semanage fcontext --add --type systemd_unit_file_t "/nix/store/(.*)-non-nixos-gpu/resources/non-nixos-gpu.service"
+----
+
+With that rule in place, the label must be applied to the service file.
+Relabel the file with the following command.
+This command must be run after every update of the service, I think.
+// todo Double check if this is necessary after every update.
+
+[,sh]
+----
+sudo restorecon -v /nix/store/*-non-nixos-gpu/resources/non-nixos-gpu.service
+----
+
+After relabeling, be sure to enable and restart the unit if the update command failed.
+
+[,sh]
+----
+sudo systemctl enable non-nixos-gpu.service
+sudo systemctl restart non-nixos-gpu.service
+----
+====
 
 . Log out and back in for certain environment variable changes to take effect.
 
