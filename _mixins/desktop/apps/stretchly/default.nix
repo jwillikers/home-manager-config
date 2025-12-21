@@ -140,7 +140,7 @@
         ];
       };
     };
-    "stretchly-inhibit" = {
+    "stretchly-inhibit" = lib.mkIf (hostname != "steamdeck") {
       Unit = {
         Description = "Inhibit Stretchly breaks audio or webcam streams are active";
         After = [
