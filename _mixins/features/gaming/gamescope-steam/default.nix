@@ -24,11 +24,11 @@ in
 lib.mkIf (lib.elem hostname installOn) {
   home = {
     file = {
-      "${config.xdg.dataHome}/applications/steam-big-picture-mode.desktop" =
+      "${config.xdg.dataHome}/applications/steam-big-picture-mode.desktop".source =
         ./steam-big-picture-mode.desktop;
       # Right-click this script and select "Add to Steam" to add it as a shortcut in Steam.
       # The script is installed to ~/.config/gamescope-steam/exit-steam-big-picture-mode.sh.
-      "${config.xdg.configHome}/gamescope-steam/exit-steam-big-picture-mode.sh" = {
+      "${config.xdg.configHome}/gamescope-steam/exit-steam-big-picture-mode.sh".source = {
         source = ./exit-steam-big-picture-mode.sh;
         executable = true;
       };
