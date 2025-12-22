@@ -112,6 +112,7 @@ in
         gtk-application-prefer-dark-theme = 1
         gtk-button-images = 1
       '';
+      force = true;
     };
     gtk3 = {
       extraConfig = {
