@@ -12,7 +12,6 @@
   config,
   hostname,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -34,8 +33,5 @@ lib.mkIf (lib.elem hostname installOn) {
         executable = true;
       };
     };
-    packages = with pkgs; [
-      steamtinkerlaunch
-    ];
   };
 }
