@@ -72,6 +72,12 @@ Terminal=false
 Type=Application
 StartupNotify=false
 ----
+.. Disable Steam from starting automatically in desktop mode by deleting the Steam desktop file from the autostart directory.
++
+[,sh]
+----
+sudo rm /etc/xdg/autostart/steam.desktop
+----
 
 .. Open the Konsole terminal.
 .. Run the `passwd` command.
