@@ -28,7 +28,7 @@ lib.mkIf (lib.elem hostname installOn) {
         ./steam-big-picture-mode.desktop;
       # Right-click this script and select "Add to Steam" to add it as a shortcut in Steam.
       # The script is installed to ~/.config/gamescope-steam/exit-steam-big-picture-mode.sh.
-      "${config.xdg.configHome}/gamescope-steam/exit-steam-big-picture-mode.sh".source = {
+      "${config.xdg.configHome}/gamescope-steam/exit-steam-big-picture-mode.sh" = {
         source = ./exit-steam-big-picture-mode.sh;
         executable = true;
       };
