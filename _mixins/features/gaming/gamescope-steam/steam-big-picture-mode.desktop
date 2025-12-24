@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Steam Big Picture Mode
 Comment=Start Steam in Big Picture Mode in gamescope
+# todo Does including --nested-width 1280 --nested-height 720 work better or should it just be omitted?
 Exec=/usr/bin/gamescope --adaptive-sync --borderless --force-grab-cursor --filter fsr --hide-cursor-delay 3000 --force-windows-fullscreen --fsr-sharpness 0 --fullscreen --hdr-enabled --nested-width 1280 --nested-height 720 --nested-unfocused-refresh 10 --rt --steam -- /usr/bin/steam -tenfoot
 # --nested-unfocused-refresh 10
 # The --expose-wayland option seems to crash Steam when games are launched.
