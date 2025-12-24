@@ -35,7 +35,7 @@
               run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
             fi
           else
-            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
+            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.unstable.stretchly} &>/dev/null &
             run ${lib.getBin pkgs.coreutils}/bin/sleep 10
             run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
           fi
@@ -47,13 +47,13 @@
           if [ "$service_running" -eq 1 ]; then
             run ${pkgs.systemdMinimal}/bin/systemctl --user start stretchly.service
           else
-            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
+            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.unstable.stretchly} &>/dev/null &
           fi
         fi
       ''
     );
     packages = with pkgs; [
-      stretchly
+      unstable.stretchly
     ];
   };
   systemd.user.services = {
@@ -87,15 +87,15 @@
         # todo Is this sleep necessary?
         # ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
         # Electron flags to force X11
-        # ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
+        # ExecStart = "${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
         # The Steam Deck still uses X11 in desktop mode.
         ExecStart =
           # todo Need to fix Stretchly breaks running under KDE Wayland.
           if (desktop == "kde") then
-            "-${lib.getExe pkgs.stretchly}"
+            "-${lib.getExe pkgs.unstable.stretchly}"
           else
-            "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+            "-${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
         KillSignal = "SIGKILL";
         KillMode = "mixed";
         Restart = "always";

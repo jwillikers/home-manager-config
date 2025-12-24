@@ -125,6 +125,7 @@
           # overlays.gcr
           overlays.heroic
           overlays.packages
+          overlays.unstablePackages
         ];
         pkgs = import nixpkgs {
           inherit system;
