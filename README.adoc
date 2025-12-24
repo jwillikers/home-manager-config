@@ -34,6 +34,51 @@ This could be used to create your own Nix Secrets repository in place of the min
 
 . Set up the Steam Deck.
 .. On the Steam Deck, switch to _Desktop Mode_.
+// todo Automatically set the session type and update the Return to Gaming Mode shortcut via home manager.
+.. Open a terminal and configure the Steam Deck to use Plasma Wayland as the default session.
+Pass the `plasma-wayland-persistent` argument to the `steamos-session-select` command to boot directly into Plasma Wayland session when booting the Steam Deck.
++
+[,sh]
+----
+steamos-session-select plasma-wayland-persistent
+----
++
+[NOTE]
+====
+To revert this behavior, pass the `gamescope` argument to the `steamos-session-select` command.
+
+[,sh]
+----
+steamos-session-select gamescope
+----
+====
+
+.. To make the `Return to Gaming Mode` desktop shortcut work when Plasma Wayland is the default session, update the `~/Desktop/Return.desktop` file to be as follows.
+The difference here is the `Exec` line.
+Unfortunately, this reverts the selected session to boot into SteamOS by default as there is no oneshot session type for SteamOS like there is for Plasma.
+It should be possible to get around this with a systemd service unit that sets the session type at boot.
++
+.~/Desktop/Return.desktop
+[,desktop]
+----
+[Desktop Entry]
+Name=Return to Gaming Mode
+# Exec=qdbus6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout
+# Revert to gamescope session.
+# Unfortunately, this reverts the selected to boot into SteamOS by default.
+Exec=/usr/bin/steamos-session-select gamescope
+Icon=steamdeck-gaming-return
+Terminal=false
+Type=Application
+StartupNotify=false
+----
+.. Disable Steam from starting automatically in desktop mode by deleting the Steam desktop file from the autostart directory.
++
+[,sh]
+----
+sudo rm /etc/xdg/autostart/steam.desktop
+----
+
 .. Open the Konsole terminal.
 .. Run the `passwd` command.
 .. Follow the prompts to configure a password for your user account.
@@ -117,18 +162,87 @@ cat ~/.ssh/id_ed25519.pub
 
 .. Upload that public SSH key to the Forgejo user's SSH keys.
 
-. Configure Nextcloud accounts on https://cloud.jwillikers.io[my Nextcloud instance] for `jordan` and `deck`.
-. Create the directory `ludusavi-backup` under the `jordan` account on Nextcloud and share it with the `deck` user.
-. Create the necessary Nextcloud App passwords for access and add them in the {Nix-Secrets} repository.
-The keys must be nested under the the host name and named as `nextcloud-ludusavi`.
+. Add your user to the `input` group to allow Stretchly to properly detect idle time.
+
+.. On Fedora Atomic, the _input_ group does not exist in the `/etc/group`, so it must be added.
++
+[,sh]
+----
+echo $(getent group input) | sudo tee --append /etc/group
+----
+
+.. Add your user to the `input` group to allow Stretchly to properly detect idle time.
++
+[,sh]
+----
+sudo usermod --append --group input $USER
+----
+
+.. Log out and back in for the group change to take effect.
+
+. Configure Nextcloud access for Ludusavi game save synchronization.
+.. Create Nextcloud accounts on https://cloud.jwillikers.io[my Nextcloud instance] for `jordan` and `deck`.
+.. Create the directory `ludusavi-backup` under the `jordan` account on Nextcloud and share it with the `deck` user.
+.. Generate a Nextcloud app password for each user in the user's security settings in Nextcloud.
+.. Add the Nextcloud app passwords to the {Nix-Secrets} repository.
 These will be used by Ludusavi and Rclone to sync game saves.
-In the YAML secrets file for the `deck` user it will look like this.
+Updating the {Nix-Secrets} repository in the following steps should be done from the development machine, not over SSH on the Steam Deck.
+... Follow the directions in the {Nix-Secrets} repository to configure access to the repository over Tailscale and clone the repository locally.
+... Change into the {Nix-Secrets} repository's directory.
++
+[,sh]
+----
+cd ~/Projects/nix-secrets
+----
+... Edit the secrets file for each user with sops.
+The command to do this for the `deck` user is shown below.
++
+[,sh]
+----
+nix shell nixpkgs#sops --command sops users/deck.yaml
+----
+... Finally, add the Nextcloud app password to the YAML secrets file.
+The key must be nested under the the host name and named as `nextcloud-ludusavi`.
+For the `deck` user, the YAML layout should appear like this.
 +
 .nix-secrets/users/deck.yaml
 [,yaml]
 ----
 steamdeck:
   nextcloud-ludusavi: <Nextcloud App Password>
+----
+... Save the file and close the editor.
+... Repeat as necessary to add the app password for the `jordan` user.
+... Commit the changes to the repository.
++
+[,sh]
+----
+git commit --all --message "Add Nextcloud app password for ludusavi"
+----
+... Push the changes to Forgejo.
++
+[,sh]
+----
+git push
+----
+... Now update the `home-manager-config` repository to pull in the changes to the {Nix-Secrets} repository.
+From the `home-manager-config` repository's directory, run the following command.
++
+[,sh]
+----
+nix flake update nix-secrets
+----
+... Commit the changes to the repository.
++
+[,sh]
+----
+git commit --all --message "Update nix-secrets""
+----
+... Push the changes.
++
+[,sh]
+----
+git push
 ----
 
 . Create a directory in which to keep source code.
@@ -233,7 +347,8 @@ sudo rpm-ostree initramfs-etc --reboot --track=/etc/ostree/prepare-root.conf
 
 . Install https://lix.systems[Lix].
 On the Steam Deck, the Determinate Nix installer used here has a dedicated profile that just works.
-Of course, I've just jinxed it now.
+Of course, I might have just jinxed it now.
+Be sure to enable flake support when prompted.
 +
 [,sh]
 ----
@@ -249,12 +364,15 @@ sudo mkdir --parents /nix/var/cache/ccache /var/tmp/nix-daemon
 ----
 
 . Configure your user as an allowed and trusted user for Nix.
+Replace `<username>` with the intended user's username.
+On the Steam Deck, this user is the `deck` user.
+Elsewhere, this is the `jordan` user.
 +
 ./etc/nix/nix.conf
 [,ini]
 ----
-allowed-users = jordan
-trusted-users = jordan
+allowed-users = <username>
+trusted-users = <username>
 extra-sandbox-paths = /nix/var/cache/ccache
 ----
 
@@ -263,6 +381,13 @@ extra-sandbox-paths = /nix/var/cache/ccache
 [,sh]
 ----
 sudo systemctl restart nix-daemon.service
+----
+
+. Finally, close the current shell and open a new one to make Nix available.
++
+[,sh]
+----
+exit
 ----
 
 . On Fedora Atomic systems, it's also necessary to ensure `/nix` is mounted early during the boot process so that systemd units in the Nix store can be started properly.
@@ -294,41 +419,53 @@ sudo findmnt --verify --verbose
 mkdir --parents ~/.config/sops/age
 ----
 
-. Either restore a private age key to the file `~/.config/sops/age/keys.txt` or generate a new by following these steps.
-
-.. If you restore the key file, be sure to restrict permissions on the file.
+.. Either restore a private age key to the file `~/.config/sops/age/keys.txt` or generate a new key by following these steps.
 +
+[NOTE]
+====
+If you restore the age key, be sure to restrict permissions on the file.
+
 [,sh]
 ----
 chmod 0600 ~/.config/sops/age/keys.txt
 ----
+====
 
-.. Generate a private age key at `~/.config/sops/age/keys.txt`.
+... Generate a new private age key at `~/.config/sops/age/keys.txt` with this command.
 +
 [,sh]
 ----
 nix shell nixpkgs#age --command age-keygen --output ~/.config/sops/age/keys.txt
 ----
 
-.. Back up this private key up in a secure password vault.
-The following command will print the private key to the console.
+... Back this private key up in a secure password vault.
+The following command will print the private key to the console so that it can be copied and saved.
 +
 [,sh]
 ----
 cat ~/.config/sops/age/keys.txt
 ----
 
-.. A new key must be configured in the {Nix-Secrets} repository.
+... A new key must be configured in the {Nix-Secrets} repository.
 Since existing users should have had their age key restored, this isn't necessary for existing users.
 Refer to the {Nix-Secrets} README for the most up-to-date instructions necessary to add a new user.
 It's necessary to have SSH write access to the {Nix-Secrets} repository and that the Forgejo instance is available over Tailscale.
 See the previous instructions which document how to configure these prerequisites.
 
-. Clone the repository.
+. Clone the Home Manager Config repository.
++
+On development systems, clone using SSH::
 +
 [,sh]
 ----
 git -C ~/Projects clone git@github.com:jwillikers/home-manager-config.git
+----
+
+On all other systems, such as the Steam Deck, clone using HTTPS::
++
+[,sh]
+----
+git -C ~/Projects clone https://github.com/jwillikers/home-manager-config.git
 ----
 
 . Change into the repository's directory.
@@ -342,16 +479,25 @@ cd ~/Projects/home-manager-config
 +
 [,sh]
 ----
-rm --recursive ~/.config/home-manager
+rm --force --recursive ~/.config/home-manager
 ln --force --relative --symbolic . ~/.config/home-manager
 ----
 
 . Build and activate the Home Manager configuration for this user and host.
 +
 --
+Steam Deck::
++
 [,sh]
 ----
-nix develop --command home-manager --flake .#$(id --user --name)@$(hostname --short) switch
+nix develop --command home-manager --flake .#$(id --user --name)@steamdeck switch -b backup
+----
+
+Elsewhere::
++
+[,sh]
+----
+nix develop --command home-manager --flake .#$(id --user --name)@$(hostname --short) switch -b backup
 ----
 
 [TIP]
@@ -430,6 +576,8 @@ sudo systemctl restart non-nixos-gpu.service
 ====
 
 . Log out and back in for certain environment variable changes to take effect.
+
+. After installation, open Lutris and log in to GOG so that comet can connect.
 
 === Gaming
 

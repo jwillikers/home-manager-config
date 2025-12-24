@@ -15,7 +15,7 @@ indent_size = unset
 [*.css]
 indent_style = unset
 
-[*.sh]
+[*.{desktop,sh}]
 max_line_length = unset
 
 [*.{adoc,conf,envrc,lock,nix,nu,rules,yaml,yml}]

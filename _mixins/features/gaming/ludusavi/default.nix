@@ -50,9 +50,9 @@ lib.mkIf (lib.elem hostname installOn) {
           After = [
             # "graphical-session.target"
             "nss-lookup.target"
-            "sops-nix.service" # For Rclone password
+            "rclone-config.service" # For Rclone password
           ];
-          Requires = [ "sops-nix.service" ];
+          Requires = [ "rclone-config.service" ];
           # ConditionPathIsDirectory = ["%h/ludusavi-backup"];
           # Wants = [ "network-online.target" ];
         };
