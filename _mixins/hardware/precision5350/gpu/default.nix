@@ -1,10 +1,11 @@
-_: {
+_:
+{
   # NVIDIA requires using the --impure flag.
   targets.genericLinux = {
     gpu.nvidia = {
       enable = true;
-      version = "580.105.08";
-      sha256 = "sha256-2cboGIZy8+t03QTPpp3VhHn6HQFiyMKMjRdiV2MpNHU=";
+      version = "580.126.09";
+      sha256 = "sha256-TKxT5I+K3/Zh1HyHiO0kBZokjJ/YCYzq/QiKSYmG7CY=";
     };
     nixGL.prime = {
       card = "01:00.0"; # NVIDIA Card

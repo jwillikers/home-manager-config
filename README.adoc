@@ -547,23 +547,13 @@ The configuration is located in the file at `_mixins/hardware/<host>/gpu/default
 [IMPORTANT]
 ====
 On SELinux-enabled systems, it's necessary to relabel the service file in the Nix store so that systemd can load it.
-Use the following command to create a permanent SELinux rule for service files matching the pattern of the `non-nixos-gpu.service` in the Nix store.
-This rule ensures that the service file is labeled with the `systemd_unit_file_t` type.
-This command only needs to be run once.
-
-[,sh]
-----
-sudo semanage fcontext --add --type systemd_unit_file_t "/nix/store/(.*)-non-nixos-gpu/resources/non-nixos-gpu.service"
-----
-
-With that rule in place, the label must be applied to the service file.
 Relabel the file with the following command.
 This command must be run after every update of the service, I think.
 // todo Double check if this is necessary after every update.
 
 [,sh]
 ----
-sudo restorecon -v /nix/store/*-non-nixos-gpu/resources/non-nixos-gpu.service
+sudo restorecon -v /nix/store/*-non-nixos-gpu/lib/systemd/system/non-nixos-gpu.service
 ----
 
 After relabeling, be sure to enable and restart the unit if the update command failed.
