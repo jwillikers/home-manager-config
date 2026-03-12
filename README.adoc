@@ -549,7 +549,6 @@ The configuration is located in the file at `_mixins/hardware/<host>/gpu/default
 On SELinux-enabled systems, it's necessary to relabel the service file in the Nix store so that systemd can load it.
 Relabel the file with the following command.
 This command must be run after every update of the service, I think.
-// todo Double check if this is necessary after every update.
 
 [,sh]
 ----
