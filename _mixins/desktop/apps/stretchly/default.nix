@@ -108,6 +108,37 @@
         WantedBy = [ "xdg-desktop-autostart.target" ];
       };
     };
+    "kidlestretchly" = lib.mkIf (desktop == "kde") {
+      Unit = {
+        Description = "Pause and resume Stretchly based on time idle";
+        After = [
+          "graphical-session.target"
+          "stretchly.service"
+        ];
+        BindsTo = [
+          "graphical-session.target"
+          "stretchly.service"
+        ];
+        ConditionEnvironment = [
+          "XDG_RUNTIME_DIR"
+        ];
+      };
+
+      Service = {
+        # todo Should probably use notify...
+        Type = "simple";
+        ExecStart = "${lib.getExe pkgs.kidlestretchly} ${lib.getExe pkgs.stretchly}";
+        NotifyAccess = "all";
+        Restart = "always";
+        Slice = "background.slice";
+      };
+
+      Install = {
+        WantedBy = [
+          "graphical-session.target"
+        ];
+      };
+    };
     "stretchly-hyprland" = lib.mkIf (desktop == "hyprland") {
       Unit = {
         Description = "Move Stretchly break windows to multiple monitors in Hyprland";
