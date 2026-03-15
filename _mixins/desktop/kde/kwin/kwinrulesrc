@@ -1,6 +1,9 @@
+[$Version]
+update_info=kwinrules.upd:replace-placement-string-to-enum,kwinrules.upd:use-virtual-desktop-ids
+
 [General]
-count=2
-rules=c925099e-e647-4d07-8d50-57e65c7166a4,1
+count=1
+rules=c925099e-e647-4d07-8d50-57e65c7166a4
 
 [c925099e-e647-4d07-8d50-57e65c7166a4]
 Description=Stretchly
