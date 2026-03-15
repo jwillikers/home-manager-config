@@ -1,5 +1,7 @@
 {
   config,
+  lib,
+  pkgs,
   ...
 }:
 {
@@ -8,7 +10,10 @@
     file = {
       "${config.xdg.configHome}/kwinrulesrc_source" = {
         source = ./kwinrulesrc;
-        onChange = "cat ${config.xdg.configHome}/kwinrulesrc_source > ${config.xdg.configHome}/kwinrulesrc";
+        onChange = ''
+          cat ${config.xdg.configHome}/kwinrulesrc_source > ${config.xdg.configHome}/kwinrulesrc
+          ${lib.getBin pkgs.kdePackages.qttools}/bin/qdbus org.kde.KWin /KWin reconfigure
+        '';
       };
     };
   };
