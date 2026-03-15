@@ -37,7 +37,7 @@
       # Copy the file to make it writeable.
       "${config.xdg.configHome}/OpenTabletDriver/settings_source.json" = {
         source = ./config/settings.json;
-        onChange = ''cat ${config.xdg.configHome}/OpenTabletDriver/settings_source.json > ${config.xdg.configHome}/OpenTabletDriver/settings.json'';
+        onChange = "cat ${config.xdg.configHome}/OpenTabletDriver/settings_source.json > ${config.xdg.configHome}/OpenTabletDriver/settings.json";
       };
     };
 
