@@ -1,0 +1,26 @@
+[$Version]
+update_info=kwinrules.upd:replace-placement-string-to-enum,kwinrules.upd:use-virtual-desktop-ids
+
+[General]
+count=1
+rules=c925099e-e647-4d07-8d50-57e65c7166a4
+
+[c925099e-e647-4d07-8d50-57e65c7166a4]
+Description=Stretchly
+above=true
+aboverule=2
+closeablerule=2
+disableglobalshortcuts=true
+disableglobalshortcutsrule=2
+fsplevelrule=2
+skippager=true
+skippagerrule=2
+skipswitcher=true
+skipswitcherrule=2
+skiptaskbar=true
+skiptaskbarrule=2
+title=Time to take a break!
+titlematch=1
+wmclass=electron Stretchly
+wmclasscomplete=true
+wmclassmatch=1

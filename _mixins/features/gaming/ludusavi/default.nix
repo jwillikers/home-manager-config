@@ -25,7 +25,7 @@ lib.mkIf (lib.elem hostname installOn) {
               if hostname == "steamdeck" then packages.ludusavi-steam-deck-config else packages.ludusavi-config;
           in
           ludusavi-config + "/etc/ludusavi/config.yaml";
-        onChange = ''cat ${config.xdg.configHome}/ludusavi/config_source.yaml > ${config.xdg.configHome}/ludusavi/config.yaml'';
+        onChange = "cat ${config.xdg.configHome}/ludusavi/config_source.yaml > ${config.xdg.configHome}/ludusavi/config.yaml";
       };
     };
     packages = with pkgs; [

@@ -9,6 +9,7 @@
   imports = [
     ./ksshaskpass
     ./kwallet
+    ./kwin
   ];
 
   home = {
