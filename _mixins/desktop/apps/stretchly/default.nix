@@ -198,7 +198,7 @@
       # todo "no_shortcuts_inhibit off, ${stretchlyBreak}"
       "noshortcutsinhibit 0, ${stretchlyBreak}" # setprop
       # "fullscreen, ${stretchlyBreak}"
-      "pin, ${stretchlyBreak}"
+      # "pin, ${stretchlyBreak}"
       "stayfocused, ${stretchlyBreak}"
       # "noclosefor 10000, ${stretchlyBreak}"
     ];
