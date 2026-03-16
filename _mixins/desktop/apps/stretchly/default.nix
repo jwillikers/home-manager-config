@@ -191,11 +191,16 @@
     [
       # "nomaxsize, ${stretchlyBreak}"
       # "monitor DP-7, ${stretchlyBreak}"
-      # "float, ${stretchlyBreak}"
+      "float, ${stretchlyBreak}"
+      # todo "idle_inhibit none, ${stretchlyBreak}"
+      "idleinhibit none, ${stretchlyBreak}"
+      # todo "no_screen_share on, ${stretchlyBreak}"
+      "noscreenshare, ${stretchlyBreak}" # setprop
+      # todo "no_shortcuts_inhibit off, ${stretchlyBreak}"
+      "noshortcutsinhibit 0, ${stretchlyBreak}" # setprop
       # "fullscreen, ${stretchlyBreak}"
       "pin, ${stretchlyBreak}"
       "stayfocused, ${stretchlyBreak}"
       # "noclosefor 10000, ${stretchlyBreak}"
-      # todo "noscreenshare, ${stretchlyBreak}"
     ];
 }
