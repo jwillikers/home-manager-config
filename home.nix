@@ -408,6 +408,13 @@ in
   ];
 
   programs = {
+    bash = {
+      shellAliases = {
+        stretchly = "echo 'nope'";
+        "systemctl --user restart stretchly" = "echo 'nope'";
+        "systemctl --user stop stretchly" = "echo 'nope'";
+      };
+    };
     bat = {
       enable = true;
       config = {
@@ -483,6 +490,10 @@ in
     };
     fish = {
       enable = true;
+      functions = {
+        "'systemctl --user restart stretchly'" = "echo 'nope'";
+        "'systemctl --user stop stretchly'" = "echo 'nope'";
+      };
       shellInit = ''
         # Colorscheme: Solarized Dark
         set -U fish_color_normal normal
@@ -523,6 +534,9 @@ in
         set -U fish_pager_color_selected_prefix
         set -U fish_color_option
       '';
+      shellAliases = {
+        stretchly = "echo 'nope'";
+      };
     };
 
     foot.enable = true;
@@ -593,6 +607,11 @@ in
       #   query
       #   units
       # ];
+      shellAliases = {
+        stretchly = "echo 'nope'";
+        "systemctl --user restart stretchly" = "echo 'nope'";
+        "systemctl --user stop stretchly" = "echo 'nope'";
+      };
     };
     rclone = {
       enable = true;
