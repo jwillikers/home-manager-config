@@ -112,11 +112,9 @@
       Unit = {
         Description = "Move Stretchly break windows to multiple monitors in Hyprland";
         After = [
-          "hyprland-session.target"
           "stretchly.service"
         ];
         BindsTo = [
-          "hyprland-session.target"
           "stretchly.service"
         ];
         ConditionEnvironment = [
@@ -144,12 +142,10 @@
       Unit = {
         Description = "Inhibit Stretchly breaks audio or webcam streams are active";
         After = [
-          "graphical-session.target"
           "pipewire-pulse.service"
           "stretchly.service"
         ];
         BindsTo = [
-          "graphical-session.target"
           "pipewire-pulse.service"
           "stretchly.service"
         ];
