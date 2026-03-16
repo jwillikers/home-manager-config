@@ -79,6 +79,12 @@
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
+        Requires = [
+          "graphical-session.target"
+        ]
+        ++ lib.optionals (hostname == "steamdeck") [
+          "plasma-workspace.target"
+        ];
         Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
       };
 
@@ -117,6 +123,9 @@
         BindsTo = [
           "stretchly.service"
         ];
+        Requires = [
+          "stretchly.service"
+        ];
         ConditionEnvironment = [
           "HYPRLAND_INSTANCE_SIGNATURE"
           "XDG_RUNTIME_DIR"
@@ -146,6 +155,10 @@
           "stretchly.service"
         ];
         BindsTo = [
+          "pipewire-pulse.service"
+          "stretchly.service"
+        ];
+        Requires = [
           "pipewire-pulse.service"
           "stretchly.service"
         ];
