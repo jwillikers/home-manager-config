@@ -25,6 +25,7 @@ lib.mkIf (lib.elem hostname installOn) {
             "waybar.service"
           ];
           BindsTo = [ "graphical-session.target" ];
+          Requires = [ "graphical-session.target" ];
           Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
           # Wants = [ "network-online.target" ];
         };

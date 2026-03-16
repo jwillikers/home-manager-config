@@ -79,6 +79,12 @@
         ++ lib.optionals (hostname == "steamdeck") [
           "plasma-workspace.target"
         ];
+        Requires = [
+          "graphical-session.target"
+        ]
+        ++ lib.optionals (hostname == "steamdeck") [
+          "plasma-workspace.target"
+        ];
         Wants = lib.optionals (desktop == "hyprland") [ "waybar.service" ];
       };
 
@@ -97,7 +103,7 @@
           else
             "-${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
         KillSignal = "SIGKILL";
-        KillMode = "mixed";
+        KillMode = "control-group";
         Restart = "always";
         RestartSec = 10;
         # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
@@ -112,11 +118,12 @@
       Unit = {
         Description = "Move Stretchly break windows to multiple monitors in Hyprland";
         After = [
-          "hyprland-session.target"
           "stretchly.service"
         ];
         BindsTo = [
-          "hyprland-session.target"
+          "stretchly.service"
+        ];
+        Requires = [
           "stretchly.service"
         ];
         ConditionEnvironment = [
@@ -135,8 +142,7 @@
 
       Install = {
         WantedBy = [
-          "hyprland-session.target"
-          "xdg-desktop-autostart.target"
+          "stretchly.service"
         ];
       };
     };
@@ -144,12 +150,14 @@
       Unit = {
         Description = "Inhibit Stretchly breaks audio or webcam streams are active";
         After = [
-          "graphical-session.target"
           "pipewire-pulse.service"
           "stretchly.service"
         ];
         BindsTo = [
-          "graphical-session.target"
+          "pipewire-pulse.service"
+          "stretchly.service"
+        ];
+        Requires = [
           "pipewire-pulse.service"
           "stretchly.service"
         ];
@@ -168,8 +176,7 @@
 
       Install = {
         WantedBy = [
-          "hyprland-session.target"
-          "xdg-desktop-autostart.target"
+          "stretchly.service"
         ];
       };
     };
@@ -182,11 +189,17 @@
     [
       # "nomaxsize, ${stretchlyBreak}"
       # "monitor DP-7, ${stretchlyBreak}"
-      # "float, ${stretchlyBreak}"
+      # "workspace w, ${stretchlyBreak}"
+      "float, ${stretchlyBreak}"
+      # todo "idle_inhibit none, ${stretchlyBreak}"
+      "idleinhibit none, ${stretchlyBreak}"
+      # todo "no_screen_share on, ${stretchlyBreak}"
+      "noscreenshare, ${stretchlyBreak}" # setprop
+      # todo "no_shortcuts_inhibit off, ${stretchlyBreak}"
+      "noshortcutsinhibit 0, ${stretchlyBreak}" # setprop
       # "fullscreen, ${stretchlyBreak}"
-      "pin, ${stretchlyBreak}"
+      # "pin, ${stretchlyBreak}"
       "stayfocused, ${stretchlyBreak}"
       # "noclosefor 10000, ${stretchlyBreak}"
-      # todo "noscreenshare, ${stretchlyBreak}"
     ];
 }

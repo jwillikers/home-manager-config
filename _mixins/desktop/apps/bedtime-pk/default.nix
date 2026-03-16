@@ -27,6 +27,7 @@
           BindsTo = [
             "graphical-session.target"
           ];
+          Requires = [ "graphical-session.target" ];
           ConditionEnvironment = [
             # "HYPRLAND_INSTANCE_SIGNATURE"
             "XDG_RUNTIME_DIR"

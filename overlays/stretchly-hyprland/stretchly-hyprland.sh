@@ -145,8 +145,8 @@ function handle {
         done
         echo "available_monitors: " "${available_monitors[@]}"
 
-        echo "Running: hyprctl --batch \"dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch centerwindow address:0x$window_id\""
-        hyprctl --batch "dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch centerwindow address:0x$window_id"
+        echo "Running: hyprctl --batch \"dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch pin address:0x$window_id ; dispatch centerwindow address:0x$window_id\""
+        hyprctl --batch "dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch pin address:0x$window_id ; dispatch centerwindow address:0x$window_id"
         # Add the following command to tag the window with the monitor.
         # dispatch tagwindow ${open_stretchly_windows[$window_id] [address:0x$window_id]
       fi
