@@ -142,7 +142,7 @@
 
       Install = {
         WantedBy = [
-          "xdg-desktop-autostart.target"
+          "stretchly.service"
         ];
       };
     };
@@ -176,7 +176,7 @@
 
       Install = {
         WantedBy = [
-          "xdg-desktop-autostart.target"
+          "stretchly.service"
         ];
       };
     };
