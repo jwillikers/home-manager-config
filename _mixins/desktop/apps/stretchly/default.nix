@@ -97,7 +97,7 @@
           else
             "-${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
         KillSignal = "SIGKILL";
-        KillMode = "mixed";
+        KillMode = "control-group";
         Restart = "always";
         RestartSec = 10;
         # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
