@@ -142,7 +142,6 @@
 
       Install = {
         WantedBy = [
-          "hyprland-session.target"
           "xdg-desktop-autostart.target"
         ];
       };
@@ -177,7 +176,6 @@
 
       Install = {
         WantedBy = [
-          "hyprland-session.target"
           "xdg-desktop-autostart.target"
         ];
       };
