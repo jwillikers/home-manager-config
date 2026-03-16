@@ -189,6 +189,7 @@
     [
       # "nomaxsize, ${stretchlyBreak}"
       # "monitor DP-7, ${stretchlyBreak}"
+      # "workspace w, ${stretchlyBreak}"
       "float, ${stretchlyBreak}"
       # todo "idle_inhibit none, ${stretchlyBreak}"
       "idleinhibit none, ${stretchlyBreak}"
