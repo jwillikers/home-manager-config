@@ -21,7 +21,9 @@
     };
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      # url = "github:nix-community/home-manager/release-25.11";
+      # url = "github:nix-community/home-manager/release-25.11";
+      url = "git+file:///home/jordan/Projects/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix = {
