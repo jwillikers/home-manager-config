@@ -541,6 +541,7 @@ rm --force --recursive ~/.config/calibre/plugins/ACSM\ Input/ ~/.config/calibre/
 If it appears, run the command shown to install the service.
 This is documented in detail https://github.com/nix-community/home-manager/blob/master/docs/manual/usage/gpu-non-nixos.md[here]
 When using the NVidia drivers, whenever the system's drivers change it's necessary to update the home-manager configuration so that the Nix driver's version matches the system driver's version exactly.
+Run `nvidia-smi --version` or `dnf list --installed \*nvidia\*` to show the installed driver version.
 This requires modifying the version in the configuration file and its associated hash, then rebuilding and running the command from the output to update the systemd unit.
 The configuration is located in the file at `_mixins/hardware/<host>/gpu/default.nix`, where `<host>` is the hostname of the machine.
 +
