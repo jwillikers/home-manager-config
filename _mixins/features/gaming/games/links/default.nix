@@ -18,7 +18,7 @@ lib.mkIf (lib.elem hostname installOn) {
 
     ## Broken Age
     "v '${config.xdg.dataHome}/doublefine/BrokenAge/saves' 0750 ${username} ${username} - -"
-    "L+ '${config.xdg.dataHome}/Steam/steamapps/common/Broken\ Age/saves' - - - - '${config.xdg.dataHome}/doublefine/BrokenAge/saves'"
+    "L+ '${config.xdg.dataHome}/Steam/steamapps/common/Broken Age/saves' - - - - '${config.xdg.dataHome}/doublefine/BrokenAge/saves'"
     ## Dome Keeper
     "v '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper' 0750 ${username} ${username} - -"
     "L+ '${config.home.homeDirectory}/Games/gog/dome-keeper/drive_c/users/${username}/AppData/Roaming/Godot/app_userdata/Dome Keeper' - - - - '${config.xdg.dataHome}/godot/app_userdata/Dome Keeper'"
