@@ -21,7 +21,9 @@
     };
     flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      # Currently broken for the Nvidia drivers version
+      # url = "github:nix-community/home-manager/release-25.11";
+      url = "git+file:///home/jordan/Projects/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     lix = {
@@ -36,11 +38,13 @@
     };
     media-juggler = {
       url = "github:jwillikers/media-juggler";
+      # url = "git+file:///home/jordan/Projects/media-juggler";
       inputs = {
         flake-utils.follows = "flake-utils";
         m4b-tool.follows = "m4b-tool";
         nix-update-scripts.follows = "nix-update-scripts";
         nixpkgs.follows = "nixpkgs";
+        nixpkgs-unstable.follows = "nixpkgs-unstable";
         pre-commit-hooks.follows = "pre-commit-hooks";
         treefmt-nix.follows = "treefmt-nix";
       };
@@ -74,6 +78,16 @@
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # This is a private repository hosted on my private Forgejo server.
+    # It is only available on my local LAN and Tailscale network.
+    private-nixpkgs = {
+      url = "git+ssh://git@forgejo.jwillikers.io/jwillikers/private-nixpkgs.git?shallow=1";
+      # url = "git+file:///home/jordan/Projects/private-nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-unstable.follows = "nixpkgs-unstable";
+      };
     };
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -109,6 +123,7 @@
       # deadnix: skip
       nixpkgs-unstable,
       pre-commit-hooks,
+      private-nixpkgs,
       # deadnix: skip
       sops-nix,
       treefmt-nix,
@@ -122,6 +137,7 @@
           chapterz.overlays.chapterz
           m4b-tool.overlay
           media-juggler.overlays.cbconvert
+          private-nixpkgs.overlays.private-nixpkgs
           # overlays.gcr
           overlays.heroic
           overlays.packages

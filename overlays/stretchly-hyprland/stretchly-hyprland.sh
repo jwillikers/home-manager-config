@@ -87,7 +87,7 @@ function handle {
     IFS="," read -r window_id _workspace_name window_class window_title <<< "${1:12}"
     # echo "window_id: $window_id"
     # echo "window_class: $window_class"
-    if [[ $window_class == "Stretchly" ]]; then
+    if [[ $window_class == "electron" ]] || [[ $window_class == "Stretchly" ]]; then
       # window_title=${1##*,}
       echo "window_title: $window_title"
       # Sometimes, the window title is just "Stretchly" for some reason.

@@ -35,7 +35,7 @@ lib.mkIf (lib.elem hostname installOn) {
       umu-launcher
     ];
     protonPackages = with pkgs; [ proton-ge-bin ];
-    package = pkgs.lutris;
+    package = pkgs.unstable.lutris;
     runners = {
       scummvm.package = pkgs.scummvm;
     };
