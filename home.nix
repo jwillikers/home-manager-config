@@ -86,6 +86,7 @@ in
   ]
   ++ lib.optionals (hostname != "steamdeck") [
     inputs.media-juggler.homeModules.media-juggler
+    inputs.private-nixpkgs.homeModules.private-nixpkgs
   ]
   ++ [
     ./_mixins
@@ -171,6 +172,7 @@ in
         julia # Julia programming language
         just # Command runner
         image_optim # Image optimizer
+        isbntools # Tools for manipulating ISBNs
         kakasi # Japanese Kanji to Kana converter
         libtree # Tree output for ldd
         m4b-tool # Audiobook merging, splitting, and chapters tool
@@ -404,6 +406,7 @@ in
 
   nixpkgs.overlays = [
     inputs.media-juggler.overlays.cbconvert
+    inputs.private-nixpkgs.overlays.private-nixpkgs
     # inputs.lix-module.overlays.default
   ];
 
