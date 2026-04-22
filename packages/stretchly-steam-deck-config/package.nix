@@ -5,14 +5,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "stretchly-steam-deck-config";
-  version = "0-unstable-2026-03-16";
+  version = "0-unstable-2026-04-13";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "stretchly-steam-deck-config";
-    rev = "29a7dd1aebb5de7f4ea02dabe26f52e25e214eec";
-    hash = "sha256-nVIXB8rZlVrgUTg9PMJvOA3Gsm8itbLQW0YSXeUYhcQ=";
+    rev = "30303c488b28487cc659a14ba5f6badb14f69dba";
+    hash = "sha256-OtWxLhg98XyUbG55yFZRGiGesgJdW7s7elqfJUZVtPw=";
   };
 
   installPhase = ''
