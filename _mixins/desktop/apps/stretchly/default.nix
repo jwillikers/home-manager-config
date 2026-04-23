@@ -95,19 +95,15 @@
         # Electron flags to force X11
         # ExecStart = "${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
-        # The Steam Deck still uses X11 in desktop mode.
-        ExecStart =
-          # todo Need to fix Stretchly breaks running under KDE Wayland.
-          if (desktop == "kde") then
-            "-${lib.getExe pkgs.unstable.stretchly}"
-          else
-            "-${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+        # The Steam Deck still uses X11 in desktop mode by default, but I use the Wayland session.
+        ExecStart = "-${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
         KillSignal = "SIGKILL";
         KillMode = "control-group";
         Restart = "always";
         RestartSec = 10;
         # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
-        # ExitType = "cgroup";
+        # Seems like this should be cgroup, since Stretchly spawns a background process and remains when not using cgroup KillMode.
+        ExitType = "cgroup";
       };
 
       Install = {

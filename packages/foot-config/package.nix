@@ -7,14 +7,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "foot-config";
-  version = "0-unstable-2025-12-11";
+  version = "0-unstable-2026-04-23";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "foot-config";
-    rev = "07b7cc96be4625f660c1fad54b03190b47e57d20";
-    hash = "sha256-fwmH14A2Z9B+6OeMsliwQaTWAQ0G7iO6czqDl65GL6w=";
+    rev = "c76926f59635e4512f0626f39ce09630e0a5f7ac";
+    hash = "sha256-Zmdwm//YOt06XlSJZmMs8aAn40rfhwE3iwzSYqa1/zc=";
   };
 
   installPhase = ''
