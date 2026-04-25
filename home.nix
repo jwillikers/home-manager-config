@@ -172,7 +172,6 @@ in
         julia # Julia programming language
         just # Command runner
         image_optim # Image optimizer
-        isbntools # Tools for manipulating ISBNs
         kakasi # Japanese Kanji to Kana converter
         libtree # Tree output for ldd
         m4b-tool # Audiobook merging, splitting, and chapters tool
@@ -216,6 +215,7 @@ in
         cbconvert # Comic book converter
         pdfsizeopt # Lossless PDF size optimizer
         minuimus # Lossless file minimizer
+        isbntools # Tools for manipulating ISBNs
       ];
 
     sessionVariables = {
