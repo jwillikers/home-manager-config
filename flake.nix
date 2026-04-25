@@ -142,6 +142,7 @@
           overlays.heroic
           overlays.packages
           overlays.unstablePackages
+          overlays.joystickwake
         ];
         pkgs = import nixpkgs {
           inherit system;

@@ -37,6 +37,7 @@
     "hyprctl",
     "hyprlock",
     "ifdef",
+    "joystickwake",
     "justfile",
     "jwillikers",
     "keyboxd",

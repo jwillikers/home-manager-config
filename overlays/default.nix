@@ -21,6 +21,10 @@
     stretchly-hyprland = prev.callPackage ./stretchly-hyprland/package.nix { };
     stretchly-inhibit = prev.callPackage ./stretchly-inhibit/package.nix { };
   };
+  # Use latest version
+  joystickwake = final: _prev: {
+    joystickwake = final.callPackage ./joystickwake/package.nix { };
+  };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will
   # be accessible through 'pkgs.unstable'
