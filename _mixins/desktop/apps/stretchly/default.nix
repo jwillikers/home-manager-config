@@ -91,7 +91,7 @@
       Service = {
         Type = "exec";
         # todo Is this sleep necessary?
-        ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
+        ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 60";
         # Electron flags to force X11
         # ExecStart = "${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
