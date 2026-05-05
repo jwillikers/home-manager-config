@@ -154,6 +154,7 @@ in
         appstream
         # librsvg?
         asciidoctor
+        b3sum # BLAKE3 checksum utility
         # beets # Music collection organizer
         # calibre # EBook manager
         efficient-compression-tool # Image optimization tool
@@ -194,6 +195,7 @@ in
         pre-commit # Git pre-commit hooks manager
         probe-rs-tools # Debug probe tool
         python3Packages.python # Python
+        rhash # Checksum utility
         rpiboot # Raspberry Pi bootloader utility
         rustup # Rust toolchain installer
         # qemu # Emulator
