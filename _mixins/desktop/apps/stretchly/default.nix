@@ -101,6 +101,7 @@
         KillMode = "control-group";
         Restart = "always";
         RestartSec = 10;
+        TimeoutStartSec = 120;
         # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
         # Seems like this should be cgroup, since Stretchly spawns a background process and remains when not using cgroup KillMode.
         ExitType = "cgroup";
