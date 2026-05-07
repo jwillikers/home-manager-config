@@ -76,6 +76,9 @@ let
 in
 {
 
+  # todo Remove
+  # home.enableNixpkgsReleaseCheck = false;
+
   imports = [
     # If you want to use modules your own flake exports (from modules/home-manager):
     # outputs.homeManagerModules.example
@@ -120,6 +123,9 @@ in
         gtk-application-prefer-dark-theme = 1;
         gtk-button-images = 1;
       };
+    };
+    gtk4 = {
+      inherit (config.gtk) theme;
     };
     iconTheme = {
       name = "Adwaita";
@@ -166,6 +172,7 @@ in
         clipse # Clipboard manager
         deadnix # Nix dead code finder
         deploy-rs # Nix deployment
+        exiftool # Tool for dealing with image and PDF metadata
         flatpak-builder # Build Flatpaks
         ghc # Glasgow Haskell Compiler
         # gptfdisk
