@@ -74,83 +74,120 @@ in
     windowManager.hyprland = {
       enable = true;
       # todo Remove the following: https://github.com/nix-community/home-manager/pull/7507
-      importantPrefixes = [
-        "enabled"
-        "bezier"
-        "name"
-        "output"
-      ];
+      # importantPrefixes = [
+      #   "$"
+      #   "enabled"
+      #   "bezier"
+      #   "name"
+      #   "output"
+      # ];
       settings = {
-        inherit (monitors) monitor workspace;
+        inherit (monitors) monitor workspace_rule;
 
         # Workaround issues with the Hyprland Home Manager module not setting systemd.user.sessionVariables
+        # java_awt_wm_nonreparenting = (lib.generators.mkLuaInline "hl.env(\"_JAVA_AWT_WM_NONREPARENTING\", \"1\")");
+        # Hint for Electron apps to use Wayland:
+        # nixos_ozone_wl = (lib.generators.mkLuaInline "hl.env(\"NIXOS_OZONE_WL\", \"1\")");
+        # electron_ozon_platform_hint = (lib.generators.mkLuaInline "hl.env(\"ELECTRON_OZONE_PLATFORM_HINT\", \"auto\")");
         env = [
-          "_JAVA_AWT_WM_NONREPARENTING,1"
+          {
+            _args = [
+              "_JAVA_AWT_WM_NONREPARENTING"
+              "1"
+            ];
+          }
           # Hint for Electron apps to use Wayland:
-          "NIXOS_OZONE_WL,1"
-          "ELECTRON_OZONE_PLATFORM_HINT,auto"
+          {
+            _args = [
+              "NIXOS_OZONE_WL"
+              "1"
+            ];
+          }
+          {
+            _args = [
+              "ELECTRON_OZONE_PLATFORM_HINT"
+              "auto"
+            ];
+          }
           # --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj
         ];
 
-        cursor = {
-          # default_monitor = "DP-7";
-          default_monitor =
-            # (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitorv2 0).output;
-            builtins.elemAt (lib.strings.splitString "," (
-              builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0
-            )) 0;
-        };
         device = {
           name = "9610:30:Pine64_Pinebook_Pro";
           kb_layout = "us";
           kb_variant = "colemak_dh";
           kb_options = "grp:alt_shift_toggle";
         };
-        input = {
-          tablet = {
-            output = [ ];
+
+        config = {
+          cursor = {
+            # default_monitor = "DP-7";
+            default_monitor = (builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0).output;
+            # builtins.elemAt (lib.strings.splitString "," (
+            #   builtins.elemAt config.wayland.windowManager.hyprland.settings.monitor 0
+            # )) 0;
           };
-          touchpad = {
-            tap-to-click = true;
+          input = {
+            touchpad = {
+              tap_to_click = true;
+            };
+          };
+          misc = {
+            vrr = 3;
+          };
+          render = {
+            direct_scanout = 2;
+            # new_render_scheduling = true;
           };
         };
-        misc = {
-          vrr = 3;
-        };
-        render = {
-          direct_scanout = 2;
-          # new_render_scheduling = true;
-        };
-        exec-once = [
-          (lib.getExe pkgs.sway-audio-idle-inhibit)
-        ];
-        exec = [
-          "${lib.getBin pkgs.glib}/bin/gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'"
-        ];
 
-        windowrule =
-          let
-            # todo lutris game
-            kdeconnect-pointer = "class:org.kdeconnect.daemon";
-            firefoxPictureInPicture = "class:firefox, title:Picture-in-Picture";
-          in
-          [
-            # todo Use a variable to set the monitor
-            # todo idleinhibit
-
-            "size 100% 100%, ${kdeconnect-pointer}"
-            "float, ${kdeconnect-pointer}"
-            "nofocus, ${kdeconnect-pointer}"
-            "noblur, ${kdeconnect-pointer}"
-            "noanim, ${kdeconnect-pointer}"
-            "noshadow, ${kdeconnect-pointer}"
-            "noborder, ${kdeconnect-pointer}"
-            "plugin:hyprbars:nobar, ${kdeconnect-pointer}"
-            "suppressevent fullscreen, ${kdeconnect-pointer}"
-
-            "float, ${firefoxPictureInPicture}"
-            "pin, ${firefoxPictureInPicture}"
+        on = {
+          _args = [
+            "hyprland.start"
+            (lib.generators.mkLuaInline "function()\n  hl.exec_cmd(\"${lib.getExe pkgs.sway-audio-idle-inhibit}\")\n  hl.exec_cmd(\"${lib.getBin pkgs.glib}/bin/gsettings set org.gnome.desktop.interface color-scheme prefer-dark\")\nend")
           ];
+        };
+
+        window_rule = [
+          # todo Use a variable to set the monitor
+          # todo idleinhibit
+          {
+            match = {
+              class = "^(org.kdeconnect.daemon)$";
+              # title = "^(Enter name of file to save to…)(.*)$";
+            };
+            size = "{\"monitor_w\", \"monitor_h\"}";
+            float = true;
+            no_focus = true;
+            no_blur = true;
+            no_anim = true;
+            no_shadow = true;
+            border_size = 0;
+            # border = false;
+            suppress_event = "fullscreen";
+            # plugin = "hyprbars:nobar";
+          }
+
+          # "size 100% 100%, ${kdeconnect-pointer}"
+          # "float, ${kdeconnect-pointer}"
+          # "nofocus, ${kdeconnect-pointer}"
+          # "noblur, ${kdeconnect-pointer}"
+          # "noanim, ${kdeconnect-pointer}"
+          # "noshadow, ${kdeconnect-pointer}"
+          # "noborder, ${kdeconnect-pointer}"
+          # "plugin:hyprbars:nobar, ${kdeconnect-pointer}"
+          # "suppressevent fullscreen, ${kdeconnect-pointer}"
+
+          {
+            match = {
+              class = "^(firefox)$";
+              title = "^(Picture-in-Picture)$";
+            };
+            size = "{\"monitor_w\", \"monitor_h\"}";
+            float = true;
+            pin = true;
+          }
+        ];
         # xwayland = {
         #   force_zero_scaling = true;
         # };

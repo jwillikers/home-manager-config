@@ -16,7 +16,7 @@ in
 lib.mkIf (lib.elem hostname installOn) {
   home = {
     file = {
-      # Copy the file to make it writeable.
+      # Copy the file to make it writable.
       "${config.xdg.configHome}/lutris/system_source.yml" = {
         source = packages.lutris-config + "/etc/lutris/system.yml";
         onChange = "cat ${config.xdg.configHome}/lutris/system_source.yml > ${config.xdg.configHome}/lutris/system.yml";

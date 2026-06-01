@@ -16,7 +16,7 @@ in
 lib.mkIf (lib.elem hostname installOn) {
   home = {
     file = {
-      # Copy the file to make it writeable.
+      # Copy the file to make it writable.
       "${config.xdg.configHome}/steamtinkerlaunch/default_template_source.conf" = {
         source = ./default_template.conf;
         onChange = "cat ${config.xdg.configHome}/steamtinkerlaunch/default_template_source.conf > ${config.xdg.configHome}/steamtinkerlaunch/default_template.conf";

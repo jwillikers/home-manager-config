@@ -91,7 +91,7 @@
       Service = {
         Type = "exec";
         # todo Is this sleep necessary?
-        # ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 1";
+        ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 60";
         # Electron flags to force X11
         # ExecStart = "${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
@@ -101,6 +101,7 @@
         KillMode = "control-group";
         Restart = "always";
         RestartSec = 10;
+        TimeoutStartSec = 120;
         # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
         # Seems like this should be cgroup, since Stretchly spawns a background process and remains when not using cgroup KillMode.
         ExitType = "cgroup";
@@ -178,66 +179,48 @@
     };
   };
 
-  wayland.windowManager.hyprland.settings.windowrule =
-    let
-      stretchlyBreak = "class:electron, title:Stretchly";
-    in
-    [
-      # "nomaxsize, ${stretchlyBreak}"
-      # "monitor DP-7, ${stretchlyBreak}"
-      # "workspace w, ${stretchlyBreak}"
-      "float, ${stretchlyBreak}"
-      # todo "idle_inhibit none, ${stretchlyBreak}"
-      "idleinhibit none, ${stretchlyBreak}"
-      # todo "no_screen_share on, ${stretchlyBreak}"
-      "noscreenshare, ${stretchlyBreak}" # setprop
-      # todo "no_shortcuts_inhibit off, ${stretchlyBreak}"
-      "noshortcutsinhibit 0, ${stretchlyBreak}" # setprop
-      # "fullscreen, ${stretchlyBreak}"
-      # "pin, ${stretchlyBreak}"
-      "stayfocused, ${stretchlyBreak}"
-      # "noclosefor 10000, ${stretchlyBreak}"
-    ]
-    ++ (
-      let
-        stretchlyBreak = "class:electron, title:Time to take a break!";
-      in
-      [
-        # "nomaxsize, ${stretchlyBreak}"
-        # "monitor DP-7, ${stretchlyBreak}"
-        # "workspace w, ${stretchlyBreak}"
-        "float, ${stretchlyBreak}"
-        # todo "idle_inhibit none, ${stretchlyBreak}"
-        "idleinhibit none, ${stretchlyBreak}"
-        # todo "no_screen_share on, ${stretchlyBreak}"
-        "noscreenshare, ${stretchlyBreak}" # setprop
-        # todo "no_shortcuts_inhibit off, ${stretchlyBreak}"
-        "noshortcutsinhibit 0, ${stretchlyBreak}" # setprop
-        # "fullscreen, ${stretchlyBreak}"
-        # "pin, ${stretchlyBreak}"
-        "stayfocused, ${stretchlyBreak}"
-        # "noclosefor 10000, ${stretchlyBreak}"
-      ]
-    )
-    ++ (
-      let
-        stretchlyBreak = "class:Stretchly, title:Time to take a break!";
-      in
-      [
-        # "nomaxsize, ${stretchlyBreak}"
-        # "monitor DP-7, ${stretchlyBreak}"
-        # "workspace w, ${stretchlyBreak}"
-        "float, ${stretchlyBreak}"
-        # todo "idle_inhibit none, ${stretchlyBreak}"
-        "idleinhibit none, ${stretchlyBreak}"
-        # todo "no_screen_share on, ${stretchlyBreak}"
-        "noscreenshare, ${stretchlyBreak}" # setprop
-        # todo "no_shortcuts_inhibit off, ${stretchlyBreak}"
-        "noshortcutsinhibit 0, ${stretchlyBreak}" # setprop
-        # "fullscreen, ${stretchlyBreak}"
-        # "pin, ${stretchlyBreak}"
-        "stayfocused, ${stretchlyBreak}"
-        # "noclosefor 10000, ${stretchlyBreak}"
-      ]
-    );
+  wayland.windowManager.hyprland.settings.window_rule = [
+    {
+      match = {
+        class = "^(electron)$";
+        title = "^(Stretchly)$";
+      };
+      float = true;
+      idle_inhibit = "none";
+      no_screen_share = true;
+      no_shortcuts_inhibit = true;
+      stay_focused = true;
+    }
+    # "nomaxsize, ${stretchlyBreak}"
+    # "monitor DP-7, ${stretchlyBreak}"
+    # "workspace w, ${stretchlyBreak}"
+    # todo "idle_inhibit none, ${stretchlyBreak}"
+    # todo "no_screen_share on, ${stretchlyBreak}"
+    # todo "no_shortcuts_inhibit off, ${stretchlyBreak}"
+    # "fullscreen, ${stretchlyBreak}"
+    # "pin, ${stretchlyBreak}"
+    # "noclosefor 10000, ${stretchlyBreak}"
+    {
+      match = {
+        class = "^(electron)$";
+        title = "^(Time to take a break!)$";
+      };
+      float = true;
+      idle_inhibit = "none";
+      no_screen_share = true;
+      no_shortcuts_inhibit = true;
+      stay_focused = true;
+    }
+    {
+      match = {
+        class = "^(Stretchly)$";
+        title = "^(Time to take a break!)$";
+      };
+      float = true;
+      idle_inhibit = "none";
+      no_screen_share = true;
+      no_shortcuts_inhibit = true;
+      stay_focused = true;
+    }
+  ];
 }

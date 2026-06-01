@@ -3,8 +3,8 @@ _: {
   targets.genericLinux = {
     gpu.nvidia = {
       enable = true;
-      version = "580.142";
-      sha256 = "sha256-IJFfzz/+icNVDPk7YKBKKFRTFQ2S4kaOGRGkNiBEdWM=";
+      version = "580.159.03";
+      sha256 = "sha256-MshdmbD2QMlQH2GzndrSCP0CiNAVxPvF/QQ1wHeD+nc=";
     };
     nixGL.prime = {
       card = "01:00.0"; # NVIDIA Card

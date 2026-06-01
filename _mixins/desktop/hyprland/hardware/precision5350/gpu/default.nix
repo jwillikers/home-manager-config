@@ -14,12 +14,27 @@
     settings.env = [
       # NVIDIA
       # https://wiki.hypr.land/Configuring/Environment-variables/#nvidia-specific
-      "__GLX_VENDOR_LIBRARY_NAME,nvidia"
-      "NVD_BACKEND,direct"
+      {
+        _args = [
+          "__GLX_VENDOR_LIBRARY_NAME"
+          "nvidia"
+        ];
+      }
+      {
+        _args = [
+          "NVD_BACKEND"
+          "direct"
+        ];
+      }
 
       # This order is necessary on the Precision 5350.
       # No other order works.
-      "AQ_DRM_DEVICES,/dev/dri/intel-igpu:/dev/dri/nvidia-dgpu"
+      {
+        _args = [
+          "AQ_DRM_DEVICES"
+          "/dev/dri/intel-igpu:/dev/dri/nvidia-dgpu"
+        ];
+      }
 
       #"LIBVA_DRIVER_NAME,nvidia"
 
@@ -29,8 +44,18 @@
       #"AQ_FORCE_LINEAR_BLIT,0"
 
       # "GBM_BACKEND,nvidia-drm"
-      "__GL_GSYNC_ALLOWED,1"
-      "__GL_VRR_ALLOWED,0"
+      {
+        _args = [
+          "__GL_GSYNC_ALLOWED"
+          "1"
+        ];
+      }
+      {
+        _args = [
+          "__GL_VRR_ALLOWED"
+          "0"
+        ];
+      }
     ];
   };
 }

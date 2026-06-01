@@ -76,6 +76,9 @@ let
 in
 {
 
+  # todo Remove
+  # home.enableNixpkgsReleaseCheck = false;
+
   imports = [
     # If you want to use modules your own flake exports (from modules/home-manager):
     # outputs.homeManagerModules.example
@@ -121,6 +124,9 @@ in
         gtk-button-images = 1;
       };
     };
+    gtk4 = {
+      inherit (config.gtk) theme;
+    };
     iconTheme = {
       name = "Adwaita";
       package = pkgs.adwaita-icon-theme;
@@ -154,6 +160,7 @@ in
         appstream
         # librsvg?
         asciidoctor
+        b3sum # BLAKE3 checksum utility
         # beets # Music collection organizer
         # calibre # EBook manager
         efficient-compression-tool # Image optimization tool
@@ -165,6 +172,7 @@ in
         clipse # Clipboard manager
         deadnix # Nix dead code finder
         deploy-rs # Nix deployment
+        exiftool # Tool for dealing with image and PDF metadata
         flatpak-builder # Build Flatpaks
         ghc # Glasgow Haskell Compiler
         # gptfdisk
@@ -172,16 +180,16 @@ in
         julia # Julia programming language
         just # Command runner
         image_optim # Image optimizer
-        isbntools # Tools for manipulating ISBNs
         kakasi # Japanese Kanji to Kana converter
         libtree # Tree output for ldd
+        lix
         m4b-tool # Audiobook merging, splitting, and chapters tool
         minio-client # S3-compatible object storage client
         mumble # Voice chat
         mupdf-headless # PDF utility
         net-snmp # SNMP manager tools
         nil # Nix language engine for IDEs
-        nixfmt-rfc-style # Nix code formatter
+        nixfmt # Nix code formatter
         # todo Set GITHUB_TOKEN in environment for pull-request reviews.
         nixpkgs-review # Nix code review
         nix-tree # Examine dependencies of Nix derivations
@@ -191,10 +199,11 @@ in
         nu_scripts # Nushell scripts
         nurl # Nix URL fetcher
         picard # Music tagger
-        pipx # Python executable installer
+        #pipx # Python executable installer
         pre-commit # Git pre-commit hooks manager
         probe-rs-tools # Debug probe tool
         python3Packages.python # Python
+        rhash # Checksum utility
         rpiboot # Raspberry Pi bootloader utility
         rustup # Rust toolchain installer
         # qemu # Emulator
@@ -213,9 +222,10 @@ in
       ]
       ++ lib.optionals (hostname != "steamdeck") [
         chapterz # MusicBrainz utility for audiobook chapters
-        cbconvert # Comic book converter
+        # cbconvert # Comic book converter
         pdfsizeopt # Lossless PDF size optimizer
         minuimus # Lossless file minimizer
+        isbntools # Tools for manipulating ISBNs
       ];
 
     sessionVariables = {
@@ -372,7 +382,6 @@ in
     registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
 
     # package = pkgs.nixVersions.latest;
-    # package = inputs.lix-module.packages.${pkgs.system}.default;
     package = pkgs.lix;
     # A lot of these should instead to be managed system-wide, right?
     settings = {
@@ -405,9 +414,7 @@ in
   targets.genericLinux.enable = true;
 
   nixpkgs.overlays = [
-    inputs.media-juggler.overlays.cbconvert
     inputs.private-nixpkgs.overlays.private-nixpkgs
-    # inputs.lix-module.overlays.default
   ];
 
   programs = {

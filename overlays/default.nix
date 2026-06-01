@@ -2,6 +2,11 @@
   inputs,
 }:
 {
+  with_pngout = _final: prev: {
+    image_optim = prev.image_optim.override { withPngout = true; };
+    pdfsizeopt = prev.pdfsizeopt.override { withPngout = true; };
+    minuimus = prev.minuimus.override { withPngout = true; };
+  };
   gcr = _final: prev: {
     gcr = prev.gcr.overrideAttrs (prevAttrs: {
       mesonFlags = prevAttrs.mesonFlags ++ [ "-Dssh_agent=true" ];
@@ -20,6 +25,10 @@
     bedtime-pk = prev.callPackage ./bedtime-pk/package.nix { };
     stretchly-hyprland = prev.callPackage ./stretchly-hyprland/package.nix { };
     stretchly-inhibit = prev.callPackage ./stretchly-inhibit/package.nix { };
+  };
+  # Use latest version
+  joystickwake = final: _prev: {
+    joystickwake = final.callPackage ./joystickwake/package.nix { };
   };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will

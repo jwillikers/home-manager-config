@@ -12,13 +12,26 @@
     # exec-once = [
     #   "${lib.getExe pkgs.clipse} -listen"
     # ];
-    windowrule = [
-      "float, class:(clipse)" # ensure you have a floating window class set if you want this behavior
-      "size 622 652, class:(clipse)" # set the size of the window as necessary
+    window_rule = [
+      {
+        match = {
+          class = "^(clipse)$";
+        };
+        float = true;
+        # size = "{\"monitor_w\", \"monitor_h\"}";
+        # size = "{\"monitor_w\", \"monitor_h\"}";
+        size = "{622, 652}";
+      }
     ];
+    # "float, class:(clipse)" # ensure you have a floating window class set if you want this behavior
+    # "size 622 652, class:(clipse)" # set the size of the window as necessary
     bind = [
-      # "SUPER, V, exec, kitty --class clipse -e 'clipse'"
-      "$mainMod, I, exec, ${lib.getExe pkgs.kitty} --class clipse -e 'clipse'"
+      {
+        _args = [
+          "SUPER + I"
+          (lib.generators.mkLuaInline "hl.dsp.exec_cmd(\"${lib.getExe pkgs.kitty} --class clipse -e clipse\")")
+        ];
+      }
     ];
   };
 }

@@ -17,7 +17,7 @@ in
 lib.mkIf (lib.elem hostname installOn) {
   home = {
     file = {
-      # Copy the file to make it writeable.
+      # Copy the file to make it writable.
       "${config.xdg.configHome}/ludusavi/config_source.yaml" = {
         source =
           let

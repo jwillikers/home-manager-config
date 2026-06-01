@@ -34,7 +34,7 @@
       "${config.xdg.configHome}/OpenTabletDriver/Presets/mouse.json".source = ./config/Presets/mouse.json;
       "${config.xdg.configHome}/OpenTabletDriver/Presets/artist.json".source =
         ./config/Presets/artist.json;
-      # Copy the file to make it writeable.
+      # Copy the file to make it writable.
       "${config.xdg.configHome}/OpenTabletDriver/settings_source.json" = {
         source = ./config/settings.json;
         onChange = "cat ${config.xdg.configHome}/OpenTabletDriver/settings_source.json > ${config.xdg.configHome}/OpenTabletDriver/settings.json";
