@@ -2,6 +2,14 @@
   inputs,
 }:
 {
+  efficient-compression-tool = _final: prev: {
+    efficient-compression-tool = prev.efficient-compression-tool.overrideAttrs (_prevAttrs: {
+      patches = [
+        # from https://github.com/fhanau/Efficient-Compression-Tool/issues/145
+        ./ect-gcc-15-O3-fix.patch
+      ];
+    });
+  };
   with_pngout = _final: prev: {
     image_optim = prev.image_optim.override { withPngout = true; };
     pdfsizeopt = prev.pdfsizeopt.override { withPngout = true; };

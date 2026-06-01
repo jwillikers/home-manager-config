@@ -27,7 +27,6 @@
     # lychee.enable = true;
     # todo Broken for 24.05 branch
     # flake-checker.enable = true;
-    mixed-line-endings.enable = true;
     nil.enable = true;
 
     strip-location-metadata = {

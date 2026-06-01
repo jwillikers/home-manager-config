@@ -10,4 +10,5 @@ UE4 = "UE4"
 UniversalUE4Unlocker = "UniversalUE4Unlocker"
 
 [default.extend-words]
+ect = "ect"
 tio = "tio"
