@@ -11,7 +11,7 @@
       "${config.home.homeDirectory}/.gnupg/gpg-agent.conf".text =
         ""
         + lib.optionalString (desktop == "kde") ''
-          pinentry-program ${lib.getBin pkgs.kwalletcli}/bin/pinentry-kwallet
+          pinentry-program ${lib.getBin pkgs.kdePackages.kwallet}/bin/pinentry-kwallet
         ''
         # Nix pinentry program crashes on Hyprland.
         # Use already installed pinentry package.
@@ -32,11 +32,11 @@
       "${config.xdg.dataHome}/dbus-1/services/org.freedesktop.secrets.service".text = ''
         [D-BUS Service]
         Name=org.freedesktop.secrets
-        Exec=${lib.getBin pkgs.kwalletcli}/bin/kwalletd6
+        Exec=${lib.getBin pkgs.kdePackages.kwallet}/bin/kwalletd6
       '';
     };
     packages = with pkgs; [
-      kwalletcli
+      kdePackages.kwallet
       kdePackages.kwalletmanager
     ];
   };

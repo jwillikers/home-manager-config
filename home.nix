@@ -182,13 +182,14 @@ in
         image_optim # Image optimizer
         kakasi # Japanese Kanji to Kana converter
         libtree # Tree output for ldd
+        lix
         m4b-tool # Audiobook merging, splitting, and chapters tool
         minio-client # S3-compatible object storage client
         mumble # Voice chat
         mupdf-headless # PDF utility
         net-snmp # SNMP manager tools
         nil # Nix language engine for IDEs
-        nixfmt-rfc-style # Nix code formatter
+        nixfmt # Nix code formatter
         # todo Set GITHUB_TOKEN in environment for pull-request reviews.
         nixpkgs-review # Nix code review
         nix-tree # Examine dependencies of Nix derivations
@@ -198,7 +199,7 @@ in
         nu_scripts # Nushell scripts
         nurl # Nix URL fetcher
         picard # Music tagger
-        pipx # Python executable installer
+        #pipx # Python executable installer
         pre-commit # Git pre-commit hooks manager
         probe-rs-tools # Debug probe tool
         python3Packages.python # Python
@@ -221,7 +222,7 @@ in
       ]
       ++ lib.optionals (hostname != "steamdeck") [
         chapterz # MusicBrainz utility for audiobook chapters
-        cbconvert # Comic book converter
+        # cbconvert # Comic book converter
         pdfsizeopt # Lossless PDF size optimizer
         minuimus # Lossless file minimizer
         isbntools # Tools for manipulating ISBNs
@@ -381,7 +382,6 @@ in
     registry = lib.mapAttrs (_: value: { flake = value; }) inputs;
 
     # package = pkgs.nixVersions.latest;
-    # package = inputs.lix-module.packages.${pkgs.system}.default;
     package = pkgs.lix;
     # A lot of these should instead to be managed system-wide, right?
     settings = {
@@ -414,9 +414,7 @@ in
   targets.genericLinux.enable = true;
 
   nixpkgs.overlays = [
-    inputs.media-juggler.overlays.cbconvert
     inputs.private-nixpkgs.overlays.private-nixpkgs
-    # inputs.lix-module.overlays.default
   ];
 
   programs = {

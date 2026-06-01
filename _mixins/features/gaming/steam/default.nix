@@ -16,17 +16,26 @@ lib.mkIf (lib.elem hostname installOn) {
     steam
   ];
 
-  wayland.windowManager.hyprland.settings.windowrule =
-    let
-      steamGame = "class:steam_app_[0-9]*";
-      steamBigPicture = "title:Steam Big Picture Mode";
-      wineTray = "class:explorer.exe";
-    in
-    [
-      "immediate, ${steamGame}"
-      "idleinhibit focus, ${steamGame}"
-      # todo Move wine to its own file.
-      "workspace special silent, ${wineTray}"
-      "fullscreen, ${steamBigPicture}"
-    ];
+  wayland.windowManager.hyprland.settings.window_rule = [
+    {
+      match = {
+        class = "^(steam_app_[0-9]+)$";
+      };
+      immediate = true;
+      idle_inhibit = "focus";
+    }
+    {
+      match = {
+        class = "^(explorer.exe)$";
+      };
+      workspace = "special silent";
+    }
+    {
+      match = {
+        title = "^(Steam Big Picture Mode)$";
+      };
+      fullscreen = true;
+    }
+    # todo Move wine to its own file.
+  ];
 }

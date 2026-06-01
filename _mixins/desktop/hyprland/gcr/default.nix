@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   ...
 }:
@@ -58,6 +59,11 @@
 
   # Workaround issues with the Hyprland Home Manager module not setting systemd.user.sessionVariables
   wayland.windowManager.hyprland.settings.env = [
-    "SSH_AUTH_SOCK,$XDG_RUNTIME_DIR/gcr/ssh"
+    {
+      _args = [
+        "SSH_AUTH_SOCK"
+        (lib.generators.mkLuaInline "os.getenv(\"XDG_RUNTIME_DIR\") .. \"/gcr/ssh\"")
+      ];
+    }
   ];
 }

@@ -2,6 +2,11 @@
   inputs,
 }:
 {
+  with_pngout = _final: prev: {
+    image_optim = prev.image_optim.override { withPngout = true; };
+    pdfsizeopt = prev.pdfsizeopt.override { withPngout = true; };
+    minuimus = prev.minuimus.override { withPngout = true; };
+  };
   gcr = _final: prev: {
     gcr = prev.gcr.overrideAttrs (prevAttrs: {
       mesonFlags = prevAttrs.mesonFlags ++ [ "-Dssh_agent=true" ];

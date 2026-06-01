@@ -76,8 +76,23 @@
 
   # Workaround issues with the Hyprland Home Manager module not setting systemd.user.sessionVariables
   wayland.windowManager.hyprland.settings.env = [
-    "SSH_ASKPASS,${lib.getExe pkgs.kdePackages.ksshaskpass}"
-    "SSH_ASKPASS_REQUIRE,prefer"
-    "SSH_AUTH_SOCK,$XDG_RUNTIME_DIR/ssh-agent.socket"
+    {
+      _args = [
+        "SSH_ASKPASS"
+        (lib.getExe pkgs.kdePackages.ksshaskpass)
+      ];
+    }
+    {
+      _args = [
+        "SSH_ASKPASS_REQUIRE"
+        "prefer"
+      ];
+    }
+    {
+      _args = [
+        "SSH_AUTH_SOCK"
+        (lib.generators.mkLuaInline "os.getenv(\"XDG_RUNTIME_DIR\") .. \"/ssh-agent.socket\"")
+      ];
+    }
   ];
 }
