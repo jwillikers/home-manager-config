@@ -118,11 +118,11 @@
       let
         overlays = import ./overlays { inherit inputs; };
         overlaysList = [
-          # lix-module.overlays.default
           chapterz.overlays.chapterz
           m4b-tool.overlay
           private-nixpkgs.overlays.private-nixpkgs
           # overlays.gcr
+          overlays.efficient-compression-tool
           overlays.heroic
           overlays.packages
           overlays.unstablePackages

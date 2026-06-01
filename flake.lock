@@ -212,11 +212,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1780340398,
-        "narHash": "sha256-1hycEAbI+txE7eRvwJWOTSOZssVrKTPRI0wkJlYx+ss=",
+        "lastModified": 1780343300,
+        "narHash": "sha256-VBooYHrdTvkTHoUDG/HsjFCOhdr/F/M+fbwxqGsQ1+I=",
         "owner": "jwillikers",
         "repo": "media-juggler",
-        "rev": "49ae9d530ce6cc900afb5ee7c206c77a960e7138",
+        "rev": "9bf322a0eb3ebaeb0123710d6add73628e80310f",
         "type": "github"
       },
       "original": {
