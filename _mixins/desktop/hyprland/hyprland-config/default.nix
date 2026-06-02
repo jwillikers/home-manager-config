@@ -226,20 +226,20 @@ in
           leaf = "windows";
           enabled = true;
           speed = 4.79;
-          bezier = "easy";
+          spring = "easy";
         }
         {
           leaf = "windowsIn";
           enabled = true;
           speed = 4.1;
-          bezier = "easy";
+          spring = "easy";
           style = "popin 87%";
         }
         {
           leaf = "windowsOut";
           enabled = true;
           speed = 1.49;
-          bezier = "";
+          bezier = "linear";
           style = "popin 87%";
         }
         {
