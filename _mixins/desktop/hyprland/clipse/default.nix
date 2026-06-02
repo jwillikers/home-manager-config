@@ -19,8 +19,8 @@
         };
         float = true;
         # size = "{\"monitor_w\", \"monitor_h\"}";
-        # size = "{\"monitor_w\", \"monitor_h\"}";
-        size = "{622, 652}";
+        size = "{\"monitor_w*0.6\", \"monitor_h*0.6\"}";
+        # size = "{622, 652}";
       }
     ];
     # "float, class:(clipse)" # ensure you have a floating window class set if you want this behavior
