@@ -53,7 +53,7 @@ let
     # "org.keepassxc.KeePassXC"
     "org.libreoffice.LibreOffice" # Office software suite
     "org.luanti.luanti" # Block-based sandbox game platform, like Minecraft
-    "org.mozilla.Thunderbird" # Email client
+    "org.mozilla.thunderbird_esr" # Email client
     "org.raspberrypi.rpi-imager" # Raspberry Pi imaging tool
     "org.thonny.Thonny" # Python IDE
     "org.torproject.torbrowser-launcher" # Anonymous browser
