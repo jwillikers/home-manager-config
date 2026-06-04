@@ -19,7 +19,7 @@
         };
         float = true;
         # size = "{\"monitor_w\", \"monitor_h\"}";
-        size = "{\"monitor_w*0.6\", \"monitor_h*0.6\"}";
+        size = "{\"(monitor_w*0.6)\", \"(monitor_h*0.6)\"}";
         # size = "{622, 652}";
       }
     ];
