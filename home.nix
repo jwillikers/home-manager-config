@@ -217,13 +217,14 @@ in
         treefmt # Code formatter
         # todo Use wl-clipboard-rs?
         wl-clipboard # Wayland clipboard program
+
+        # From media-juggler
+        isbntools # Tools for manipulating ISBNs
+        minuimus # Lossless file minimizer
+        pdfsizeopt # Lossless PDF size optimizer
       ]
       ++ lib.optionals (hostname != "steamdeck") [
         chapterz # MusicBrainz utility for audiobook chapters
-        # cbconvert # Comic book converter
-        pdfsizeopt # Lossless PDF size optimizer
-        minuimus # Lossless file minimizer
-        isbntools # Tools for manipulating ISBNs
       ];
 
     sessionVariables = {
