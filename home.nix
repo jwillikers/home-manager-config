@@ -86,8 +86,6 @@ in
     # Modules exported from other flakes:
     inputs.nix-index-database.homeModules.nix-index
     # inputs.sops-nix.homeManagerModules.sops
-  ]
-  ++ lib.optionals (hostname != "steamdeck") [
     inputs.media-juggler.homeModules.media-juggler
     inputs.private-nixpkgs.homeModules.private-nixpkgs
   ]
