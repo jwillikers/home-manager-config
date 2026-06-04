@@ -5,14 +5,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "openssh-client-config";
-  version = "0-unstable-2025-08-19";
+  version = "0-unstable-2026-06-04";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "openssh-client-config";
-    rev = "5c4cb31cd00a4ff918e1c131ef7638790f626657";
-    hash = "sha256-mdZC6WtQf9xVt4F78p6xyrbNTeBcA+bq5vYoDYajSEk=";
+    rev = "188a20f16cd12619ffd51de0993d70445488dca5";
+    hash = "sha256-9FY8IhPM4ey5ieEYNIS1r1lT49nOodpJ0wbhkh9NO8c=";
   };
 
   installPhase = ''
