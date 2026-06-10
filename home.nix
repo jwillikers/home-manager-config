@@ -161,6 +161,7 @@ in
         b3sum # BLAKE3 checksum utility
         # beets # Music collection organizer
         # calibre # EBook manager
+        diff-pdf
         efficient-compression-tool # Image optimization tool
         eslint # JavaScript linter
         calibre # EBook manager
@@ -196,6 +197,7 @@ in
         # vue-language-server
         nu_scripts # Nushell scripts
         nurl # Nix URL fetcher
+        odiff # Image comparison tool
         picard # Music tagger
         #pipx # Python executable installer
         pre-commit # Git pre-commit hooks manager
