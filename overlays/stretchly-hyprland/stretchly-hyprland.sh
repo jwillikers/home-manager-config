@@ -87,11 +87,11 @@ function handle {
     IFS="," read -r window_id _workspace_name window_class window_title <<< "${1:12}"
     # echo "window_id: $window_id"
     # echo "window_class: $window_class"
-    if [[ $window_class == "electron" ]] || [[ $window_class == "Stretchly" ]]; then
+    if [[ $window_class == "electron" ]] || [[ $window_class == "Stretchly" ]] || [[ $window_class == "stretchly" ]]; then
       # window_title=${1##*,}
       echo "window_title: $window_title"
       # Sometimes, the window title is just "Stretchly" for some reason.
-      if [[ $window_title == "Time to take a break!" ]] || [[ $window_title == "Stretchly" ]]; then
+      if [[ $window_title == "Time to take a break!" ]] || [[ $window_title == "Stretchly" ]] || [[ $window_title == "stretchly" ]]; then
         # echo "window index: $index"
 
         # Get the width and height of the window.
@@ -145,8 +145,8 @@ function handle {
         done
         echo "available_monitors: " "${available_monitors[@]}"
 
-        echo "Running: hyprctl --batch \"dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch pin address:0x$window_id ; dispatch centerwindow address:0x$window_id\""
-        hyprctl --batch "dispatch focuswindow address:0x$window_id ; dispatch movewindow mon:${open_stretchly_windows[$window_id]} ; dispatch pin address:0x$window_id ; dispatch centerwindow address:0x$window_id"
+        echo "Running: hyprctl --batch \"dispatch hl.dsp.focus({ window = 'address:0x$window_id' }) ; dispatch hl.dsp.window.move({ monitor = '${open_stretchly_windows[$window_id]}' }) ; dispatch hl.dsp.window.pin({ window = 'address:0x$window_id' }) ; dispatch hp.dsp.window.center({ window = 'address:0x$window_id' })\""
+        hyprctl --batch "dispatch hl.dsp.focus({ window = 'address:0x$window_id' }) ; dispatch hl.dsp.window.move({ monitor = '${open_stretchly_windows[$window_id]}' }) ; dispatch hl.dsp.window.pin({ window = 'address:0x$window_id' }) ; dispatch hp.dsp.window.center({ window = 'address:0x$window_id' })"
         # Add the following command to tag the window with the monitor.
         # dispatch tagwindow ${open_stretchly_windows[$window_id] [address:0x$window_id]
       fi

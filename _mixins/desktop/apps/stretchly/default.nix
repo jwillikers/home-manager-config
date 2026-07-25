@@ -213,7 +213,7 @@
     }
     {
       match = {
-        class = "^(Stretchly)$";
+        class = "^(s|Stretchly)$";
         title = "^(Time to take a break!)$";
       };
       float = true;
