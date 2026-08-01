@@ -126,7 +126,6 @@
           overlays.heroic
           overlays.packages
           overlays.unstablePackages
-          overlays.joystickwake
           overlays.with_pngout
         ];
         pkgs = import nixpkgs {
