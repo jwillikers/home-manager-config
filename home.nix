@@ -163,6 +163,7 @@ in
         # calibre # EBook manager
         diff-pdf
         efficient-compression-tool # Image optimization tool
+        epubcheck # EPUB validator
         eslint # JavaScript linter
         calibre # EBook manager
         ccache # Compiler cache
