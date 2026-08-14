@@ -191,11 +191,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1782485956,
-        "narHash": "sha256-KpLtpqkLbcuze2692SGDVdW49RFLtihK+Mz2Nkn73IQ=",
+        "lastModified": 1786734814,
+        "narHash": "sha256-xW3doCmjyQYtf5H00/1cAKmHXCgLLy96GQhyPGWIkxg=",
         "owner": "jwillikers",
         "repo": "media-juggler",
-        "rev": "86cbd56e34e1f899c60ddd8d7c1c4d0480d0b842",
+        "rev": "72ca607d5fe49056d495f0f152f1fe479047ca20",
         "type": "github"
       },
       "original": {
@@ -392,10 +392,10 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1776877206,
-        "narHash": "sha256-fdAJ6TX3OuxgS/F//hMrYYJKGv2xvsVh2XjymWAvOh8=",
+        "lastModified": 1786643252,
+        "narHash": "sha256-QwxiBXU4eP1nXkMAwlmGRlSKwczjVXJJPoIz1bd4ehM=",
         "ref": "refs/heads/main",
-        "rev": "d870296f09578dd581c7443c4c01311a391bf0e7",
+        "rev": "b083b8f01eb6eb131fee4136ffb71e1220a496c3",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@forgejo.jwillikers.io/jwillikers/private-nixpkgs.git"
