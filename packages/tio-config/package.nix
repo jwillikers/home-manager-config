@@ -5,14 +5,14 @@
 
 stdenvNoCC.mkDerivation {
   pname = "tio-config";
-  version = "0-unstable-2024-11-06";
+  version = "0-unstable-2026-08-01";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "jwillikers";
     repo = "tio-config";
-    rev = "7a852cdf5a2396dd2e356f65dad6166b94d26340";
-    hash = "sha256-hoq+IUlVS16HiqqlIm7PERN0KwDZbbX0OxNXmnOuW4o=";
+    rev = "2bae26d7e97a3b94e2734a01327bdcc4316047a4";
+    hash = "sha256-pYzMpw374OCTbGWdwXuYOGGtWCXCEEBOS8588nhdOQU=";
   };
 
   installPhase = ''
