@@ -35,7 +35,7 @@
               run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
             fi
           else
-            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.unstable.stretchly} &>/dev/null &
+            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
             run ${lib.getBin pkgs.coreutils}/bin/sleep 10
             run ${lib.getBin pkgs.procps}/bin/pkill --full --ignore-case Stretchly
           fi
@@ -47,7 +47,7 @@
           if [ "$service_running" -eq 1 ]; then
             run ${pkgs.systemdMinimal}/bin/systemctl --user start stretchly.service
           else
-            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.unstable.stretchly} &>/dev/null &
+            run ${lib.getBin pkgs.util-linux}/bin/setsid ${lib.getExe pkgs.stretchly} &>/dev/null &
           fi
         fi
       ''
@@ -93,10 +93,10 @@
         # todo Is this sleep necessary?
         ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 60";
         # Electron flags to force X11
-        # ExecStart = "${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
+        # ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
         # The Steam Deck still uses X11 in desktop mode by default, but I use the Wayland session.
-        ExecStart = "-${lib.getExe pkgs.unstable.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
+        ExecStart = "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
         KillSignal = "SIGKILL";
         KillMode = "control-group";
         Restart = "always";
