@@ -28,6 +28,12 @@
       ];
     };
   };
+  stretchly = _final: prev: {
+    stretchly = prev.stretchly.overrideAttrs (_prevAttrs: {
+      version = "1.22.1";
+      hash = "sha256-Q5Z6os50E5D5aqBK/k5GBlgo3i1HmpOl3atrhvvPGnI=";
+    });
+  };
   packages = _final: prev: {
     # opentabletdriver-plugins = prev.lib.recurseIntoAttrs (prev.callPackage ./opentabletdriver-plugins { });
     bedtime-pk = prev.callPackage ./bedtime-pk/package.nix { };
