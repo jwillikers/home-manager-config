@@ -125,6 +125,7 @@
           overlays.efficient-compression-tool
           overlays.heroic
           overlays.packages
+          overlays.stretchly
           overlays.unstablePackages
           overlays.with_pngout
         ];

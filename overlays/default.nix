@@ -28,6 +28,17 @@
       ];
     };
   };
+  # Update to the latest version of Stretchly.
+  # https://github.com/NixOS/nixpkgs/pull/474659
+  stretchly = _final: prev: {
+    stretchly = prev.stretchly.overrideAttrs (_prevAttrs: rec {
+      version = "1.22.1";
+      src = prev.fetchurl {
+        url = "https://github.com/hovancik/stretchly/releases/download/v${version}/stretchly-${version}.tar.xz";
+        hash = "sha256-Q5Z6os50E5D5aqBK/k5GBlgo3i1HmpOl3atrhvvPGnI=";
+      };
+    });
+  };
   packages = _final: prev: {
     # opentabletdriver-plugins = prev.lib.recurseIntoAttrs (prev.callPackage ./opentabletdriver-plugins { });
     bedtime-pk = prev.callPackage ./bedtime-pk/package.nix { };

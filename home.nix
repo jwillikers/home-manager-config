@@ -17,7 +17,7 @@ let
     "com.github.geigi.cozy" # Audiobook player
     "com.github.keriew.augustus" # Open source re-implementation of the Caesar III game engine with changes to gameplay
     "com.github.tchx84.Flatseal" # Flatpak permissions manager
-    "com.heroicgameslauncher.hgl" # Heroic Games Launcher
+    # "com.heroicgameslauncher.hgl" # Heroic Games Launcher
     "com.nextcloud.desktopclient.nextcloud" # File sync service
     "com.play0ad.zeroad" # 0 A.D. is a real-time strategy (RTS) game of ancient warfare, like Age of Empires II
     "com.usebottles.bottles"
