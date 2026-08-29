@@ -91,20 +91,21 @@
       Service = {
         Type = "exec";
         # todo Is this sleep necessary?
-        ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 60";
+        # Delay startup for a minute.
+        # ExecStartPre = "${lib.getBin pkgs.coreutils}/bin/sleep 60";
         # Electron flags to force X11
         # ExecStart = "${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=x11";
         # The flags below force Wayland
         # The Steam Deck still uses X11 in desktop mode by default, but I use the Wayland session.
         ExecStart = "-${lib.getExe pkgs.stretchly} --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-features=WaylandLinuxDrmSyncobj";
-        KillSignal = "SIGKILL";
-        KillMode = "control-group";
+        # KillSignal = "SIGKILL";
+        # KillMode = "control-group";
         Restart = "always";
         RestartSec = 10;
         TimeoutStartSec = 120;
         # todo Not sure how forking works, so not sure if the ExitType cgroup should be used.
         # Seems like this should be cgroup, since Stretchly spawns a background process and remains when not using cgroup KillMode.
-        ExitType = "cgroup";
+        # ExitType = "cgroup";
       };
 
       Install = {
