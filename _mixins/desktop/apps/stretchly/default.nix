@@ -52,8 +52,8 @@
         fi
       ''
     );
-    packages = with pkgs; [
-      unstable.stretchly
+    packages = with pkgs.unstable; [
+      stretchly
     ];
   };
   systemd.user.services = {
