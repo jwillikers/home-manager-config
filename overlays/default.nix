@@ -41,6 +41,7 @@
   };
   packages = _final: prev: {
     # opentabletdriver-plugins = prev.lib.recurseIntoAttrs (prev.callPackage ./opentabletdriver-plugins { });
+    systemd-bedtime-timer = prev.callPackage ./systemd-bedtime-timer/package.nix { };
     bedtime-pk = prev.callPackage ./bedtime-pk/package.nix { };
     stretchly-hyprland = prev.callPackage ./stretchly-hyprland/package.nix { };
     stretchly-inhibit = prev.callPackage ./stretchly-inhibit/package.nix { };

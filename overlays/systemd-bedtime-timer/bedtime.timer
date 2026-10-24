@@ -1,0 +1,15 @@
+[Unit]
+Description=Suspend every night
+
+# todo Use systemd-timer-notify for notifications
+# Enable systemd-time-wait-sync.service to ensure timezone is sync before this is executed.
+
+[Timer]
+# Verify with:
+# systemd-analyze calendar '*-*-* 00..05,21..23:00/6:00'
+# systemd-analyze calendar --base-time 21:05:00 '*-*-* 00..05,21..23:00/6:00'
+OnCalendar=*-*-* 00..05,21..23:00/3:00
+OnCalendar=*-*-* 20:55:00
+
+[Install]
+WantedBy=timers.target

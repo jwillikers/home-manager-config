@@ -19,9 +19,9 @@ set -euo pipefail
 # https://unix.stackexchange.com/questions/688478/how-do-i-run-command-hooks-when-a-specific-process-is-started
 # https://doc.opensuse.org/documentation/leap/archive/15.0/security/html/book.security/cha.audit.comp.html#sec.audit.audisp
 
-bedtime_start="21:09"
-bedtime_second_cutoff="22:00"
-bedtime_end="06:59"
+bedtime_start="21:00"
+bedtime_second_cutoff="21:10"
+bedtime_end="06:00"
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 config_directory="$XDG_CONFIG_HOME/bedtime-pk"
@@ -73,7 +73,7 @@ while :; do
           active_window_id=$(xdotool getwindowfocus)
           if xprop -id "$active_window_id" _NET_WM_STATE | grep _NET_WM_STATE_FULLSCREEN; then
             # todo Just sleep after bed time without checking active window?
-            systemctl sleep
+            systemctl suspend
             # Kill the active window
             # xdotool getwindowfocus windowkill
           fi

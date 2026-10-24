@@ -1,0 +1,15 @@
+[Unit]
+Description=Suspend machine during bedtime
+# After=suspend.target
+
+[Service]
+# Suspend directly with systemd
+# Type=oneshot
+# Suspend to RAM
+# ExecStart=/usr/bin/systemctl suspend
+
+Type=notify
+NotifyAccess=all
+Restart=on-failure
+ExecStart=/usr/bin/bash /usr/local/bin/bedtime.sh
+Slice=background.slice
