@@ -11,5 +11,5 @@ Description=Suspend machine during bedtime
 Type=notify
 NotifyAccess=all
 Restart=on-failure
-ExecStart=/usr/bin/bash /usr/local/bin/bedtime.sh
+ExecStart=/usr/bin/bash /var/systemd-bedtime-timer/bedtime.sh
 Slice=background.slice
