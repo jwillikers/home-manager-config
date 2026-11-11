@@ -66,4 +66,10 @@
       # ];
     };
   };
+
+  # Workaround:
+  # https://github.com/NixOS/nixpkgs/issues/584492
+  vscode = _final: prev: {
+    vscode = prev.unstable.vscode;
+  };
 }

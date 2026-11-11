@@ -127,6 +127,7 @@
           overlays.packages
           overlays.stretchly
           overlays.unstablePackages
+          overlays.vscode
           overlays.with_pngout
         ];
         pkgs = import nixpkgs {
