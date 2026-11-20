@@ -270,6 +270,7 @@ in
         ccache # Compiler cache
         chromaprint # Utility to calculate AcoustID audio fingerprint
         chromium # Web browser
+        claude-code # Claude Code CLI
         clipse # Clipboard manager
         deadnix # Nix dead code finder
         deploy-rs # Nix deployment
@@ -577,6 +578,7 @@ in
     };
 
     foot.enable = true;
+    gh.enable = true;
     git = {
       enable = true;
       includes = [
