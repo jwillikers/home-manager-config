@@ -112,6 +112,38 @@
         WantedBy = [ "xdg-desktop-autostart.target" ];
       };
     };
+    # Stretchly's natural breaks don't count gamepad input, so they're disabled on the Steam Deck.
+    # Instead, reset breaks when returning after 15 minutes without any input, gamepads included.
+    # The threshold must be longer than the longest break, 10 minutes, so that it never ends a break.
+    # This requires the user to be in the input group.
+    "stretchly-idle-reset" = lib.mkIf (hostname == "steamdeck") {
+      Unit = {
+        Description = "Reset Stretchly breaks after returning from being idle";
+        After = [
+          "stretchly.service"
+        ];
+        BindsTo = [
+          "stretchly.service"
+        ];
+        Requires = [
+          "stretchly.service"
+        ];
+      };
+
+      Service = {
+        Type = "exec";
+        ExecStart = "${lib.getExe pkgs.stretchly-idle-reset} --threshold 900 -- ${lib.getExe pkgs.stretchly} reset";
+        Restart = "on-failure";
+        RestartSec = 5;
+        Slice = "background.slice";
+      };
+
+      Install = {
+        WantedBy = [
+          "stretchly.service"
+        ];
+      };
+    };
     "stretchly-inhibit" = lib.mkIf (hostname != "steamdeck") {
       Unit = {
         Description = "Inhibit Stretchly breaks audio or webcam streams are active";
