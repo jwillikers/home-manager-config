@@ -9,6 +9,7 @@ _: {
       ruff-check.enable = true;
       ruff-format.enable = true;
       statix.enable = true;
+      stylua.enable = true;
       taplo.enable = true;
       typos.enable = true;
       yamlfmt.enable = true;

@@ -1,7 +1,9 @@
 {
   lib,
   lua5_5,
+  selene,
   stdenvNoCC,
+  stylua,
 }:
 
 stdenvNoCC.mkDerivation {
@@ -10,14 +12,20 @@ stdenvNoCC.mkDerivation {
 
   src = ./.;
 
-  # Hyprland embeds Lua 5.5.
-  nativeCheckInputs = [ lua5_5 ];
+  nativeCheckInputs = [
+    # Hyprland embeds Lua 5.5.
+    lua5_5
+    selene
+    stylua
+  ];
 
   dontBuild = true;
   doCheck = true;
 
   checkPhase = ''
     runHook preCheck
+    stylua --check .
+    selene .
     lua test-stretchly-hyprland.lua stretchly-hyprland.lua
     runHook postCheck
   '';
