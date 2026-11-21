@@ -224,6 +224,12 @@
               devPkgs.home-manager
               lychee
               nushell
+              pyright
+              # For editors to resolve the imports of the Python scripts in the overlays.
+              (python3.withPackages (ps: [
+                ps.evdev
+                ps.jeepney
+              ]))
               treefmtEval.config.build.wrapper
             ]
             # Make formatters available for IDE's.

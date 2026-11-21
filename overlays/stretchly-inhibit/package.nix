@@ -2,6 +2,7 @@
   lib,
   makeWrapper,
   pulseaudio,
+  pyright,
   python3,
   ruff,
   stdenvNoCC,
@@ -22,6 +23,8 @@ stdenvNoCC.mkDerivation {
   ];
 
   nativeCheckInputs = [
+    # Pyright type checks against the dependencies of the Python interpreter in PATH.
+    pyright
     python
     ruff
   ];
@@ -33,13 +36,14 @@ stdenvNoCC.mkDerivation {
     runHook preCheck
     ruff format --check
     ruff check
+    pyright
     python -m unittest --verbose test_stretchly_inhibit
     runHook postCheck
   '';
 
   installPhase = ''
     runHook preInstall
-    install -D --mode=0755 stretchly-inhibit.py $out/bin/stretchly-inhibit
+    install -D --mode=0755 stretchly_inhibit.py $out/bin/stretchly-inhibit
     substituteInPlace $out/bin/stretchly-inhibit \
       --replace-fail "#!/usr/bin/env python3" "#!${python.interpreter}"
     wrapProgram $out/bin/stretchly-inhibit \

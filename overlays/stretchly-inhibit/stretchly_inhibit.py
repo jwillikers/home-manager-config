@@ -35,9 +35,21 @@ import socket
 import subprocess
 import sys
 import threading
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from jeepney.io.blocking import DBusConnection
+    from jeepney.low_level import Message
 
 log = logging.getLogger("stretchly-inhibit")
+
+# Objects from the JSON output of pactl, such as streams, sources, and clients
+PulseObject = dict[str, Any]
+
+# A thread watching for events puts None in the queue when something changes and an error message when it fails.
+Events = queue.Queue[str | None]
 
 # Environment variables that game launchers set for the games that they run.
 # Steam sets SteamAppId and SteamGameId for native and Proton games, and Proton adds STEAM_COMPAT_APP_ID.
@@ -80,17 +92,18 @@ SCREENSAVER_MATCH_RULES = [
 ]
 
 
-def pactl_list(kind):
+def pactl_list(kind: str) -> list[PulseObject]:
     output = subprocess.run(
         ["pactl", "--format=json", "list", kind],
         check=True,
         capture_output=True,
         text=True,
     ).stdout
-    return json.loads(output) if output.strip() else []
+    result: list[PulseObject] = json.loads(output) if output.strip() else []
+    return result
 
 
-def read_environment(pid, proc="/proc"):
+def read_environment(pid: int | str, proc: str = "/proc") -> set[str] | None:
     """Return the names of the environment variables of a process, or None if they can't be read."""
     try:
         with open(os.path.join(proc, str(pid), "environ"), "rb") as file:
@@ -100,7 +113,7 @@ def read_environment(pid, proc="/proc"):
     return {entry.split(b"=", 1)[0].decode(errors="replace") for entry in environ.split(b"\0") if entry}
 
 
-def read_executable(pid, proc="/proc"):
+def read_executable(pid: int | str, proc: str = "/proc") -> str | None:
     """Return the name of the executable of a process, or None if it can't be read."""
     try:
         return os.path.basename(os.readlink(os.path.join(proc, str(pid), "exe")))
@@ -108,7 +121,7 @@ def read_executable(pid, proc="/proc"):
         return None
 
 
-def process_matches_binary(pid, binary, proc="/proc"):
+def process_matches_binary(pid: int | str, binary: str, proc: str = "/proc") -> bool:
     """Return whether a process runs the given binary.
 
     libpulse names the binary after /proc/self/exe,
@@ -124,7 +137,7 @@ def process_matches_binary(pid, binary, proc="/proc"):
         return False
 
 
-def is_game_process(pid, proc="/proc"):
+def is_game_process(pid: int | str, proc: str = "/proc") -> bool:
     executable = read_executable(pid, proc)
     if executable and GAME_BINARY.match(executable):
         return True
@@ -132,7 +145,7 @@ def is_game_process(pid, proc="/proc"):
     return bool(environment and environment.intersection(GAME_ENVIRONMENT_VARIABLES))
 
 
-def stream_pid(stream, proc="/proc"):
+def stream_pid(stream: PulseObject, proc: str = "/proc") -> int | None:
     """Return the process ID of the client which owns a stream, or None if it isn't known.
 
     PipeWire only knows the process ID of pipewire-pulse itself for PulseAudio clients,
@@ -152,30 +165,34 @@ def stream_pid(stream, proc="/proc"):
     return int(pid)
 
 
-def is_game_stream(stream, proc="/proc"):
-    binary = stream.get("properties", {}).get("application.process.binary", "")
+def is_game_stream(stream: PulseObject, proc: str = "/proc") -> bool:
+    binary = str(stream.get("properties", {}).get("application.process.binary", ""))
     if GAME_BINARY.match(binary):
         return True
     pid = stream_pid(stream, proc)
     return pid is not None and is_game_process(pid, proc)
 
 
-def is_monitor(source):
+def is_monitor(source: PulseObject | None) -> bool:
     if source is None:
         return False
-    return source.get("properties", {}).get("device.class") == "monitor" or source.get("name", "").endswith(".monitor")
+    return source.get("properties", {}).get("device.class") == "monitor" or str(source.get("name", "")).endswith(
+        ".monitor"
+    )
 
 
-def describe_stream(stream):
+def describe_stream(stream: PulseObject) -> str:
     properties = stream.get("properties", {})
     name = properties.get("application.name") or properties.get("application.process.binary") or "unknown"
     return f"#{stream.get('index')} ({name})"
 
 
-def microphone_streams(streams, sources, proc="/proc"):
+def microphone_streams(
+    streams: list[PulseObject], sources: list[PulseObject], proc: str = "/proc"
+) -> list[PulseObject]:
     """Return the recording streams which are actively using a microphone."""
     sources_by_index = {source.get("index"): source for source in sources}
-    active = []
+    active: list[PulseObject] = []
     for stream in streams:
         if stream.get("corked"):
             log.debug("Ignoring corked stream %s", describe_stream(stream))
@@ -188,7 +205,7 @@ def microphone_streams(streams, sources, proc="/proc"):
     return active
 
 
-def parse_event(line):
+def parse_event(line: str) -> tuple[str, str] | None:
     """Return the event and facility from a line of pactl subscribe output, or None if it doesn't match."""
     match = EVENT.match(line.strip())
     if match is None:
@@ -206,22 +223,22 @@ class ScreenInhibition:
     pid: int | None
     game: bool
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.application or 'unknown'} ({self.reason or 'no reason given'})"
 
 
 class ScreenInhibitions:
     """Track requests to keep the screen on from the messages to and from the org.freedesktop.ScreenSaver service."""
 
-    def __init__(self, proc="/proc"):
+    def __init__(self, proc: str = "/proc") -> None:
         self.proc = proc
         self.lock = threading.Lock()
         # Inhibit calls awaiting their reply, keyed by the sender and serial number of the call
-        self.pending = {}
+        self.pending: dict[tuple[str, int], ScreenInhibition] = {}
         # Active requests, keyed by cookie
-        self.active = {}
+        self.active: dict[int, ScreenInhibition] = {}
 
-    def inhibit_called(self, sender, serial, application, reason, pid):
+    def inhibit_called(self, sender: str, serial: int, application: str, reason: str, pid: int | None) -> None:
         game = bool(GAME_REASON.search(reason) or GAME_BINARY.match(application))
         if not game and pid is not None:
             game = is_game_process(pid, self.proc)
@@ -230,7 +247,7 @@ class ScreenInhibitions:
         with self.lock:
             self.pending[(sender, serial)] = inhibition
 
-    def reply_received(self, destination, reply_serial, body):
+    def reply_received(self, destination: str, reply_serial: int, body: Sequence[Any]) -> bool:
         """Return whether the reply activated a request."""
         with self.lock:
             inhibition = self.pending.pop((destination, reply_serial), None)
@@ -243,7 +260,7 @@ class ScreenInhibitions:
             log.info("%s is keeping the screen on", inhibition)
         return True
 
-    def uninhibit_called(self, cookie):
+    def uninhibit_called(self, cookie: int) -> bool:
         """Return whether a request was removed."""
         with self.lock:
             inhibition = self.active.pop(cookie, None)
@@ -252,7 +269,7 @@ class ScreenInhibitions:
         log.info("%s stopped keeping the screen on", inhibition)
         return True
 
-    def name_lost(self, name):
+    def name_lost(self, name: str) -> bool:
         """Drop requests when the client that made them disconnects or the service is replaced.
 
         Return whether any requests were removed.
@@ -270,7 +287,7 @@ class ScreenInhibitions:
             log.info("%s stopped keeping the screen on by disconnecting", inhibition)
         return bool(removed)
 
-    def videos(self):
+    def videos(self) -> list[ScreenInhibition]:
         """Return the active requests to keep the screen on which aren't from games."""
         with self.lock:
             return [inhibition for inhibition in self.active.values() if not inhibition.game]
@@ -279,40 +296,41 @@ class ScreenInhibitions:
 class ScreenSaverMonitor:
     """Feed messages from a D-Bus monitor connection to ScreenInhibitions."""
 
-    def __init__(self, inhibitions, process_id):
+    def __init__(self, inhibitions: ScreenInhibitions, process_id: Callable[[str], int | None]) -> None:
         self.inhibitions = inhibitions
         # Return the process ID of a bus connection, or None if it's unknown
         self.process_id = process_id
 
-    def handle(self, message):
+    def handle(self, message: "Message") -> bool:
         """Return whether the message may have changed which requests are active."""
         # Import here so that the rest of the module doesn't require jeepney.
-        from jeepney import HeaderFields, MessageType
+        from jeepney.low_level import HeaderFields, MessageType
 
         header = message.header
         fields = header.fields
         member = fields.get(HeaderFields.member)
         if header.message_type == MessageType.method_call and fields.get(HeaderFields.interface) == SCREENSAVER:
-            if member == "Inhibit" and len(message.body) == 2:
-                sender = fields.get(HeaderFields.sender)
+            sender = fields.get(HeaderFields.sender)
+            if member == "Inhibit" and isinstance(sender, str) and len(message.body) == 2:
                 application, reason = message.body
-                self.inhibitions.inhibit_called(sender, header.serial, application, reason, self.process_id(sender))
+                self.inhibitions.inhibit_called(
+                    sender, header.serial, str(application), str(reason), self.process_id(sender)
+                )
             elif member == "UnInhibit" and len(message.body) == 1:
                 return self.inhibitions.uninhibit_called(message.body[0])
         elif header.message_type == MessageType.method_return:
-            return self.inhibitions.reply_received(
-                fields.get(HeaderFields.destination),
-                fields.get(HeaderFields.reply_serial),
-                message.body,
-            )
+            destination = fields.get(HeaderFields.destination)
+            reply_serial = fields.get(HeaderFields.reply_serial)
+            if isinstance(destination, str) and isinstance(reply_serial, int):
+                return self.inhibitions.reply_received(destination, reply_serial, message.body)
         elif header.message_type == MessageType.signal and member == "NameOwnerChanged" and len(message.body) == 3:
             name, old_owner, _new_owner = message.body
             if old_owner:
-                return self.inhibitions.name_lost(name)
+                return self.inhibitions.name_lost(str(name))
         return False
 
 
-def notify(message):
+def notify(message: str) -> None:
     """Send a message to systemd when running as a notify service."""
     address = os.environ.get("NOTIFY_SOCKET")
     if not address:
@@ -325,21 +343,28 @@ def notify(message):
 
 
 class Inhibitor:
-    def __init__(self, dry_run=False, proc="/proc", list_=pactl_list, run=subprocess.run, inhibitions=None):
+    def __init__(
+        self,
+        dry_run: bool = False,
+        proc: str = "/proc",
+        list_: Callable[[str], list[PulseObject]] = pactl_list,
+        run: Callable[..., object] = subprocess.run,
+        inhibitions: ScreenInhibitions | None = None,
+    ) -> None:
         self.dry_run = dry_run
         self.proc = proc
         self.list = list_
         self.run_command = run
         self.inhibitions = inhibitions if inhibitions is not None else ScreenInhibitions(proc)
-        self.paused = None
+        self.paused: bool | None = None
 
-    def stretchly(self, action):
+    def stretchly(self, action: str) -> None:
         if self.dry_run:
             log.info("Dry run: would run stretchly %s", action)
             return
         self.run_command(["stretchly", action], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
-    def update(self):
+    def update(self) -> None:
         """Pause or resume Stretchly when microphone use or video playback starts or stops."""
         streams = microphone_streams(self.list("source-outputs"), self.list("sources"), self.proc)
         videos = self.inhibitions.videos()
@@ -347,7 +372,7 @@ class Inhibitor:
         if pause == self.paused:
             return
         if pause:
-            causes = []
+            causes: list[str] = []
             if streams:
                 causes.append("a microphone is in use by " + ", ".join(map(describe_stream, streams)))
             if videos:
@@ -359,15 +384,16 @@ class Inhibitor:
             self.stretchly("resume")
         self.paused = pause
 
-    def watch_pulseaudio(self, events):
+    def watch_pulseaudio(self, events: Events) -> None:
         with subprocess.Popen(["pactl", "subscribe"], stdout=subprocess.PIPE, text=True, bufsize=1) as subscription:
+            assert subscription.stdout is not None
             for line in subscription.stdout:
                 parsed = parse_event(line)
                 if parsed is not None and parsed[1] in RELEVANT_FACILITIES:
                     events.put(None)
         events.put(f"pactl subscribe exited with status {subscription.returncode}")
 
-    def open_screensaver_monitor(self):
+    def open_screensaver_monitor(self) -> tuple["DBusConnection", ScreenSaverMonitor]:
         from jeepney.bus_messages import Monitoring, message_bus
         from jeepney.io.blocking import open_dbus_connection
 
@@ -376,16 +402,16 @@ class Inhibitor:
         monitor = open_dbus_connection(bus="SESSION")
         monitor.send_and_get_reply(Monitoring().BecomeMonitor(SCREENSAVER_MATCH_RULES))
 
-        def process_id(sender):
+        def process_id(sender: str) -> int | None:
             try:
-                return bus.send_and_get_reply(message_bus.GetConnectionUnixProcessID(sender), timeout=1).body[0]
+                return int(bus.send_and_get_reply(message_bus.GetConnectionUnixProcessID(sender), timeout=1).body[0])
             except Exception as error:
                 log.debug("Failed to get the process ID of %s: %s", sender, error)
                 return None
 
         return monitor, ScreenSaverMonitor(self.inhibitions, process_id)
 
-    def watch_screensaver(self, events, connection, monitor):
+    def watch_screensaver(self, events: Events, connection: "DBusConnection", monitor: ScreenSaverMonitor) -> None:
         try:
             while True:
                 if monitor.handle(connection.receive()):
@@ -393,8 +419,8 @@ class Inhibitor:
         except Exception as error:
             events.put(f"Monitoring the session bus failed: {error!r}")
 
-    def run(self):
-        events = queue.Queue()
+    def run(self) -> int:
+        events: Events = queue.Queue()
         connection, monitor = self.open_screensaver_monitor()
         threading.Thread(target=self.watch_screensaver, args=(events, connection, monitor), daemon=True).start()
         threading.Thread(target=self.watch_pulseaudio, args=(events,), daemon=True).start()
@@ -408,8 +434,8 @@ class Inhibitor:
             self.update()
 
 
-def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -418,7 +444,7 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
-def main():
+def main() -> None:
     args = parse_args()
     logging.basicConfig(
         level=os.environ.get("LOG_LEVEL", "INFO"),
