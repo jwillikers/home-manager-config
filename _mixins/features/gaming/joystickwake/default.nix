@@ -11,20 +11,24 @@ let
     # "x1-yoga"
   ];
 in
-# This is used to inhibit idle when playing games on Steam.
-# My break timer, Stretchly, incorrectly detects the system as idle on the Steam Deck when playing games through Steam.
-# This might not be necessary in the future, as fixes in KDE and Stretchly for Wayland may make it unnecessary.
-# todo Check if this is necessary in the future.
+# Keep the Steam Deck awake while using a controller in Desktop Mode.
+# KDE doesn't count gamepad input as activity, so the screen could dim or lock while playing with a controller.
+# Native games using SDL keep the screen on themselves, but Proton games and Steam's Big Picture mode might not.
+# This originally kept Stretchly's natural breaks from treating gamepad play as idle time.
+# Natural breaks are now disabled, and stretchly-idle-reset handles idle time instead, so this no longer affects Stretchly.
+# todo Check whether Proton games and Steam keep the screen on themselves.
+# stretchly-inhibit logs every request to keep the screen on, including those from games.
+# If they do, this is only needed when using a controller outside of games.
 lib.mkIf (lib.elem hostname installOn) {
   home.packages = [
-    pkgs.joystickwake # Utility to inhibit idle while playing games
+    pkgs.joystickwake # Utility to keep the system awake while using a controller
   ];
 
   systemd.user = {
     services = {
       "joystickwake" = {
         Unit = {
-          Description = "Inhibit idle when playing video games";
+          Description = "Keep the system awake while using a controller";
         };
 
         Service = {
