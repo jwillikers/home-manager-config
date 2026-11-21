@@ -117,6 +117,8 @@ let
       run "$escalation_program" install -D --mode=0755 --target-directory=/var/systemd-bedtime-timer ${pkgs.systemd-bedtime-timer}/bin/bedtime.sh
       run "$escalation_program" install -D --mode=0644 --target-directory=/etc/systemd-bedtime-timer ${pkgs.systemd-bedtime-timer}/etc/systemd-bedtime-timer/config.json
       run "$escalation_program" install -D --mode=0644 --target-directory=/etc/systemd/system/ ${pkgs.systemd-bedtime-timer}/etc/systemd/system/bedtime.service ${pkgs.systemd-bedtime-timer}/etc/systemd/system/bedtime.timer
+      # Pick up changes to the unit files.
+      run "$escalation_program" ${lib.getBin pkgs.systemdMinimal}/bin/systemctl daemon-reload
       run "$escalation_program" ${lib.getBin pkgs.systemdMinimal}/bin/systemctl enable --now bedtime.timer
     ''
     + ''

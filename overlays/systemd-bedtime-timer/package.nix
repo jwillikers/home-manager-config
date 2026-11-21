@@ -1,4 +1,5 @@
 {
+  coreutils,
   inotify-tools,
   jq,
   lib,
@@ -6,6 +7,7 @@
   stdenvNoCC,
   systemdMinimal,
   makeWrapper,
+  util-linux,
 }:
 stdenvNoCC.mkDerivation (_finalAttrs: {
   pname = "systemd-bedtime-timer";
@@ -24,10 +26,12 @@ stdenvNoCC.mkDerivation (_finalAttrs: {
     wrapProgram $out/bin/bedtime.sh \
       --prefix PATH : ${
         lib.makeBinPath [
+          coreutils
           inotify-tools
           jq
           libnotify
           systemdMinimal
+          util-linux
         ]
       }
     install -D --mode=0644 --target-directory=$out/etc/systemd-bedtime-timer/ config.json
