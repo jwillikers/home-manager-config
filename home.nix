@@ -128,7 +128,10 @@ let
       fi
 
       echo "Installing Flatpaks"
-      installed_flatpaks=$(${pkgs.flatpak}/bin/flatpak list --columns=application --system)
+      # List every installed ref both as its bare ID and as ID//branch,
+      # so entries pinned to a branch, such as runtime extensions, match too.
+      installed_flatpaks=$(${pkgs.flatpak}/bin/flatpak list --columns=application,branch --system \
+        | ${lib.getExe pkgs.nawk} -F'\t' '{ print $1; print $1 "//" $2 }')
     ''
     + builtins.concatStringsSep "\n" (
       builtins.map (flatpak: ''
@@ -139,16 +142,35 @@ let
       '') flatpaks
     )
     + ''
+      # Grant filesystem access to a Flatpak, only adding the paths that aren't already overridden.
+      ensure_flatpak_filesystems() {
+        local app="$1"
+        shift
+        local current
+        current=$(${pkgs.flatpak}/bin/flatpak override --show --system "$app" \
+          | sed --quiet 's/^filesystems=//p' | tr ';' '\n')
+        local missing=()
+        local filesystem
+        for filesystem in "$@"; do
+          if ! printf '%s\n' "$current" | grep --fixed-strings --line-regexp --quiet -- "$filesystem"; then
+            missing+=("--filesystem=$filesystem")
+          fi
+        done
+        if [ "''${#missing[@]}" -gt 0 ]; then
+          run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system "$app" "''${missing[@]}"
+        fi
+      }
+
       # Override permissions for Bottles to access the Steam installation.
       # todo Only run this if the Bottles flatpak is being installed and the Steam package is being installed.
-      run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.usebottles.bottles --filesystem=xdg-data/Steam
+      ensure_flatpak_filesystems com.usebottles.bottles xdg-data/Steam
       # Override permissions for Heroic Games Launcher to permit access to Ludusavi.
-      run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl \
-        --filesystem='~/.config/ludusavi' \
-        --filesystem='~/.config/rclone:ro' \
-        --filesystem='~/.nix-profile/bin/heroic-ludusavi-wrapper.sh' \
-        --filesystem='~/ludusavi-backup' \
-        --filesystem=/nix/store
+      ensure_flatpak_filesystems com.heroicgameslauncher.hgl \
+        '~/.config/ludusavi' \
+        '~/.config/rclone:ro' \
+        '~/.nix-profile/bin/heroic-ludusavi-wrapper.sh' \
+        '~/ludusavi-backup' \
+        /nix/store
 
       echo "Applying the desktop theme to Flatpaks"
       COLOR_SCHEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/color-scheme | sed -e "s/'//g")
