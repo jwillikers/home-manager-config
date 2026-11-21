@@ -112,38 +112,6 @@
         WantedBy = [ "xdg-desktop-autostart.target" ];
       };
     };
-    "stretchly-hyprland" = lib.mkIf (desktop == "hyprland") {
-      Unit = {
-        Description = "Move Stretchly break windows to multiple monitors in Hyprland";
-        After = [
-          "stretchly.service"
-        ];
-        BindsTo = [
-          "stretchly.service"
-        ];
-        Requires = [
-          "stretchly.service"
-        ];
-        ConditionEnvironment = [
-          "HYPRLAND_INSTANCE_SIGNATURE"
-          "XDG_RUNTIME_DIR"
-        ];
-      };
-
-      Service = {
-        Type = "notify";
-        ExecStart = lib.getExe pkgs.stretchly-hyprland;
-        NotifyAccess = "all";
-        Restart = "always";
-        Slice = "background.slice";
-      };
-
-      Install = {
-        WantedBy = [
-          "stretchly.service"
-        ];
-      };
-    };
     "stretchly-inhibit" = lib.mkIf (hostname != "steamdeck") {
       Unit = {
         Description = "Inhibit Stretchly breaks audio or webcam streams are active";
@@ -179,6 +147,12 @@
       };
     };
   };
+
+  # Place break windows on their respective monitors as soon as they open.
+  # Load from the package so that its tests run when building the config.
+  wayland.windowManager.hyprland.extraConfig = lib.mkIf (desktop == "hyprland") ''
+    dofile("${pkgs.stretchly-hyprland}/share/stretchly-hyprland/stretchly-hyprland.lua")
+  '';
 
   wayland.windowManager.hyprland.settings.window_rule = [
     {

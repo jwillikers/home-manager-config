@@ -1,45 +1,37 @@
 {
-  bc,
-  hyprland,
-  jq,
   lib,
-  makeWrapper,
-  socat,
+  lua5_5,
   stdenvNoCC,
-  systemdMinimal,
 }:
 
 stdenvNoCC.mkDerivation {
   pname = "stretchly-hyprland";
-  version = "0.1.0";
+  version = "0.2.0";
 
   src = ./.;
 
-  nativeBuildInputs = [
-    makeWrapper
-  ];
+  # Hyprland embeds Lua 5.5.
+  nativeCheckInputs = [ lua5_5 ];
+
+  dontBuild = true;
+  doCheck = true;
+
+  checkPhase = ''
+    runHook preCheck
+    lua test-stretchly-hyprland.lua stretchly-hyprland.lua
+    runHook postCheck
+  '';
 
   installPhase = ''
     runHook preInstall
-    install -D --mode=0770 stretchly-hyprland.sh $out/bin/stretchly-hyprland.sh
-    wrapProgram $out/bin/stretchly-hyprland.sh \
-      --prefix PATH : ${
-        lib.makeBinPath [
-          bc
-          hyprland
-          jq
-          socat
-          systemdMinimal
-        ]
-      }
+    install -D --mode=0644 --target-directory=$out/share/stretchly-hyprland stretchly-hyprland.lua
     runHook postInstall
   '';
 
   meta = {
-    description = "Places Stretchly break windows on their respective monitors in multi-monitor Hyprland setups";
+    description = "Hyprland Lua config that places Stretchly break windows on their respective monitors";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ jwillikers ];
-    mainProgram = "stretchly-hyprland.sh";
   };
 }
