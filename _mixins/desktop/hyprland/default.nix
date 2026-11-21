@@ -196,6 +196,18 @@ in
       systemd = {
         enableXdgAutostart = true;
         variables = [ "--all" ];
+        extraCommands = [
+          # Hyprland gives the processes it launches a token for the workspace that was active at launch,
+          # and a process's first window opens on that workspace.
+          # Exporting the whole environment hands the token for the workspace active at login to every
+          # service started by systemd or D-Bus afterwards.
+          # Without this, the first window of such a service, like the file chooser portal, opens on that
+          # workspace instead of the current one.
+          "systemctl --user unset-environment HL_INITIAL_WORKSPACE_TOKEN"
+          # The defaults
+          "systemctl --user stop hyprland-session.target"
+          "systemctl --user start hyprland-session.target"
+        ];
       };
       xwayland.enable = true;
     };

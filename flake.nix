@@ -140,10 +140,16 @@
             permittedInsecurePackages = [ "python-2.7.18.12" ];
           };
         };
+        # Packages for the development shell, formatting, and pre-commit hooks.
+        # These don't use the overlays, which pull in private inputs that CI can't fetch.
+        devPkgs = import nixpkgs { inherit system; };
         pre-commit = pre-commit-hooks.lib.${system}.run (
-          import ./pre-commit-hooks.nix { inherit pkgs treefmtEval; }
+          import ./pre-commit-hooks.nix {
+            inherit treefmtEval;
+            pkgs = devPkgs;
+          }
         );
-        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+        treefmtEval = treefmt-nix.lib.evalModule devPkgs ./treefmt.nix;
         packages = import ./packages { inherit pkgs; };
         homeConfigurations = {
           "jordan@precision5350" = home-manager.lib.homeManagerConfiguration {
@@ -208,14 +214,14 @@
             );
           };
         };
-        devShells.default = mkShell {
+        devShells.default = devPkgs.mkShell {
           inherit (pre-commit) shellHook;
           nativeBuildInputs =
-            with pkgs;
+            with devPkgs;
             [
               asciidoctor
               just
-              pkgs.home-manager
+              devPkgs.home-manager
               lychee
               nushell
               treefmtEval.config.build.wrapper

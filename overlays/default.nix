@@ -45,6 +45,7 @@
     bedtime-pk = prev.callPackage ./bedtime-pk/package.nix { };
     stretchly-hyprland = prev.callPackage ./stretchly-hyprland/package.nix { };
     stretchly-inhibit = prev.callPackage ./stretchly-inhibit/package.nix { };
+    stretchly-idle-reset = prev.callPackage ./stretchly-idle-reset/package.nix { };
   };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will

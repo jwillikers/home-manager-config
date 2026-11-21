@@ -1,0 +1,6 @@
+# Globals provided by Hyprland's Lua config API.
+base: lua53
+name: hyprland
+globals:
+  hl:
+    any: true

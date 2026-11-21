@@ -1,0 +1,7 @@
+# Hyprland embeds Lua 5.5, but selene only has standard libraries up to Lua 5.3.
+# This code doesn't use anything newer.
+std = "lua53+hyprland"
+
+[lints]
+# The handler stores its event subscriptions in _G so that reloading the config can remove them.
+global_usage = "allow"
