@@ -148,7 +148,7 @@
     };
     # Pause breaks during online meetings, i.e. while a microphone is in use.
     # Games, corked streams, and recordings of audio output are ignored so that breaks continue while gaming.
-    "stretchly-inhibit" = lib.mkIf (hostname != "steamdeck") {
+    "stretchly-inhibit" = {
       Unit = {
         Description = "Pause Stretchly breaks while a microphone is in use";
         After = [
