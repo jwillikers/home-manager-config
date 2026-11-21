@@ -1,6 +1,7 @@
 {
   lib,
   python3,
+  ruff,
   stdenvNoCC,
 }:
 
@@ -15,7 +16,7 @@ stdenvNoCC.mkDerivation {
 
   nativeCheckInputs = [
     python
-    python3.pkgs.flake8
+    ruff
   ];
 
   dontBuild = true;
@@ -23,8 +24,8 @@ stdenvNoCC.mkDerivation {
 
   checkPhase = ''
     runHook preCheck
-    # Allow long lines.
-    flake8 --extend-ignore=E501 stretchly-idle-reset.py test_stretchly_idle_reset.py
+    ruff format --check
+    ruff check
     python -m unittest --verbose test_stretchly_idle_reset
     runHook postCheck
   '';

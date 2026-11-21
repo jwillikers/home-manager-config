@@ -6,6 +6,8 @@ _: {
       jsonfmt.enable = true;
       # just.enable = true;
       nixfmt.enable = true;
+      ruff-check.enable = true;
+      ruff-format.enable = true;
       statix.enable = true;
       taplo.enable = true;
       typos.enable = true;

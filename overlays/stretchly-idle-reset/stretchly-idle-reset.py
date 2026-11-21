@@ -90,7 +90,7 @@ class DeckControllerState:
             return False
         activity = buttons != self.buttons
         self.buttons = buttons
-        for index, (value, axis_range) in enumerate(zip(axes, DECK_AXIS_RANGES)):
+        for index, (value, axis_range) in enumerate(zip(axes, DECK_AXIS_RANGES, strict=True)):
             if abs(value - self.axis_baselines[index]) >= axis_range * ABS_ACTIVITY_FRACTION:
                 self.axis_baselines[index] = value
                 activity = True
@@ -133,9 +133,7 @@ class IdleResetter:
             log.error("Unable to run %s: %s", shlex.join(self.command), error)
             return
         if return_code != 0:
-            log.warning(
-                "%s exited with status %d", shlex.join(self.command), return_code
-            )
+            log.warning("%s exited with status %d", shlex.join(self.command), return_code)
 
     def is_activity(self, device, event, abs_baselines):
         if event.type == ecodes.EV_KEY:
@@ -242,9 +240,7 @@ class IdleResetter:
         while True:
             unreadable = self.scan()
             if unreadable and not self.devices and not warned:
-                log.warning(
-                    "Unable to read any input devices. Is this user in the input group?"
-                )
+                log.warning("Unable to read any input devices. Is this user in the input group?")
                 warned = True
             await asyncio.sleep(RESCAN_INTERVAL)
 
