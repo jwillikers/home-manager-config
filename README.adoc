@@ -503,6 +503,28 @@ nix develop --command home-manager --flake .#$(id --user --name)@$(hostname --sh
 
 [TIP]
 ====
+A few activation steps require root, such as installing udev rules and system Flatpaks.
+These steps prompt for a password with `sudo`, or `doas` when it's available, which won't work when there's no interactive terminal, such as when activating the configuration from a script or an AI agent.
+To skip these steps, set the `HM_SKIP_PRIVILEGED` environment variable when switching.
+
+[,sh]
+----
+HM_SKIP_PRIVILEGED=1 nix develop --command home-manager --flake .#$(id --user --name)@$(hostname --short) switch -b backup
+----
+
+Afterwards, run the privileged steps on their own from an interactive terminal.
+The `home-manager-privileged` script is installed by the configuration.
+
+[,sh]
+----
+home-manager-privileged
+----
+
+Set `DRY_RUN=1` to print the privileged commands instead of running them.
+====
+
+[TIP]
+====
 If for any reason the build fails or your computer locks up, there's a good chance that it's related to Nix attempting to build too many jobs simultaneously or not having adequate RAM space to hold the build directory for a package.
 These issues can be fixed with configuration options for the Nix daemon in `/etc/nix/nix.conf`.
 Use the `max-jobs` option to limit the number of simultaneous jobs.

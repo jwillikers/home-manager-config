@@ -73,6 +73,131 @@ let
   ++ lib.optionals (hostname == "steamdeck") [
     packages.steam-deck-auto-disable-steam-controller
   ];
+  # Activation steps that need root.
+  # These run as part of activation unless HM_SKIP_PRIVILEGED is set and can also be run on their own.
+  privilegedActivate = pkgs.writeShellScriptBin "home-manager-privileged" (
+    ''
+      set -euo pipefail
+
+      # Honor DRY_RUN and VERBOSE like Home Manager's activation does.
+      VERBOSE_ARG=
+      if [[ -n "''${VERBOSE:-}" ]]; then
+        VERBOSE_ARG=--verbose
+      fi
+      run() {
+        if [[ -n "''${DRY_RUN:-}" ]]; then
+          echo "$@"
+        else
+          "$@"
+        fi
+      }
+
+      if [ "$(id -u)" -eq 0 ]; then
+        escalation_program=env
+      elif [ -x /usr/bin/doas ]; then
+        escalation_program=/usr/bin/doas
+      else
+        escalation_program=/usr/bin/sudo
+      fi
+
+      echo "Installing udev rules"
+      for package in ${builtins.concatStringsSep " " (lib.unique (map toString udevPackages))}; do
+        for file in $(shopt -s nullglob dotglob; echo $package/{etc,lib}/udev/rules.d/*); do
+          target_file=/etc/udev/rules.d/$(basename $file)
+          if ! cmp --silent $file $target_file; then
+            run "$escalation_program" install -D --mode=0644 --target-directory=/etc/udev/rules.d $file
+          fi
+        done
+      done
+    ''
+    + lib.optionalString (hostname == "steamdeck") ''
+      echo "Installing the system bedtime timer"
+      run "$escalation_program" ${lib.getBin pkgs.systemdMinimal}/bin/systemctl enable --now systemd-time-wait-sync.service
+      # Read-only file-system on Steam Deck.
+      run "$escalation_program" install -D --mode=0755 --target-directory=/var/systemd-bedtime-timer ${pkgs.systemd-bedtime-timer}/bin/bedtime.sh
+      run "$escalation_program" install -D --mode=0644 --target-directory=/etc/systemd-bedtime-timer ${pkgs.systemd-bedtime-timer}/etc/systemd-bedtime-timer/config.json
+      run "$escalation_program" install -D --mode=0644 --target-directory=/etc/systemd/system/ ${pkgs.systemd-bedtime-timer}/etc/systemd/system/bedtime.service ${pkgs.systemd-bedtime-timer}/etc/systemd/system/bedtime.timer
+      # Pick up changes to the unit files.
+      run "$escalation_program" ${lib.getBin pkgs.systemdMinimal}/bin/systemctl daemon-reload
+      run "$escalation_program" ${lib.getBin pkgs.systemdMinimal}/bin/systemctl enable --now bedtime.timer
+    ''
+    + ''
+      echo "Configuring the Flathub remote"
+      if ! ${pkgs.flatpak}/bin/flatpak remotes --columns=name --system \
+        | grep --fixed-strings --line-regexp --quiet 'flathub'; then
+        run "$escalation_program" ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system $VERBOSE_ARG \
+          flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+      fi
+
+      echo "Installing Flatpaks"
+      # List every installed ref both as its bare ID and as ID//branch,
+      # so entries pinned to a branch, such as runtime extensions, match too.
+      installed_flatpaks=$(${pkgs.flatpak}/bin/flatpak list --columns=application,branch --system \
+        | ${lib.getExe pkgs.nawk} -F'\t' '{ print $1; print $1 "//" $2 }')
+    ''
+    + builtins.concatStringsSep "\n" (
+      builtins.map (flatpak: ''
+        if ! echo "$installed_flatpaks" | grep --fixed-strings --line-regexp --quiet '${flatpak}'; then
+          run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG install --noninteractive \
+          --system flathub '${flatpak}'
+        fi
+      '') flatpaks
+    )
+    + ''
+      # Grant filesystem access to a Flatpak, only adding the paths that aren't already overridden.
+      ensure_flatpak_filesystems() {
+        local app="$1"
+        shift
+        local current
+        current=$(${pkgs.flatpak}/bin/flatpak override --show --system "$app" \
+          | sed --quiet 's/^filesystems=//p' | tr ';' '\n')
+        local missing=()
+        local filesystem
+        for filesystem in "$@"; do
+          if ! printf '%s\n' "$current" | grep --fixed-strings --line-regexp --quiet -- "$filesystem"; then
+            missing+=("--filesystem=$filesystem")
+          fi
+        done
+        if [ "''${#missing[@]}" -gt 0 ]; then
+          run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system "$app" "''${missing[@]}"
+        fi
+      }
+
+      # Override permissions for Bottles to access the Steam installation.
+      # todo Only run this if the Bottles flatpak is being installed and the Steam package is being installed.
+      ensure_flatpak_filesystems com.usebottles.bottles xdg-data/Steam
+      # Override permissions for Heroic Games Launcher to permit access to Ludusavi.
+      ensure_flatpak_filesystems com.heroicgameslauncher.hgl \
+        '~/.config/ludusavi' \
+        '~/.config/rclone:ro' \
+        '~/.nix-profile/bin/heroic-ludusavi-wrapper.sh' \
+        '~/ludusavi-backup' \
+        /nix/store
+
+      echo "Applying the desktop theme to Flatpaks"
+      COLOR_SCHEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/color-scheme | sed -e "s/'//g")
+      GTK_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/gtk-theme | sed -e "s/'//g")
+      ICON_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/icon-theme | sed -e "s/'//g")
+      XCURSOR_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/cursor-theme | sed -e "s/'//g")
+      if [ "$COLOR_SCHEME" == "prefer-dark" ]; then
+        GTK_THEME="$GTK_THEME:dark"
+      fi
+      flatpak_overrides=$(${pkgs.flatpak}/bin/flatpak override --show --system)
+      FLATPAK_GTK_THEME=$(echo "$flatpak_overrides" | ${lib.getExe pkgs.nawk} -F'=' '/GTK_THEME/ {print $2;}')
+      FLATPAK_ICON_THEME=$(echo "$flatpak_overrides" | ${lib.getExe pkgs.nawk} -F'=' '/ICON_THEME/ {print $2;}')
+      FLATPAK_XCURSOR_THEME=$(echo "$flatpak_overrides" \
+        | ${lib.getExe pkgs.nawk} -F'=' '/XCURSOR_THEME/ {print $2;}')
+      if [ "$FLATPAK_GTK_THEME" != "$GTK_THEME" ]; then
+        run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=GTK_THEME="$GTK_THEME"
+      fi
+      if [ "$FLATPAK_ICON_THEME" != "$ICON_THEME" ]; then
+        run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=ICON_THEME="$ICON_THEME"
+      fi
+      if [ "$FLATPAK_XCURSOR_THEME" != "$XCURSOR_THEME" ]; then
+        run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=XCURSOR_THEME="$XCURSOR_THEME"
+      fi
+    ''
+  );
 in
 {
 
@@ -169,6 +294,7 @@ in
         ccache # Compiler cache
         chromaprint # Utility to calculate AcoustID audio fingerprint
         chromium # Web browser
+        claude-code # Claude Code CLI
         clipse # Clipboard manager
         deadnix # Nix dead code finder
         deploy-rs # Nix deployment
@@ -202,6 +328,7 @@ in
         picard # Music tagger
         #pipx # Python executable installer
         pre-commit # Git pre-commit hooks manager
+        privilegedActivate # Activation steps that need root, run as home-manager-privileged
         probe-rs-tools # Debug probe tool
         python3Packages.python # Python
         rhash # Checksum utility
@@ -241,117 +368,19 @@ in
     };
 
     activation = {
-      escalationProgram = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        escalation_program=/usr/bin/sudo
-        if [ -x "/usr/bin/doas" ]; then
-          escalation_program=/usr/bin/doas
-        fi
-      '';
-      udev =
+      # Steps that need root live in the home-manager-privileged script.
+      # Set HM_SKIP_PRIVILEGED=1 to skip them during a switch and run home-manager-privileged afterwards.
+      privileged =
         lib.hm.dag.entryAfter
           [
-            "escalationProgram"
-            "writeBoundary"
-          ]
-          ''
-            for package in ${builtins.concatStringsSep " " (lib.unique (map toString udevPackages))}; do
-              for file in $(shopt -s nullglob dotglob; echo $package/{etc,lib}/udev/rules.d/*); do
-                target_file=/etc/udev/rules.d/$(basename $file)
-                if ! cmp --silent $file $target_file; then
-                  run "$escalation_program" install -D --mode=0644 --target-directory=/etc/udev/rules.d $file
-                fi
-              done
-            done
-          '';
-      systemBedtimeTimer = lib.mkIf (hostname == "steamdeck") (
-        lib.hm.dag.entryAfter
-          [
-            "escalationProgram"
-            "writeBoundary"
-          ]
-          ''
-            run "$escalation_program" ${lib.getBin pkgs.systemdMinimal}/bin/systemctl enable --now systemd-time-wait-sync.service
-            # Read-only file-system on Steam Deck.
-            run "$escalation_program" install -D --mode=0755 --target-directory=/var/systemd-bedtime-timer ${pkgs.systemd-bedtime-timer}/bin/bedtime.sh
-            run "$escalation_program" install -D --mode=0644 --target-directory=/etc/systemd-bedtime-timer ${pkgs.systemd-bedtime-timer}/etc/systemd-bedtime-timer/config.json
-            run "$escalation_program" install -D --mode=0644 --target-directory=/etc/systemd/system/ ${pkgs.systemd-bedtime-timer}/etc/systemd/system/bedtime.service ${pkgs.systemd-bedtime-timer}/etc/systemd/system/bedtime.timer
-            run "$escalation_program" ${lib.getBin pkgs.systemdMinimal}/bin/systemctl enable --now bedtime.timer
-          ''
-      );
-      flathub =
-        lib.hm.dag.entryAfter
-          [
-            "escalationProgram"
-            "writeBoundary"
-          ]
-          ''
-            if ! ${pkgs.flatpak}/bin/flatpak remotes --columns=name --system \
-              | grep --fixed-strings --line-regexp --quiet 'flathub'; then
-              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak remote-add --if-not-exists --system $VERBOSE_ARG \
-                flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-            fi
-          '';
-      flatpaks =
-        lib.hm.dag.entryAfter
-          [
-            "escalationProgram"
-            "flathub"
-            "writeBoundary"
-          ]
-          (
-            ''
-              installed_flatpaks=$(${pkgs.flatpak}/bin/flatpak list --columns=application --system)
-            ''
-            + builtins.concatStringsSep "\n" (
-              builtins.map (flatpak: ''
-                if ! echo "$installed_flatpaks" | grep --fixed-strings --line-regexp --quiet '${flatpak}'; then
-                  run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG install --noninteractive \
-                  --system flathub '${flatpak}'
-                fi
-              '') flatpaks
-            )
-            + ''
-              # Override permissions for Bottles to access the Steam installation.
-              # todo Only run this if the Bottles flatpak is being installed and the Steam package is being installed.
-              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.usebottles.bottles --filesystem=xdg-data/Steam
-              # Override permissions for Heroic Games Launcher to permit access to Ludusavi.
-              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak $VERBOSE_ARG override --system com.heroicgameslauncher.hgl \
-                --filesystem='~/.config/ludusavi' \
-                --filesystem='~/.config/rclone:ro' \
-                --filesystem='~/.nix-profile/bin/heroic-ludusavi-wrapper.sh' \
-                --filesystem='~/ludusavi-backup' \
-                --filesystem=/nix/store
-            ''
-          );
-      flatpakTheme =
-        lib.hm.dag.entryAfter
-          [
-            "escalationProgram"
-            "flatpaks"
             "dconfSettings"
             "writeBoundary"
           ]
           ''
-            COLOR_SCHEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/color-scheme | sed -e "s/'//g")
-            GTK_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/gtk-theme | sed -e "s/'//g")
-            ICON_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/icon-theme | sed -e "s/'//g")
-            XCURSOR_THEME=$(${lib.getExe pkgs.dconf} read /org/gnome/desktop/interface/cursor-theme | sed -e "s/'//g")
-            if [ "$COLOR_SCHEME" == "prefer-dark" ]; then
-              GTK_THEME="$GTK_THEME:dark"
-            fi
-            flatpak_overrides=$(${pkgs.flatpak}/bin/flatpak override --show --system)
-            FLATPAK_GTK_THEME=$(echo "$flatpak_overrides" | ${lib.getExe pkgs.nawk} -F'=' '/GTK_THEME/ {print $2;}')
-            FLATPAK_ICON_THEME=$(echo "$flatpak_overrides" | ${lib.getExe pkgs.nawk} -F'=' '/ICON_THEME/ {print $2;}')
-            FLATPAK_XCURSOR_THEME=$(echo "$flatpak_overrides" \
-              | ${lib.getExe pkgs.nawk} -F'=' '/XCURSOR_THEME/ {print $2;}')
-            if [ "$FLATPAK_GTK_THEME" != "$GTK_THEME" ]; then
-              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=GTK_THEME="$GTK_THEME"
-            fi
-            if [ "$FLATPAK_ICON_THEME" != "$ICON_THEME" ]; then
-              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=ICON_THEME="$ICON_THEME"
-            fi
-            if [ "$FLATPAK_XCURSOR_THEME" != "$XCURSOR_THEME" ]; then
-              run "$escalation_program" ${pkgs.flatpak}/bin/flatpak override --env=XCURSOR_THEME="$XCURSOR_THEME"
+            if [[ -n "''${HM_SKIP_PRIVILEGED:-}" ]]; then
+              _iNote "Skipping %s because HM_SKIP_PRIVILEGED is set, run %s to apply them" "privileged steps" "home-manager-privileged"
+            else
+              ${lib.getExe privilegedActivate}
             fi
           '';
     };
@@ -573,6 +602,7 @@ in
     };
 
     foot.enable = true;
+    gh.enable = true;
     git = {
       enable = true;
       includes = [
