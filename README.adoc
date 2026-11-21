@@ -254,24 +254,56 @@ I use the `~/Projects` directory for this.
 mkdir --parents ~/Projects
 ----
 
-. Install and configure {Tailscale}.
+. On Fedora Atomic, make all of the necessary `rpm-ostree` changes, then reboot once to apply them together.
+`rpm-ostree` stacks each change onto the pending deployment, so only a single reboot is needed.
+
+.. In order to install Nix, enable a transient root to fix issues with `composefs` not allowing the creation of the `/nix` directory.
+This is at least the case with Fedora 42.
+We'll see if it gets fixed in later versions.
+Create the file `/etc/ostree/prepare-root.conf` with the following contents.
 +
-Fedora Atomic::
-+
-.. Install Tailscale.
+./etc/ostree/prepare-root.conf
+[,ini]
+----
+[composefs]
+enabled = yes
+[root]
+transient = true
+----
+
+.. Apply this file to the initramfs.
 +
 [,sh]
 ----
-sudo rpm-ostree install tailscale
+sudo rpm-ostree initramfs-etc --track=/etc/ostree/prepare-root.conf
 ----
 
-.. Reboot to apply the change.
+.. Install the layered packages.
++
+--
+* `fuse` provides the FUSE 2 `fusermount` command.
+Fedora only ships FUSE 3's `fusermount3` by default, but `flatpak-builder` unmounts `rofiles-fuse` with `fusermount`.
+Without it, the unmount silently fails and the next build stage fails with `fusermount3: failed to access mountpoint ... Permission denied`.
+This can't be provided by Nix, since `fusermount` must be installed setuid root.
+* `tailscale` provides {Tailscale}.
+--
++
+[,sh]
+----
+sudo rpm-ostree install fuse tailscale
+----
+
+.. Reboot to apply all of the changes.
 +
 [,sh]
 ----
 sudo systemctl reboot
 ----
 
+. Configure {Tailscale}.
++
+Fedora Atomic:: Tailscale was installed in the previous step.
++
 .. Authenticate Tailscale.
 +
 [,sh]
@@ -322,28 +354,6 @@ sudo /opt/tailscale/tailscale update
 [,sh]
 ----
 sudo /opt/tailscale/tailscale set --auto-update
-----
-
-. In order to install Nix on Fedora Atomic distributions, enable a transient root to fix issues with `composefs` not allowing the creation of the `/nix` directory.
-This is at least the case with Fedora 42.
-We'll see if it gets fixed in later versions.
-
-.. Create the file `/etc/ostree/prepare-root.conf` with the following contents.
-+
-./etc/ostree/prepare-root.conf
-[,ini]
-----
-[composefs]
-enabled = yes
-[root]
-transient = true
-----
-
-.. Apply this file to the initramfs.
-+
-[,sh]
-----
-sudo rpm-ostree initramfs-etc --reboot --track=/etc/ostree/prepare-root.conf
 ----
 
 . Install https://lix.systems[Lix].
