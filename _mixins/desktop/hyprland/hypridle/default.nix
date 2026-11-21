@@ -19,7 +19,9 @@
           # This will probably become hyprlock when it's in Fedora again.
           lock_cmd = "if ! ${isLocked}; then /usr/bin/swaylock; fi";
           before_sleep_cmd = "loginctl lock-session";
-          after_sleep_cmd = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on && ${lib.getExe pkgs.stretchly} reset";
+          # Stretchly handles idle time and suspend itself with natural breaks and pauseForSuspendOrLock.
+          # Don't reset it here, since that ends any break that's in progress.
+          after_sleep_cmd = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on";
           inhibit_sleep = 3; # Wait for lock before suspend
         };
         listener = [
@@ -37,12 +39,6 @@
           #   on-resume = "${lib.getExe pkgs.brightnessctl} --device *:kbd_backlight --restore";
           # }
 
-          # Reset Stretchly breaks
-          {
-            timeout = 900; # 15 minutes
-            on-timeout = "${lib.getExe pkgs.stretchly} pause";
-            on-resume = "${lib.getExe pkgs.stretchly} reset";
-          }
           # Turn off screen
           {
             timeout = 900; # 15 minutes
@@ -62,8 +58,8 @@
           # }
           {
             timeout = 40;
-            on-timeout = "if ${isLocked}; then ${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms off; ${lib.getExe pkgs.stretchly} pause; fi";
-            on-resume = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on && ${lib.getExe pkgs.stretchly} reset";
+            on-timeout = "if ${isLocked}; then ${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms off; fi";
+            on-resume = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on";
           }
 
           # If discharging
