@@ -309,6 +309,9 @@ in
         kakasi # Japanese Kanji to Kana converter
         libtree # Tree output for ldd
         lix
+        # Both provide a lua executable, so prefer the one matching the Lua version Hyprland embeds.
+        (lib.hiPrio lua5_5) # Lua programming language
+        luajit # Just-in-time compiler for Lua
         m4b-tool # Audiobook merging, splitting, and chapters tool
         minio-client # S3-compatible object storage client
         mumble # Voice chat
