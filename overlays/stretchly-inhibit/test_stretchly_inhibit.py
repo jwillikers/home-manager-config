@@ -172,6 +172,9 @@ class ScreenSaverMonitorTest(unittest.TestCase):
     def videos(self) -> list[tuple[str, str]]:
         return [(inhibition.application, inhibition.reason) for inhibition in self.inhibitions.videos()]
 
+    def ignored(self) -> list[str]:
+        return [inhibition.ignored for inhibition in self.inhibitions.active.values() if inhibition.ignored is not None]
+
     def test_video_keeps_screen_on(self) -> None:
         self.assertTrue(self.inhibit(":1.100", cookie=7))
         self.assertEqual(self.videos(), [("Firefox", "video-playing")])
@@ -194,6 +197,27 @@ class ScreenSaverMonitorTest(unittest.TestCase):
     def test_unknown_process_counts_as_video(self) -> None:
         self.inhibit(":1.999", application="Jellyfin Desktop", reason="Playing media")
         self.assertEqual(self.videos(), [("Jellyfin Desktop", "Playing media")])
+
+    def test_wake_daemon_is_ignored(self) -> None:
+        # joystickwake keeps the screen on whenever a controller is in use, which is when breaks must keep running.
+        # Its reason doesn't mention a game and its process is an unrelated Python interpreter,
+        # so only the name it reports identifies it.
+        self.inhibit(":1.999", application="joystickwake", reason="Active joystick")
+        self.assertEqual(self.videos(), [])
+        self.assertEqual(self.ignored(), ["a wake daemon"])
+
+    def test_wake_daemon_lookalike_is_not_ignored(self) -> None:
+        self.inhibit(":1.999", application="joystickwaker", reason="Active joystick")
+        self.assertEqual(self.videos(), [("joystickwaker", "Active joystick")])
+
+    def test_video_still_pauses_breaks_while_a_controller_is_in_use(self) -> None:
+        self.inhibit(":1.999", application="joystickwake", reason="Active joystick")
+        self.inhibit(":1.999", application="Jellyfin Desktop", reason="Playing media")
+        self.assertEqual(self.videos(), [("Jellyfin Desktop", "Playing media")])
+
+    def test_games_are_still_reported_as_games(self) -> None:
+        self.inhibit(":1.200", application="My SDL application", reason="Steam game")
+        self.assertEqual(self.ignored(), ["a game"])
 
     def test_unrelated_reply_is_ignored(self) -> None:
         call = new_method_call(DBusAddress("/", "org.example", "org.example"), "Hello")

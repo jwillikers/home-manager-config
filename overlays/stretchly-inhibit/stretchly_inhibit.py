@@ -25,6 +25,10 @@ or when their reason mentions a game, like SDL's default reason, "Playing a game
 
 Games are processes run by Wine, processes launched by Steam or another game launcher, and Steam itself.
 
+Requests from wake daemons are ignored as well.
+joystickwake keeps the screen on while a controller is in use to stop it blanking during gamepad-only play,
+which would otherwise pause breaks for the whole time a game is being played with a controller.
+
 Optionally, breaks are also paused while enough gamepads are connected, such as when playing games locally with friends.
 Gamepads are input devices with the south face button, i.e. A on an Xbox controller.
 Each controller counts once, even when it has separate input devices for its motion sensors or touchpad.
@@ -78,6 +82,12 @@ GAME_BINARY = re.compile(r"^(wine(64)?(-preloader)?|.*\.exe|steam|steamwebhelper
 # Reasons for keeping the screen on which indicate a game.
 # SDL uses "Playing a game" by default.
 GAME_REASON = re.compile(r"\bgam(e|es|ing)\b", re.IGNORECASE)
+
+# Applications which keep the screen on for reasons other than playing a video.
+# joystickwake keeps the screen on while a controller is in use, which is exactly when breaks should keep running.
+# Only the name reported in the request identifies it, because the process is a Python interpreter
+# running a wrapped script, so neither its executable nor its command name mentions joystickwake.
+WAKE_DAEMON = re.compile(r"^joystickwake$", re.IGNORECASE)
 
 # Lines from pactl subscribe look like: Event 'new' on source-output #258
 EVENT = re.compile(r"^Event '(?P<event>[^']+)' on (?P<facility>[\w-]+) #(?P<index>\d+)$")
@@ -295,7 +305,8 @@ class ScreenInhibition:
     application: str
     reason: str
     pid: int | None
-    game: bool
+    # Why this request doesn't indicate a video, such as "a game", or None when it does
+    ignored: str | None
 
     def __str__(self) -> str:
         return f"{self.application or 'unknown'} ({self.reason or 'no reason given'})"
@@ -312,11 +323,19 @@ class ScreenInhibitions:
         # Active requests, keyed by cookie
         self.active: dict[int, ScreenInhibition] = {}
 
+    def ignored_reason(self, application: str, reason: str, pid: int | None) -> str | None:
+        """Return why a request to keep the screen on doesn't indicate a video, or None when it does."""
+        if WAKE_DAEMON.match(application):
+            return "a wake daemon"
+        if GAME_REASON.search(reason) or GAME_BINARY.match(application):
+            return "a game"
+        if pid is not None and is_game_process(pid, self.proc):
+            return "a game"
+        return None
+
     def inhibit_called(self, sender: str, serial: int, application: str, reason: str, pid: int | None) -> None:
-        game = bool(GAME_REASON.search(reason) or GAME_BINARY.match(application))
-        if not game and pid is not None:
-            game = is_game_process(pid, self.proc)
-        inhibition = ScreenInhibition(sender, application, reason, pid, game)
+        ignored = self.ignored_reason(application, reason, pid)
+        inhibition = ScreenInhibition(sender, application, reason, pid, ignored)
         log.debug("%s requested to keep the screen on from process %s", inhibition, pid)
         with self.lock:
             self.pending[(sender, serial)] = inhibition
@@ -328,8 +347,12 @@ class ScreenInhibitions:
             if inhibition is None or len(body) != 1:
                 return False
             self.active[body[0]] = inhibition
-        if inhibition.game:
-            log.info("Ignoring the request from %s to keep the screen on, since it's from a game", inhibition)
+        if inhibition.ignored:
+            log.info(
+                "Ignoring the request from %s to keep the screen on, since it's from %s",
+                inhibition,
+                inhibition.ignored,
+            )
         else:
             log.info("%s is keeping the screen on", inhibition)
         return True
@@ -364,7 +387,7 @@ class ScreenInhibitions:
     def videos(self) -> list[ScreenInhibition]:
         """Return the active requests to keep the screen on which aren't from games."""
         with self.lock:
-            return [inhibition for inhibition in self.active.values() if not inhibition.game]
+            return [inhibition for inhibition in self.active.values() if not inhibition.ignored]
 
 
 class ScreenSaverMonitor:
