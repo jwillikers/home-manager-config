@@ -30,7 +30,6 @@ name: Check files with treefmt
 jobs:
   treefmt:
     permissions:
-      id-token: write
       contents: read
     runs-on: ubuntu-latest
     steps:
