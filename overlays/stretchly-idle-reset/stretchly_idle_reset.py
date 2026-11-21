@@ -27,6 +27,8 @@ import os
 import shlex
 import struct
 import time
+from collections.abc import AsyncIterator, Iterator, Sequence
+from typing import cast
 
 import evdev
 from evdev import ecodes
@@ -53,7 +55,7 @@ DECK_AXIS_RANGES = (32767, 32767, 65535, 65535, 65535, 65535)
 DECK_REPORT_MIN_SIZE = DECK_AXES_OFFSET + struct.calcsize(DECK_AXES_FORMAT)
 
 
-def valve_hidraw_devices(sysfs="/sys/class/hidraw"):
+def valve_hidraw_devices(sysfs: str = "/sys/class/hidraw") -> Iterator[tuple[str, str]]:
     for uevent in sorted(glob.glob(os.path.join(sysfs, "hidraw*", "device", "uevent"))):
         try:
             with open(uevent) as file:
@@ -74,11 +76,11 @@ def valve_hidraw_devices(sysfs="/sys/class/hidraw"):
 class DeckControllerState:
     """Detects input in Steam Deck controller state reports."""
 
-    def __init__(self):
-        self.buttons = None
-        self.axis_baselines = None
+    def __init__(self) -> None:
+        self.buttons: bytes | None = None
+        self.axis_baselines: list[int] = []
 
-    def is_activity(self, report):
+    def is_activity(self, report: bytes) -> bool:
         if len(report) < DECK_REPORT_MIN_SIZE or report[2] != DECK_STATE_REPORT_TYPE:
             return False
         buttons = report[DECK_BUTTONS]
@@ -97,20 +99,21 @@ class DeckControllerState:
         return activity
 
 
-def now():
+def now() -> float:
     # Includes time spent suspended, so a long suspend counts as being idle.
     return time.clock_gettime(time.CLOCK_BOOTTIME)
 
 
 class IdleResetter:
-    def __init__(self, threshold, command, dry_run):
+    def __init__(self, threshold: float, command: list[str], dry_run: bool) -> None:
         self.threshold = threshold
         self.command = command
         self.dry_run = dry_run
         self.last_activity = now()
-        self.devices = {}
+        # Watched devices, keyed by path, as input devices or the names of raw HID devices
+        self.devices: dict[str, evdev.InputDevice[str] | str] = {}
 
-    async def activity(self, name):
+    async def activity(self, name: str) -> None:
         current = now()
         idle = current - self.last_activity
         self.last_activity = current
@@ -122,7 +125,7 @@ class IdleResetter:
             )
             await self.reset()
 
-    async def reset(self):
+    async def reset(self) -> None:
         if self.dry_run:
             log.info("Dry run, not running: %s", shlex.join(self.command))
             return
@@ -135,7 +138,9 @@ class IdleResetter:
         if return_code != 0:
             log.warning("%s exited with status %d", shlex.join(self.command), return_code)
 
-    def is_activity(self, device, event, abs_baselines):
+    def is_activity(
+        self, device: evdev.InputDevice[str], event: evdev.InputEvent, abs_baselines: dict[int, int]
+    ) -> bool:
         if event.type == ecodes.EV_KEY:
             return True
         if event.type == ecodes.EV_REL:
@@ -151,10 +156,13 @@ class IdleResetter:
             return False
         return False
 
-    async def watch(self, device):
-        abs_baselines = {}
+    async def watch(self, device: evdev.InputDevice[str]) -> None:
+        abs_baselines: dict[int, int] = {}
         try:
-            async for event in device.async_read_loop():
+            # evdev adds async_read_loop to input devices at runtime, so its type is unknown.
+            read_loop = device.async_read_loop  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+            events = cast(AsyncIterator[evdev.InputEvent], read_loop())
+            async for event in events:
                 if self.is_activity(device, event, abs_baselines):
                     await self.activity(device.name)
         except OSError:
@@ -168,7 +176,7 @@ class IdleResetter:
                 pass
             log.info("Stopped watching %s (%s)", device.path, device.name)
 
-    async def watch_hidraw(self, path, name):
+    async def watch_hidraw(self, path: str, name: str) -> None:
         loop = asyncio.get_running_loop()
         try:
             fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
@@ -178,13 +186,13 @@ class IdleResetter:
             return
         log.info("Watching %s (%s)", path, name)
         state = DeckControllerState()
-        reports = asyncio.Queue()
+        reports: asyncio.Queue[bytes | None] = asyncio.Queue()
 
-        def removed():
+        def removed() -> None:
             reports.put_nowait(None)
             loop.remove_reader(fd)
 
-        def readable():
+        def readable() -> None:
             try:
                 while True:
                     report = os.read(fd, 64)
@@ -210,13 +218,15 @@ class IdleResetter:
             self.devices.pop(path, None)
             log.info("Stopped watching %s (%s)", path, name)
 
-    def scan(self):
+    def scan(self) -> int:
         unreadable = 0
         for path, name in valve_hidraw_devices():
             if path not in self.devices:
                 self.devices[path] = name
                 asyncio.get_running_loop().create_task(self.watch_hidraw(path, name))
-        for path in evdev.list_devices():
+        # The type hint of the directory parameter of list_devices is incomplete.
+        paths: list[str] = evdev.list_devices()  # pyright: ignore[reportUnknownMemberType]
+        for path in paths:
             if path in self.devices:
                 continue
             try:
@@ -235,7 +245,7 @@ class IdleResetter:
             asyncio.get_running_loop().create_task(self.watch(device))
         return unreadable
 
-    async def run(self):
+    async def run(self) -> None:
         warned = False
         while True:
             unreadable = self.scan()
@@ -245,8 +255,8 @@ class IdleResetter:
             await asyncio.sleep(RESCAN_INTERVAL)
 
 
-def parse_args(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else None)
     parser.add_argument(
         "--threshold",
         type=float,
@@ -271,7 +281,7 @@ def parse_args(argv=None):
     return args
 
 
-def main():
+def main() -> None:
     args = parse_args()
     command = args.command
     logging.basicConfig(

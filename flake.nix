@@ -214,6 +214,15 @@
             );
           };
         };
+        # Packages with tests, linting, and type checking in their check phases.
+        # Like the development shell, these use plain nixpkgs so that CI can build them.
+        checks =
+          let
+            checkPkgs = devPkgs.extend overlays.packages;
+          in
+          devPkgs.lib.optionalAttrs devPkgs.stdenv.hostPlatform.isLinux {
+            inherit (checkPkgs) stretchly-hyprland stretchly-idle-reset stretchly-inhibit;
+          };
         devShells.default = devPkgs.mkShell {
           inherit (pre-commit) shellHook;
           nativeBuildInputs =
@@ -224,6 +233,12 @@
               devPkgs.home-manager
               lychee
               nushell
+              pyright
+              # For editors to resolve the imports of the Python scripts in the overlays.
+              (python3.withPackages (ps: [
+                ps.evdev
+                ps.jeepney
+              ]))
               treefmtEval.config.build.wrapper
             ]
             # Make formatters available for IDE's.

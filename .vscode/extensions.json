@@ -4,9 +4,12 @@
     "mkhl.direnv",
     "nefrob.vscode-just-syntax",
     "bbenoist.nix",
+    "charliermarsh.ruff",
     "editorconfig.editorconfig",
     "github.vscode-github-actions",
     "github.vscode-pull-request-github",
-    "jnoortheen.nix-ide"
+    "jnoortheen.nix-ide",
+    "ms-python.python",
+    "ms-python.vscode-pylance"
   ]
 }

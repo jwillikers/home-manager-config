@@ -1,0 +1,19 @@
+{
+  "executionEnvironments": [
+    {
+      "root": "overlays/stretchly-idle-reset"
+    },
+    {
+      "root": "overlays/stretchly-inhibit"
+    }
+  ],
+  "include": [
+    "overlays/stretchly-idle-reset",
+    "overlays/stretchly-inhibit"
+  ],
+  "strict": [
+    "overlays/stretchly-idle-reset",
+    "overlays/stretchly-inhibit"
+  ],
+  "stubPath": "overlays/stretchly-inhibit/typings"
+}

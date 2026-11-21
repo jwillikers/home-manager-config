@@ -1,5 +1,6 @@
 {
   lib,
+  pyright,
   python3,
   ruff,
   stdenvNoCC,
@@ -15,6 +16,8 @@ stdenvNoCC.mkDerivation {
   src = ./.;
 
   nativeCheckInputs = [
+    # Pyright type checks against the dependencies of the Python interpreter in PATH.
+    pyright
     python
     ruff
   ];
@@ -26,13 +29,14 @@ stdenvNoCC.mkDerivation {
     runHook preCheck
     ruff format --check
     ruff check
+    pyright
     python -m unittest --verbose test_stretchly_idle_reset
     runHook postCheck
   '';
 
   installPhase = ''
     runHook preInstall
-    install -D --mode=0755 stretchly-idle-reset.py $out/bin/stretchly-idle-reset
+    install -D --mode=0755 stretchly_idle_reset.py $out/bin/stretchly-idle-reset
     substituteInPlace $out/bin/stretchly-idle-reset \
       --replace-fail "#!/usr/bin/env python3" "#!${python.interpreter}"
     runHook postInstall
