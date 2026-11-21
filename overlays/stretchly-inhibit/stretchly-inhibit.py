@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Pause Stretchly breaks while a microphone is in use, such as during an online meeting.
+"""Pause Stretchly breaks during online meetings and while watching videos, but not while gaming.
 
-Breaks are paused while any application records from a microphone and resumed once none do.
-This watches the PulseAudio server, which is PipeWire's pipewire-pulse in practice, for recording streams.
+Breaks are paused while a microphone is in use or a video is playing, and resumed once neither is the case.
 
+Microphone use is detected through recording streams on the PulseAudio server, which is pipewire-pulse in practice.
 Games often open recording streams without ever using the microphone.
 Wine and Proton open the capture device as part of initializing audio,
 and games with voice chat may record continuously even when nobody speaks.
@@ -12,17 +12,30 @@ To keep breaks running while playing, recording streams are ignored when:
 * The stream is corked, i.e. opened but not actually recording.
 * The stream records a monitor source, which captures audio output rather than a microphone.
   Screen recorders, such as Steam's game recording, do this.
-* The stream belongs to a game, which is a process run by Wine or launched by Steam or another game launcher.
+* The stream belongs to a game.
+
+Videos are detected through requests to keep the screen on with the org.freedesktop.ScreenSaver D-Bus interface,
+which is how browsers and media players prevent the screen from blanking while playing a video.
+They don't make these requests when only playing audio.
+This monitors the session bus for these requests,
+so requests made before this program started are missed.
+Games make these requests as well, so they are ignored when they come from a game,
+or when their reason mentions a game, like SDL's default reason, "Playing a game".
+
+Games are processes run by Wine, processes launched by Steam or another game launcher, and Steam itself.
 """
 
 import argparse
 import json
 import logging
 import os
+import queue
 import re
 import socket
 import subprocess
 import sys
+import threading
+from dataclasses import dataclass
 
 log = logging.getLogger("stretchly-inhibit")
 
@@ -36,10 +49,14 @@ GAME_ENVIRONMENT_VARIABLES = (
     "WINEPREFIX",
 )
 
-# Binaries of processes running Windows programs under Wine or Proton.
+# Binaries of games, i.e. Windows programs under Wine or Proton, and of Steam itself.
 # libpulse names the binary after /proc/self/exe, which is Wine's loader,
 # but some versions of Wine report the name of the Windows executable instead.
-WINE_BINARY = re.compile(r"^(wine(64)?(-preloader)?|.*\.exe)$", re.IGNORECASE)
+GAME_BINARY = re.compile(r"^(wine(64)?(-preloader)?|.*\.exe|steam|steamwebhelper|gamescope)$", re.IGNORECASE)
+
+# Reasons for keeping the screen on which indicate a game.
+# SDL uses "Playing a game" by default.
+GAME_REASON = re.compile(r"\bgam(e|es|ing)\b", re.IGNORECASE)
 
 # Lines from pactl subscribe look like: Event 'new' on source-output #258
 EVENT = re.compile(r"^Event '(?P<event>[^']+)' on (?P<facility>[\w-]+) #(?P<index>\d+)$")
@@ -48,6 +65,19 @@ EVENT = re.compile(r"^Event '(?P<event>[^']+)' on (?P<facility>[\w-]+) #(?P<inde
 # A change event on a source-output includes it being corked or uncorked.
 # A source can be added or removed after a stream starts recording from it, which affects whether it's a monitor.
 RELEVANT_FACILITIES = ("source-output", "source")
+
+SCREENSAVER = "org.freedesktop.ScreenSaver"
+DBUS = "org.freedesktop.DBus"
+
+# Match rules for monitoring requests to keep the screen on.
+# The cookie identifying a request is in the reply to the Inhibit call.
+# Requests are dropped when the client which made them disconnects from the bus.
+SCREENSAVER_MATCH_RULES = [
+    f"type='method_call',interface='{SCREENSAVER}',member='Inhibit'",
+    f"type='method_call',interface='{SCREENSAVER}',member='UnInhibit'",
+    f"type='method_return',sender='{SCREENSAVER}'",
+    f"type='signal',sender='{DBUS}',interface='{DBUS}',member='NameOwnerChanged'",
+]
 
 
 def pactl_list(kind):
@@ -70,6 +100,14 @@ def read_environment(pid, proc="/proc"):
     return {entry.split(b"=", 1)[0].decode(errors="replace") for entry in environ.split(b"\0") if entry}
 
 
+def read_executable(pid, proc="/proc"):
+    """Return the name of the executable of a process, or None if it can't be read."""
+    try:
+        return os.path.basename(os.readlink(os.path.join(proc, str(pid), "exe")))
+    except OSError:
+        return None
+
+
 def process_matches_binary(pid, binary, proc="/proc"):
     """Return whether a process runs the given binary.
 
@@ -77,16 +115,21 @@ def process_matches_binary(pid, binary, proc="/proc"):
     which differs from the command name when the binary is run through a symlink.
     The kernel truncates command names to 15 characters.
     """
-    try:
-        if os.path.basename(os.readlink(os.path.join(proc, str(pid), "exe"))) == binary:
-            return True
-    except OSError:
-        pass
+    if read_executable(pid, proc) == binary:
+        return True
     try:
         with open(os.path.join(proc, str(pid), "comm")) as file:
             return file.read().rstrip("\n") == binary[:15]
     except OSError:
         return False
+
+
+def is_game_process(pid, proc="/proc"):
+    executable = read_executable(pid, proc)
+    if executable and GAME_BINARY.match(executable):
+        return True
+    environment = read_environment(pid, proc)
+    return bool(environment and environment.intersection(GAME_ENVIRONMENT_VARIABLES))
 
 
 def stream_pid(stream, proc="/proc"):
@@ -104,20 +147,17 @@ def stream_pid(stream, proc="/proc"):
     if not pid.isdigit() or not binary:
         return None
     if not process_matches_binary(pid, binary, proc):
-        log.debug("Process %s doesn't match the binary %s of stream %s", pid, binary, describe(stream))
+        log.debug("Process %s doesn't match the binary %s of stream %s", pid, binary, describe_stream(stream))
         return None
     return int(pid)
 
 
-def is_game(stream, proc="/proc"):
+def is_game_stream(stream, proc="/proc"):
     binary = stream.get("properties", {}).get("application.process.binary", "")
-    if WINE_BINARY.match(binary):
+    if GAME_BINARY.match(binary):
         return True
     pid = stream_pid(stream, proc)
-    if pid is None:
-        return False
-    environment = read_environment(pid, proc)
-    return bool(environment and environment.intersection(GAME_ENVIRONMENT_VARIABLES))
+    return pid is not None and is_game_process(pid, proc)
 
 
 def is_monitor(source):
@@ -126,7 +166,7 @@ def is_monitor(source):
     return source.get("properties", {}).get("device.class") == "monitor" or source.get("name", "").endswith(".monitor")
 
 
-def describe(stream):
+def describe_stream(stream):
     properties = stream.get("properties", {})
     name = properties.get("application.name") or properties.get("application.process.binary") or "unknown"
     return f"#{stream.get('index')} ({name})"
@@ -138,11 +178,11 @@ def microphone_streams(streams, sources, proc="/proc"):
     active = []
     for stream in streams:
         if stream.get("corked"):
-            log.debug("Ignoring corked stream %s", describe(stream))
+            log.debug("Ignoring corked stream %s", describe_stream(stream))
         elif is_monitor(sources_by_index.get(stream.get("source"))):
-            log.debug("Ignoring stream %s recording a monitor source", describe(stream))
-        elif is_game(stream, proc):
-            log.debug("Ignoring stream %s from a game", describe(stream))
+            log.debug("Ignoring stream %s recording a monitor source", describe_stream(stream))
+        elif is_game_stream(stream, proc):
+            log.debug("Ignoring stream %s from a game", describe_stream(stream))
         else:
             active.append(stream)
     return active
@@ -154,6 +194,122 @@ def parse_event(line):
     if match is None:
         return None
     return match.group("event"), match.group("facility")
+
+
+@dataclass(frozen=True)
+class ScreenInhibition:
+    """A request to keep the screen on."""
+
+    sender: str
+    application: str
+    reason: str
+    pid: int | None
+    game: bool
+
+    def __str__(self):
+        return f"{self.application or 'unknown'} ({self.reason or 'no reason given'})"
+
+
+class ScreenInhibitions:
+    """Track requests to keep the screen on from the messages to and from the org.freedesktop.ScreenSaver service."""
+
+    def __init__(self, proc="/proc"):
+        self.proc = proc
+        self.lock = threading.Lock()
+        # Inhibit calls awaiting their reply, keyed by the sender and serial number of the call
+        self.pending = {}
+        # Active requests, keyed by cookie
+        self.active = {}
+
+    def inhibit_called(self, sender, serial, application, reason, pid):
+        game = bool(GAME_REASON.search(reason) or GAME_BINARY.match(application))
+        if not game and pid is not None:
+            game = is_game_process(pid, self.proc)
+        inhibition = ScreenInhibition(sender, application, reason, pid, game)
+        log.debug("%s requested to keep the screen on from process %s", inhibition, pid)
+        with self.lock:
+            self.pending[(sender, serial)] = inhibition
+
+    def reply_received(self, destination, reply_serial, body):
+        """Return whether the reply activated a request."""
+        with self.lock:
+            inhibition = self.pending.pop((destination, reply_serial), None)
+            if inhibition is None or len(body) != 1:
+                return False
+            self.active[body[0]] = inhibition
+        if inhibition.game:
+            log.info("Ignoring the request from %s to keep the screen on, since it's from a game", inhibition)
+        else:
+            log.info("%s is keeping the screen on", inhibition)
+        return True
+
+    def uninhibit_called(self, cookie):
+        """Return whether a request was removed."""
+        with self.lock:
+            inhibition = self.active.pop(cookie, None)
+        if inhibition is None:
+            return False
+        log.info("%s stopped keeping the screen on", inhibition)
+        return True
+
+    def name_lost(self, name):
+        """Drop requests when the client that made them disconnects or the service is replaced.
+
+        Return whether any requests were removed.
+        """
+        with self.lock:
+            if name == SCREENSAVER:
+                removed = list(self.active.values())
+                self.active.clear()
+                self.pending.clear()
+            else:
+                removed = [inhibition for inhibition in self.active.values() if inhibition.sender == name]
+                self.active = {cookie: i for cookie, i in self.active.items() if i.sender != name}
+                self.pending = {key: i for key, i in self.pending.items() if i.sender != name}
+        for inhibition in removed:
+            log.info("%s stopped keeping the screen on by disconnecting", inhibition)
+        return bool(removed)
+
+    def videos(self):
+        """Return the active requests to keep the screen on which aren't from games."""
+        with self.lock:
+            return [inhibition for inhibition in self.active.values() if not inhibition.game]
+
+
+class ScreenSaverMonitor:
+    """Feed messages from a D-Bus monitor connection to ScreenInhibitions."""
+
+    def __init__(self, inhibitions, process_id):
+        self.inhibitions = inhibitions
+        # Return the process ID of a bus connection, or None if it's unknown
+        self.process_id = process_id
+
+    def handle(self, message):
+        """Return whether the message may have changed which requests are active."""
+        # Import here so that the rest of the module doesn't require jeepney.
+        from jeepney import HeaderFields, MessageType
+
+        header = message.header
+        fields = header.fields
+        member = fields.get(HeaderFields.member)
+        if header.message_type == MessageType.method_call and fields.get(HeaderFields.interface) == SCREENSAVER:
+            if member == "Inhibit" and len(message.body) == 2:
+                sender = fields.get(HeaderFields.sender)
+                application, reason = message.body
+                self.inhibitions.inhibit_called(sender, header.serial, application, reason, self.process_id(sender))
+            elif member == "UnInhibit" and len(message.body) == 1:
+                return self.inhibitions.uninhibit_called(message.body[0])
+        elif header.message_type == MessageType.method_return:
+            return self.inhibitions.reply_received(
+                fields.get(HeaderFields.destination),
+                fields.get(HeaderFields.reply_serial),
+                message.body,
+            )
+        elif header.message_type == MessageType.signal and member == "NameOwnerChanged" and len(message.body) == 3:
+            name, old_owner, _new_owner = message.body
+            if old_owner:
+                return self.inhibitions.name_lost(name)
+        return False
 
 
 def notify(message):
@@ -169,11 +325,12 @@ def notify(message):
 
 
 class Inhibitor:
-    def __init__(self, dry_run=False, proc="/proc", list_=pactl_list, run=subprocess.run):
+    def __init__(self, dry_run=False, proc="/proc", list_=pactl_list, run=subprocess.run, inhibitions=None):
         self.dry_run = dry_run
         self.proc = proc
         self.list = list_
         self.run_command = run
+        self.inhibitions = inhibitions if inhibitions is not None else ScreenInhibitions(proc)
         self.paused = None
 
     def stretchly(self, action):
@@ -183,36 +340,72 @@ class Inhibitor:
         self.run_command(["stretchly", action], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
     def update(self):
-        """Pause or resume Stretchly when microphone use starts or stops."""
-        streams = microphone_streams(
-            self.list("source-outputs"),
-            self.list("sources"),
-            self.proc,
-        )
-        in_use = bool(streams)
-        if in_use == self.paused:
+        """Pause or resume Stretchly when microphone use or video playback starts or stops."""
+        streams = microphone_streams(self.list("source-outputs"), self.list("sources"), self.proc)
+        videos = self.inhibitions.videos()
+        pause = bool(streams or videos)
+        if pause == self.paused:
             return
-        if in_use:
-            log.info(
-                "A microphone is in use by %s. Pausing Stretchly breaks.",
-                ", ".join(describe(stream) for stream in streams),
-            )
+        if pause:
+            causes = []
+            if streams:
+                causes.append("a microphone is in use by " + ", ".join(map(describe_stream, streams)))
+            if videos:
+                causes.append("a video is playing in " + ", ".join(map(str, videos)))
+            log.info("Pausing Stretchly breaks since %s.", " and ".join(causes))
             self.stretchly("pause")
         else:
-            log.info("No microphones are in use. Resuming Stretchly breaks.")
+            log.info("Resuming Stretchly breaks since no microphones are in use and no videos are playing.")
             self.stretchly("resume")
-        self.paused = in_use
+        self.paused = pause
 
-    def run(self):
+    def watch_pulseaudio(self, events):
         with subprocess.Popen(["pactl", "subscribe"], stdout=subprocess.PIPE, text=True, bufsize=1) as subscription:
-            # Check the initial state after subscribing so that no events are missed in between.
-            self.update()
-            notify("READY=1\nSTATUS=Monitoring the PulseAudio server for microphone use")
             for line in subscription.stdout:
                 parsed = parse_event(line)
                 if parsed is not None and parsed[1] in RELEVANT_FACILITIES:
-                    self.update()
-        return subscription.returncode
+                    events.put(None)
+        events.put(f"pactl subscribe exited with status {subscription.returncode}")
+
+    def open_screensaver_monitor(self):
+        from jeepney.bus_messages import Monitoring, message_bus
+        from jeepney.io.blocking import open_dbus_connection
+
+        # Monitor connections can't send messages, so a separate connection looks up process IDs.
+        bus = open_dbus_connection(bus="SESSION")
+        monitor = open_dbus_connection(bus="SESSION")
+        monitor.send_and_get_reply(Monitoring().BecomeMonitor(SCREENSAVER_MATCH_RULES))
+
+        def process_id(sender):
+            try:
+                return bus.send_and_get_reply(message_bus.GetConnectionUnixProcessID(sender), timeout=1).body[0]
+            except Exception as error:
+                log.debug("Failed to get the process ID of %s: %s", sender, error)
+                return None
+
+        return monitor, ScreenSaverMonitor(self.inhibitions, process_id)
+
+    def watch_screensaver(self, events, connection, monitor):
+        try:
+            while True:
+                if monitor.handle(connection.receive()):
+                    events.put(None)
+        except Exception as error:
+            events.put(f"Monitoring the session bus failed: {error!r}")
+
+    def run(self):
+        events = queue.Queue()
+        connection, monitor = self.open_screensaver_monitor()
+        threading.Thread(target=self.watch_screensaver, args=(events, connection, monitor), daemon=True).start()
+        threading.Thread(target=self.watch_pulseaudio, args=(events,), daemon=True).start()
+        self.update()
+        notify("READY=1\nSTATUS=Monitoring microphone use and video playback")
+        while True:
+            error = events.get()
+            if error is not None:
+                log.error(error)
+                return 1
+            self.update()
 
 
 def parse_args(argv=None):
@@ -231,9 +424,7 @@ def main():
         level=os.environ.get("LOG_LEVEL", "INFO"),
         format="%(levelname)s: %(message)s",
     )
-    returncode = Inhibitor(args.dry_run).run()
-    log.error("pactl subscribe exited with status %s", returncode)
-    sys.exit(returncode or 1)
+    sys.exit(Inhibitor(args.dry_run).run())
 
 
 if __name__ == "__main__":

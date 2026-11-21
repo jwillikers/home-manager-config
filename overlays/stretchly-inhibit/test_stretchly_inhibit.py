@@ -6,6 +6,8 @@ import os
 import tempfile
 import unittest
 
+from jeepney import DBusAddress, HeaderFields, new_method_call, new_method_return, new_signal
+
 
 def load_module():
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stretchly-inhibit.py")
@@ -90,7 +92,7 @@ class MicrophoneStreamsTest(unittest.TestCase):
         self.assertEqual(self.active([meeting]), [meeting])
 
     def test_wine_binaries_are_ignored(self):
-        for binary in ("wine", "wine64", "wine-preloader", "wine64-preloader", "Game.exe", "GAME.EXE"):
+        for binary in ("wine", "wine64", "wine-preloader", "wine64-preloader", "Game.exe", "GAME.EXE", "steam"):
             with self.subTest(binary=binary):
                 self.assertEqual(self.active([stream(binary=binary)]), [])
 
@@ -130,6 +132,92 @@ class MicrophoneStreamsTest(unittest.TestCase):
         self.assertEqual(self.active([game, meeting]), [meeting])
 
 
+SCREENSAVER = DBusAddress("/org/freedesktop/ScreenSaver", "org.freedesktop.ScreenSaver", "org.freedesktop.ScreenSaver")
+DBUS = DBusAddress("/org/freedesktop/DBus", "org.freedesktop.DBus", "org.freedesktop.DBus")
+
+
+class ScreenSaverMonitorTest(unittest.TestCase):
+    def setUp(self):
+        self.proc = FakeProc()
+        self.addCleanup(self.proc.cleanup)
+        self.proc.add(100, {"HOME": "/home/user"}, comm="firefox", exe="/usr/lib64/firefox/firefox")
+        self.proc.add(200, {"SteamAppId": "1245620"}, comm="game", exe="/games/game")
+        self.proc.add(300, {"HOME": "/home/user"}, comm="steam", exe="/home/user/.steam/ubuntu12_32/steam")
+        self.inhibitions = si.ScreenInhibitions(self.proc.path)
+        self.pids = {":1.100": 100, ":1.200": 200, ":1.300": 300}
+        self.monitor = si.ScreenSaverMonitor(self.inhibitions, self.pids.get)
+        self.serial = 0
+
+    def inhibit(self, sender, application="Firefox", reason="video-playing", cookie=None):
+        self.serial += 1
+        call = new_method_call(SCREENSAVER, "Inhibit", "ss", (application, reason))
+        call.header.serial = self.serial
+        call.header.fields[HeaderFields.sender] = sender
+        self.assertFalse(self.monitor.handle(call))
+        reply = new_method_return(call, "u", (cookie if cookie is not None else self.serial,))
+        reply.header.fields[HeaderFields.sender] = ":1.1"
+        return self.monitor.handle(reply)
+
+    def uninhibit(self, sender, cookie):
+        call = new_method_call(SCREENSAVER, "UnInhibit", "u", (cookie,))
+        call.header.fields[HeaderFields.sender] = sender
+        return self.monitor.handle(call)
+
+    def name_owner_changed(self, name, old, new):
+        return self.monitor.handle(new_signal(DBUS, "NameOwnerChanged", "sss", (name, old, new)))
+
+    def videos(self):
+        return [(inhibition.application, inhibition.reason) for inhibition in self.inhibitions.videos()]
+
+    def test_video_keeps_screen_on(self):
+        self.assertTrue(self.inhibit(":1.100", cookie=7))
+        self.assertEqual(self.videos(), [("Firefox", "video-playing")])
+        self.assertTrue(self.uninhibit(":1.100", 7))
+        self.assertEqual(self.videos(), [])
+
+    def test_game_process_is_ignored(self):
+        self.inhibit(":1.200", application="My SDL application", reason="Steam game")
+        self.assertEqual(self.videos(), [])
+
+    def test_game_reason_is_ignored(self):
+        self.inhibit(":1.999", application="My SDL application", reason="Playing a game")
+        self.assertEqual(self.videos(), [])
+
+    def test_steam_is_ignored(self):
+        self.inhibit(":1.300", application="Steam", reason="Big Picture")
+        self.inhibit(":1.999", application="Steam", reason="Big Picture")
+        self.assertEqual(self.videos(), [])
+
+    def test_unknown_process_counts_as_video(self):
+        self.inhibit(":1.999", application="Jellyfin Desktop", reason="Playing media")
+        self.assertEqual(self.videos(), [("Jellyfin Desktop", "Playing media")])
+
+    def test_unrelated_reply_is_ignored(self):
+        call = new_method_call(DBusAddress("/", "org.example", "org.example"), "Hello")
+        call.header.serial = 99
+        call.header.fields[HeaderFields.sender] = ":1.100"
+        self.assertFalse(self.monitor.handle(new_method_return(call, "u", (1,))))
+        self.assertEqual(self.videos(), [])
+
+    def test_unknown_cookie_is_ignored(self):
+        self.inhibit(":1.100", cookie=7)
+        self.assertFalse(self.uninhibit(":1.100", 8))
+        self.assertEqual(len(self.videos()), 1)
+
+    def test_disconnecting_drops_requests(self):
+        self.inhibit(":1.100")
+        self.inhibit(":1.999", application="mpv")
+        self.assertFalse(self.name_owner_changed(":1.555", ":1.555", ""))
+        self.assertFalse(self.name_owner_changed(":1.556", "", ":1.556"))
+        self.assertTrue(self.name_owner_changed(":1.100", ":1.100", ""))
+        self.assertEqual(self.videos(), [("mpv", "video-playing")])
+
+    def test_service_restart_drops_requests(self):
+        self.inhibit(":1.100")
+        self.assertTrue(self.name_owner_changed("org.freedesktop.ScreenSaver", ":1.1", ":1.2"))
+        self.assertEqual(self.videos(), [])
+
+
 class ParseEventTest(unittest.TestCase):
     def test_source_output(self):
         self.assertEqual(si.parse_event("Event 'new' on source-output #258\n"), ("new", "source-output"))
@@ -145,7 +233,10 @@ class InhibitorTest(unittest.TestCase):
     def setUp(self):
         self.streams = []
         self.commands = []
-        self.inhibitor = si.Inhibitor(proc="/nonexistent", list_=self.fake_list, run=self.fake_run)
+        self.inhibitions = si.ScreenInhibitions("/nonexistent")
+        self.inhibitor = si.Inhibitor(
+            proc="/nonexistent", list_=self.fake_list, run=self.fake_run, inhibitions=self.inhibitions
+        )
 
     def fake_list(self, kind):
         return {"source-outputs": self.streams, "sources": SOURCES}[kind]
@@ -184,6 +275,37 @@ class InhibitorTest(unittest.TestCase):
         self.streams[0]["corked"] = False
         self.inhibitor.update()
         self.assertEqual(self.commands, [["stretchly", "resume"], ["stretchly", "pause"]])
+
+    def play_video(self, cookie=1, reason="video-playing"):
+        self.inhibitions.inhibit_called(":1.100", cookie, "Firefox", reason, None)
+        self.inhibitions.reply_received(":1.100", cookie, (cookie,))
+
+    def test_video_pauses(self):
+        self.inhibitor.update()
+        self.play_video()
+        self.inhibitor.update()
+        self.inhibitions.uninhibit_called(1)
+        self.inhibitor.update()
+        self.assertEqual(
+            self.commands,
+            [["stretchly", "resume"], ["stretchly", "pause"], ["stretchly", "resume"]],
+        )
+
+    def test_stays_paused_while_video_or_microphone_is_in_use(self):
+        self.play_video()
+        self.inhibitor.update()
+        self.streams.append(stream(binary="zoom"))
+        self.inhibitor.update()
+        self.inhibitions.uninhibit_called(1)
+        self.inhibitor.update()
+        self.streams.clear()
+        self.inhibitor.update()
+        self.assertEqual(self.commands, [["stretchly", "pause"], ["stretchly", "resume"]])
+
+    def test_game_keeping_screen_on_does_not_pause(self):
+        self.play_video(reason="Playing a game")
+        self.inhibitor.update()
+        self.assertEqual(self.commands, [["stretchly", "resume"]])
 
     def test_dry_run_runs_nothing(self):
         self.inhibitor.dry_run = True

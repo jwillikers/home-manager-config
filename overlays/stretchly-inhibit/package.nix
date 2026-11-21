@@ -8,9 +8,12 @@
   stretchly,
 }:
 
+let
+  python = python3.withPackages (ps: [ ps.jeepney ]);
+in
 stdenvNoCC.mkDerivation {
   pname = "stretchly-inhibit";
-  version = "0.2.0";
+  version = "0.3.0";
 
   src = ./.;
 
@@ -19,7 +22,7 @@ stdenvNoCC.mkDerivation {
   ];
 
   nativeCheckInputs = [
-    python3
+    python
     ruff
   ];
 
@@ -38,7 +41,7 @@ stdenvNoCC.mkDerivation {
     runHook preInstall
     install -D --mode=0755 stretchly-inhibit.py $out/bin/stretchly-inhibit
     substituteInPlace $out/bin/stretchly-inhibit \
-      --replace-fail "#!/usr/bin/env python3" "#!${python3.interpreter}"
+      --replace-fail "#!/usr/bin/env python3" "#!${python.interpreter}"
     wrapProgram $out/bin/stretchly-inhibit \
       --prefix PATH : ${
         lib.makeBinPath [
@@ -50,7 +53,7 @@ stdenvNoCC.mkDerivation {
   '';
 
   meta = {
-    description = "Pause Stretchly breaks while a microphone is in use, ignoring games";
+    description = "Pause Stretchly breaks during online meetings and while watching videos, but not while gaming";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ jwillikers ];

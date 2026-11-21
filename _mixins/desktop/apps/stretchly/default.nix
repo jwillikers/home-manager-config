@@ -146,11 +146,12 @@
         ];
       };
     };
-    # Pause breaks during online meetings, i.e. while a microphone is in use.
-    # Games, corked streams, and recordings of audio output are ignored so that breaks continue while gaming.
+    # Pause breaks during online meetings and while watching videos.
+    # Meetings are detected by microphone use and videos by requests to keep the screen on.
+    # Games are ignored so that breaks continue while gaming.
     "stretchly-inhibit" = {
       Unit = {
-        Description = "Pause Stretchly breaks while a microphone is in use";
+        Description = "Pause Stretchly breaks during online meetings and while watching videos";
         After = [
           "pipewire-pulse.service"
           "stretchly.service"
