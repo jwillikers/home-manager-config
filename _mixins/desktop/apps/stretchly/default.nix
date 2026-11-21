@@ -149,6 +149,8 @@
     # Pause breaks during online meetings and while watching videos.
     # Meetings are detected by microphone use and videos by requests to keep the screen on.
     # Games are ignored so that breaks continue while gaming.
+    # On the Steam Deck, also pause breaks while playing games locally with friends,
+    # i.e. while at least two gamepads are connected, not counting the Steam Deck's own controls.
     "stretchly-inhibit" = {
       Unit = {
         Description = "Pause Stretchly breaks during online meetings and while watching videos";
@@ -171,7 +173,9 @@
 
       Service = {
         Type = "notify";
-        ExecStart = lib.getExe pkgs.stretchly-inhibit;
+        ExecStart =
+          lib.getExe pkgs.stretchly-inhibit
+          + lib.optionalString (hostname == "steamdeck") " --pause-for-gamepads 2";
         NotifyAccess = "all";
         Restart = "always";
         Slice = "background.slice";

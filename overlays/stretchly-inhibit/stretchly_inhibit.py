@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Pause Stretchly breaks during online meetings and while watching videos, but not while gaming.
+"""Pause Stretchly breaks during online meetings, while watching videos, and optionally for local multiplayer.
 
 Breaks are paused while a microphone is in use or a video is playing, and resumed once neither is the case.
+Games alone don't pause breaks.
 
 Microphone use is detected through recording streams on the PulseAudio server, which is pipewire-pulse in practice.
 Games often open recording streams without ever using the microphone.
@@ -23,6 +24,12 @@ Games make these requests as well, so they are ignored when they come from a gam
 or when their reason mentions a game, like SDL's default reason, "Playing a game".
 
 Games are processes run by Wine, processes launched by Steam or another game launcher, and Steam itself.
+
+Optionally, breaks are also paused while enough gamepads are connected, such as when playing games locally with friends.
+Gamepads are input devices with the south face button, i.e. A on an Xbox controller.
+Each controller counts once, even when it has separate input devices for its motion sensors or touchpad.
+Virtual gamepads are ignored, like the ones which Steam Input creates for every physical controller,
+as are the Steam Deck's built-in controls.
 """
 
 import argparse
@@ -32,9 +39,11 @@ import os
 import queue
 import re
 import socket
+import struct
 import subprocess
 import sys
 import threading
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
@@ -77,6 +86,15 @@ EVENT = re.compile(r"^Event '(?P<event>[^']+)' on (?P<facility>[\w-]+) #(?P<inde
 # A change event on a source-output includes it being corked or uncorked.
 # A source can be added or removed after a stream starts recording from it, which affects whether it's a monitor.
 RELEVANT_FACILITIES = ("source-output", "source")
+
+# The key code of the south face button, BTN_SOUTH, which every gamepad has.
+BTN_SOUTH = 0x130
+
+# The Steam Deck's built-in controls, by USB vendor and product ID
+IGNORED_GAMEPADS = {(0x28DE, 0x1205)}
+
+# How often to check which gamepads are connected, in seconds
+GAMEPAD_SCAN_INTERVAL = 5
 
 SCREENSAVER = "org.freedesktop.ScreenSaver"
 DBUS = "org.freedesktop.DBus"
@@ -203,6 +221,62 @@ def microphone_streams(
         else:
             active.append(stream)
     return active
+
+
+@dataclass(frozen=True)
+class Gamepad:
+    name: str
+    # The path of the controller in sysfs, which is shared by all of its input devices
+    controller: str
+
+
+def has_key(capabilities: str, code: int) -> bool:
+    """Return whether a key code is set in a capabilities bitmap from sysfs.
+
+    The bitmap is a list of hexadecimal words the size of the kernel's long, most significant word first.
+    """
+    bits = struct.calcsize("l") * 8
+    value = 0
+    for word in capabilities.split():
+        value = (value << bits) | int(word, 16)
+    return bool(value >> code & 1)
+
+
+def read_sysfs(path: str) -> str | None:
+    try:
+        with open(path) as file:
+            return file.read().strip()
+    except OSError:
+        return None
+
+
+def gamepads(sysfs: str = "/sys/class/input") -> list[Gamepad]:
+    """Return the connected physical gamepads, excluding the Steam Deck's built-in controls."""
+    found: dict[str, Gamepad] = {}
+    try:
+        names = sorted(name for name in os.listdir(sysfs) if name.startswith("input"))
+    except OSError:
+        return []
+    for name in names:
+        device = os.path.realpath(os.path.join(sysfs, name))
+        # Devices created with uinput, like Steam Input's virtual gamepads.
+        # Bluetooth LE devices are also virtual, but they are in /sys/devices/virtual/misc/uhid.
+        if "/devices/virtual/input/" in device:
+            continue
+        capabilities = read_sysfs(os.path.join(device, "capabilities", "key"))
+        vendor = read_sysfs(os.path.join(device, "id", "vendor"))
+        product = read_sysfs(os.path.join(device, "id", "product"))
+        try:
+            if capabilities is None or not has_key(capabilities, BTN_SOUTH):
+                continue
+            if vendor is not None and product is not None and (int(vendor, 16), int(product, 16)) in IGNORED_GAMEPADS:
+                continue
+        except ValueError:
+            continue
+        # Input devices are in an input directory under the controller.
+        controller = os.path.dirname(os.path.dirname(device))
+        found.setdefault(controller, Gamepad(read_sysfs(os.path.join(device, "name")) or name, controller))
+    return list(found.values())
 
 
 def parse_event(line: str) -> tuple[str, str] | None:
@@ -350,12 +424,17 @@ class Inhibitor:
         list_: Callable[[str], list[PulseObject]] = pactl_list,
         run: Callable[..., object] = subprocess.run,
         inhibitions: ScreenInhibitions | None = None,
+        gamepad_threshold: int = 0,
+        list_gamepads: Callable[[], list[Gamepad]] = gamepads,
     ) -> None:
         self.dry_run = dry_run
         self.proc = proc
         self.list = list_
         self.run_command = run
         self.inhibitions = inhibitions if inhibitions is not None else ScreenInhibitions(proc)
+        # Pause breaks while at least this many gamepads are connected, or never when zero
+        self.gamepad_threshold = gamepad_threshold
+        self.list_gamepads = list_gamepads
         self.paused: bool | None = None
 
     def stretchly(self, action: str) -> None:
@@ -365,10 +444,12 @@ class Inhibitor:
         self.run_command(["stretchly", action], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
     def update(self) -> None:
-        """Pause or resume Stretchly when microphone use or video playback starts or stops."""
+        """Pause or resume Stretchly when microphone use, video playback, or local multiplayer starts or stops."""
         streams = microphone_streams(self.list("source-outputs"), self.list("sources"), self.proc)
         videos = self.inhibitions.videos()
-        pause = bool(streams or videos)
+        connected = self.list_gamepads() if self.gamepad_threshold > 0 else []
+        multiplayer = self.gamepad_threshold > 0 and len(connected) >= self.gamepad_threshold
+        pause = bool(streams or videos or multiplayer)
         if pause == self.paused:
             return
         if pause:
@@ -377,10 +458,20 @@ class Inhibitor:
                 causes.append("a microphone is in use by " + ", ".join(map(describe_stream, streams)))
             if videos:
                 causes.append("a video is playing in " + ", ".join(map(str, videos)))
+            if multiplayer:
+                causes.append(
+                    f"{len(connected)} gamepads are connected: " + ", ".join(gamepad.name for gamepad in connected)
+                )
             log.info("Pausing Stretchly breaks since %s.", " and ".join(causes))
             self.stretchly("pause")
         else:
-            log.info("Resuming Stretchly breaks since no microphones are in use and no videos are playing.")
+            reasons = "no microphones are in use and no videos are playing"
+            if self.gamepad_threshold > 0:
+                reasons = (
+                    "no microphones are in use, no videos are playing, "
+                    f"and fewer than {self.gamepad_threshold} gamepads are connected"
+                )
+            log.info("Resuming Stretchly breaks since %s.", reasons)
             self.stretchly("resume")
         self.paused = pause
 
@@ -419,13 +510,27 @@ class Inhibitor:
         except Exception as error:
             events.put(f"Monitoring the session bus failed: {error!r}")
 
+    def watch_gamepads(self, events: Events) -> None:
+        """Check for gamepads being connected or disconnected."""
+        previous = {gamepad.controller for gamepad in self.list_gamepads()}
+        while True:
+            time.sleep(GAMEPAD_SCAN_INTERVAL)
+            current = {gamepad.controller for gamepad in self.list_gamepads()}
+            if current != previous:
+                previous = current
+                events.put(None)
+
     def run(self) -> int:
         events: Events = queue.Queue()
         connection, monitor = self.open_screensaver_monitor()
         threading.Thread(target=self.watch_screensaver, args=(events, connection, monitor), daemon=True).start()
         threading.Thread(target=self.watch_pulseaudio, args=(events,), daemon=True).start()
+        status = "Monitoring microphone use and video playback"
+        if self.gamepad_threshold > 0:
+            threading.Thread(target=self.watch_gamepads, args=(events,), daemon=True).start()
+            status = "Monitoring microphone use, video playback, and gamepads"
         self.update()
-        notify("READY=1\nSTATUS=Monitoring microphone use and video playback")
+        notify(f"READY=1\nSTATUS={status}")
         while True:
             error = events.get()
             if error is not None:
@@ -441,6 +546,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Log when breaks would be paused or resumed instead of running Stretchly",
     )
+    parser.add_argument(
+        "--pause-for-gamepads",
+        type=int,
+        default=0,
+        metavar="COUNT",
+        help="Pause breaks while at least this many gamepads are connected, or never when 0 (default: %(default)s)",
+    )
     return parser.parse_args(argv)
 
 
@@ -450,7 +562,7 @@ def main() -> None:
         level=os.environ.get("LOG_LEVEL", "INFO"),
         format="%(levelname)s: %(message)s",
     )
-    sys.exit(Inhibitor(args.dry_run).run())
+    sys.exit(Inhibitor(args.dry_run, gamepad_threshold=args.pause_for_gamepads).run())
 
 
 if __name__ == "__main__":

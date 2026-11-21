@@ -14,7 +14,7 @@ let
 in
 stdenvNoCC.mkDerivation {
   pname = "stretchly-inhibit";
-  version = "0.3.0";
+  version = "0.4.0";
 
   src = ./.;
 
@@ -57,7 +57,7 @@ stdenvNoCC.mkDerivation {
   '';
 
   meta = {
-    description = "Pause Stretchly breaks during online meetings and while watching videos, but not while gaming";
+    description = "Pause Stretchly breaks during online meetings, while watching videos, and optionally for local multiplayer";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ jwillikers ];

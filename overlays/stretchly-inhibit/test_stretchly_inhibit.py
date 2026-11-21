@@ -221,6 +221,91 @@ class ScreenSaverMonitorTest(unittest.TestCase):
         self.assertEqual(self.videos(), [])
 
 
+# The key capabilities of an Xbox controller, which includes BTN_SOUTH, from /sys/class/input/input*/capabilities/key
+GAMEPAD_KEYS = "7cdb000000000000 0 0 0 0"
+# The key capabilities of the touchpad on a laptop
+TOUCHPAD_KEYS = "e520 30000 0 0 0 0"
+
+
+class FakeSysfs:
+    """A temporary directory laid out like /sys with input devices."""
+
+    def __init__(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = self.directory.name
+        self.input = os.path.join(self.root, "class", "input")
+        os.makedirs(self.input)
+
+    def add(self, number: int, parent: str, name: str, keys: str, vendor: int = 0x045E, product: int = 0x028E) -> None:
+        device = os.path.join(self.root, "devices", parent, "input", f"input{number}")
+        os.makedirs(os.path.join(device, "capabilities"))
+        os.makedirs(os.path.join(device, "id"))
+        for path, content in (
+            ("name", name),
+            ("capabilities/key", keys),
+            ("id/vendor", f"{vendor:04x}"),
+            ("id/product", f"{product:04x}"),
+        ):
+            with open(os.path.join(device, path), "w") as file:
+                file.write(content + "\n")
+        os.symlink(device, os.path.join(self.input, f"input{number}"))
+
+    def cleanup(self) -> None:
+        self.directory.cleanup()
+
+
+class GamepadsTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.sysfs = FakeSysfs()
+        self.addCleanup(self.sysfs.cleanup)
+
+    def names(self) -> list[str]:
+        return [gamepad.name for gamepad in si.gamepads(self.sysfs.input)]
+
+    def test_has_key(self) -> None:
+        self.assertTrue(si.has_key(GAMEPAD_KEYS, si.BTN_SOUTH))
+        self.assertFalse(si.has_key(TOUCHPAD_KEYS, si.BTN_SOUTH))
+        self.assertFalse(si.has_key("0", si.BTN_SOUTH))
+
+    def test_no_input_devices(self) -> None:
+        self.assertEqual(self.names(), [])
+
+    def test_missing_sysfs(self) -> None:
+        self.assertEqual(si.gamepads(os.path.join(self.sysfs.root, "nonexistent")), [])
+
+    def test_finds_usb_and_bluetooth_gamepads(self) -> None:
+        self.sysfs.add(1, "pci0000:00/usb1/1-1/1-1:1.0", "Microsoft X-Box 360 pad", GAMEPAD_KEYS)
+        # Bluetooth LE controllers are under the virtual uhid device.
+        self.sysfs.add(
+            2, "virtual/misc/uhid/0005:045E:0B13.0001", "Xbox Wireless Controller", GAMEPAD_KEYS, product=0x0B13
+        )
+        self.assertEqual(self.names(), ["Microsoft X-Box 360 pad", "Xbox Wireless Controller"])
+
+    def test_ignores_other_input_devices(self) -> None:
+        self.sysfs.add(1, "platform/i2c-1/touchpad", "Touchpad", TOUCHPAD_KEYS, vendor=0x044E, product=0x121F)
+        self.assertEqual(self.names(), [])
+
+    def test_ignores_virtual_gamepads(self) -> None:
+        # Steam Input creates a virtual gamepad for each physical controller with uinput.
+        self.sysfs.add(1, "virtual", "Microsoft X-Box 360 pad 0", GAMEPAD_KEYS)
+        self.assertEqual(self.names(), [])
+
+    def test_ignores_the_steam_decks_controls(self) -> None:
+        self.sysfs.add(1, "pci0000:00/usb3/3-3/3-3:1.2/0003:28DE:1205.0003", "Steam Deck", GAMEPAD_KEYS, 0x28DE, 0x1205)
+        self.assertEqual(self.names(), [])
+
+    def test_counts_each_controller_once(self) -> None:
+        parent = "pci0000:00/usb1/1-2/1-2:1.3/0003:054C:0CE6.0004"
+        self.sysfs.add(1, parent, "DualSense Wireless Controller", GAMEPAD_KEYS, 0x054C, 0x0CE6)
+        self.sysfs.add(2, parent, "DualSense Wireless Controller Motion Sensors", "0", 0x054C, 0x0CE6)
+        self.sysfs.add(3, parent, "DualSense Wireless Controller Touchpad", TOUCHPAD_KEYS, 0x054C, 0x0CE6)
+        self.assertEqual(self.names(), ["DualSense Wireless Controller"])
+
+    def test_skips_malformed_capabilities(self) -> None:
+        self.sysfs.add(1, "pci0000:00/usb1/1-1/1-1:1.0", "Broken", "not hexadecimal")
+        self.assertEqual(self.names(), [])
+
+
 class ParseEventTest(unittest.TestCase):
     def test_source_output(self) -> None:
         self.assertEqual(si.parse_event("Event 'new' on source-output #258\n"), ("new", "source-output"))
@@ -237,8 +322,13 @@ class InhibitorTest(unittest.TestCase):
         self.streams: list[dict[str, Any]] = []
         self.commands: list[list[str]] = []
         self.inhibitions = si.ScreenInhibitions("/nonexistent")
+        self.gamepads: list[si.Gamepad] = []
         self.inhibitor = si.Inhibitor(
-            proc="/nonexistent", list_=self.fake_list, run=self.fake_run, inhibitions=self.inhibitions
+            proc="/nonexistent",
+            list_=self.fake_list,
+            run=self.fake_run,
+            inhibitions=self.inhibitions,
+            list_gamepads=lambda: self.gamepads,
         )
 
     def fake_list(self, kind: str) -> list[dict[str, Any]]:
@@ -309,6 +399,29 @@ class InhibitorTest(unittest.TestCase):
         self.play_video(reason="Playing a game")
         self.inhibitor.update()
         self.assertEqual(self.commands, [["stretchly", "resume"]])
+
+    def connect_gamepads(self, count: int) -> None:
+        self.gamepads = [si.Gamepad(f"Gamepad {number}", f"/sys/devices/gamepad{number}") for number in range(count)]
+
+    def test_gamepads_are_ignored_by_default(self) -> None:
+        self.connect_gamepads(4)
+        self.inhibitor.update()
+        self.assertEqual(self.commands, [["stretchly", "resume"]])
+
+    def test_pauses_while_enough_gamepads_are_connected(self) -> None:
+        self.inhibitor.gamepad_threshold = 2
+        self.connect_gamepads(1)
+        self.inhibitor.update()
+        self.connect_gamepads(2)
+        self.inhibitor.update()
+        self.connect_gamepads(3)
+        self.inhibitor.update()
+        self.connect_gamepads(1)
+        self.inhibitor.update()
+        self.assertEqual(
+            self.commands,
+            [["stretchly", "resume"], ["stretchly", "pause"], ["stretchly", "resume"]],
+        )
 
     def test_dry_run_runs_nothing(self) -> None:
         self.inhibitor.dry_run = True
