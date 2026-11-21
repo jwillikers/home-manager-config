@@ -11,6 +11,10 @@
       let
         isLocked = "${lib.getBin pkgs.procps}/bin/pgrep swaylock";
         isDischarging = "${lib.getExe pkgs.gnugrep} Discharging /sys/class/power_supply/BAT{0,1}/status -q";
+        # Hyprland's config is Lua, so hyprctl dispatch takes Lua dispatchers.
+        dpms =
+          action:
+          "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
       in
       {
         general = {
@@ -21,7 +25,7 @@
           before_sleep_cmd = "loginctl lock-session";
           # Stretchly handles idle time and suspend itself with natural breaks and pauseForSuspendOrLock.
           # Don't reset it here, since that ends any break that's in progress.
-          after_sleep_cmd = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on";
+          after_sleep_cmd = "${dpms "on"}";
           inhibit_sleep = 3; # Wait for lock before suspend
         };
         listener = [
@@ -42,8 +46,8 @@
           # Turn off screen
           {
             timeout = 900; # 15 minutes
-            on-timeout = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms off";
-            on-resume = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on";
+            on-timeout = "${dpms "off"}";
+            on-resume = "${dpms "on"}";
           }
           # Lock screen
           {
@@ -58,8 +62,8 @@
           # }
           {
             timeout = 40;
-            on-timeout = "if ${isLocked}; then ${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms off; fi";
-            on-resume = "${lib.getBin config.wayland.windowManager.hyprland.package}/bin/hyprctl dispatch dpms on";
+            on-timeout = "if ${isLocked}; then ${dpms "off"}; fi";
+            on-resume = "${dpms "on"}";
           }
 
           # If discharging
