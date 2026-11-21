@@ -1,0 +1,11 @@
+# Match the maximum line length in .editorconfig.
+line-length = 120
+
+[lint]
+extend-select = [
+  "B",  # flake8-bugbear
+  "E",  # pycodestyle errors
+  "I",  # isort
+  "UP", # pyupgrade
+  "W",  # pycodestyle warnings
+]

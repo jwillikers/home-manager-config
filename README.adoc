@@ -627,7 +627,7 @@ It's too small.
 
 .Stretchly Todo
 - [ ] Create a script to move break windows to the correct monitors using the hyprland socket.
-- [ ] Create a Wireplumber Lua script to inhibit breaks whenever audio is playing, mic is active, or webcam is recording.
+- [x] Inhibit breaks while a microphone is in use, ignoring games.
 - [ ] Reset breaks in Hypridle
 
 == Resources
