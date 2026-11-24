@@ -137,6 +137,10 @@ SCREENSAVER = DBusAddress("/org/freedesktop/ScreenSaver", "org.freedesktop.Scree
 DBUS = DBusAddress("/org/freedesktop/DBus", "org.freedesktop.DBus", "org.freedesktop.DBus")
 
 
+# The application name Chromium reports, which is the path to its executable
+CHROMIUM = "/nix/store/r0gqcd1k76vb64ls4j028nv6rpwmzqf5-chromium-unwrapped-158.0.8127.36/libexec/chromium/chromium"
+
+
 class ScreenSaverMonitorTest(unittest.TestCase):
     def setUp(self) -> None:
         self.proc = FakeProc()
@@ -209,6 +213,26 @@ class ScreenSaverMonitorTest(unittest.TestCase):
     def test_wake_daemon_lookalike_is_not_ignored(self) -> None:
         self.inhibit(":1.999", application="joystickwaker", reason="Active joystick")
         self.assertEqual(self.videos(), [("joystickwaker", "Active joystick")])
+
+    def test_screen_capture_is_ignored(self) -> None:
+        # Chromium keeps the screen on while an extension takes screenshots of a tab.
+        # Its application name is the path to its executable.
+        self.inhibit(":1.100", application=CHROMIUM, reason="Capturing")
+        self.assertEqual(self.videos(), [])
+        self.assertEqual(self.ignored(), ["a screen capture"])
+
+    def test_chromium_video_is_not_a_screen_capture(self) -> None:
+        self.inhibit(":1.100", application=CHROMIUM, reason="Video Wake Lock")
+        self.assertEqual(self.videos(), [(CHROMIUM, "Video Wake Lock")])
+
+    def test_capture_lookalike_reason_is_not_ignored(self) -> None:
+        self.inhibit(":1.100", application=CHROMIUM, reason="Capturing video")
+        self.assertEqual(self.videos(), [(CHROMIUM, "Capturing video")])
+
+    def test_video_still_pauses_breaks_during_screen_captures(self) -> None:
+        self.inhibit(":1.100", application=CHROMIUM, reason="Capturing")
+        self.inhibit(":1.100", application=CHROMIUM, reason="Video Wake Lock")
+        self.assertEqual(self.videos(), [(CHROMIUM, "Video Wake Lock")])
 
     def test_video_still_pauses_breaks_while_a_controller_is_in_use(self) -> None:
         self.inhibit(":1.999", application="joystickwake", reason="Active joystick")

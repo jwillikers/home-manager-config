@@ -29,6 +29,11 @@ Requests from wake daemons are ignored as well.
 joystickwake keeps the screen on while a controller is in use to stop it blanking during gamepad-only play,
 which would otherwise pause breaks for the whole time a game is being played with a controller.
 
+Requests for screen captures are ignored too.
+Chromium keeps the screen on while anything captures a tab, such as an extension taking screenshots of a page,
+which happens repeatedly for some extensions without any video playing.
+Chromium keeps the screen on for videos with a different reason, so those still pause breaks.
+
 Optionally, breaks are also paused while enough gamepads are connected, such as when playing games locally with friends.
 Gamepads are input devices with the south face button, i.e. A on an Xbox controller.
 Each controller counts once, even when it has separate input devices for its motion sensors or touchpad.
@@ -88,6 +93,10 @@ GAME_REASON = re.compile(r"\bgam(e|es|ing)\b", re.IGNORECASE)
 # Only the name reported in the request identifies it, because the process is a Python interpreter
 # running a wrapped script, so neither its executable nor its command name mentions joystickwake.
 WAKE_DAEMON = re.compile(r"^joystickwake$", re.IGNORECASE)
+
+# The reason Chromium gives for keeping the screen on while capturing a tab, such as for a screenshot.
+# Chromium uses "Video Wake Lock" while playing a video.
+CAPTURE_REASON = re.compile(r"^Capturing$", re.IGNORECASE)
 
 # Lines from pactl subscribe look like: Event 'new' on source-output #258
 EVENT = re.compile(r"^Event '(?P<event>[^']+)' on (?P<facility>[\w-]+) #(?P<index>\d+)$")
@@ -327,6 +336,8 @@ class ScreenInhibitions:
         """Return why a request to keep the screen on doesn't indicate a video, or None when it does."""
         if WAKE_DAEMON.match(application):
             return "a wake daemon"
+        if CAPTURE_REASON.match(reason):
+            return "a screen capture"
         if GAME_REASON.search(reason) or GAME_BINARY.match(application):
             return "a game"
         if pid is not None and is_game_process(pid, self.proc):
@@ -385,7 +396,7 @@ class ScreenInhibitions:
         return bool(removed)
 
     def videos(self) -> list[ScreenInhibition]:
-        """Return the active requests to keep the screen on which aren't from games."""
+        """Return the active requests to keep the screen on which indicate a video."""
         with self.lock:
             return [inhibition for inhibition in self.active.values() if not inhibition.ignored]
 
