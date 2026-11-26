@@ -351,6 +351,7 @@ in
         treefmt # Code formatter
         # todo Use wl-clipboard-rs?
         wl-clipboard # Wayland clipboard program
+        yq-go # YAML, JSON, and XML processor
 
         # From media-juggler
         isbntools # Tools for manipulating ISBNs
