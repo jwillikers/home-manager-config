@@ -301,6 +301,7 @@ in
         deploy-rs # Nix deployment
         exiftool # Tool for dealing with image and PDF metadata
         flatpak-builder # Build Flatpaks
+        forgejo-cli # Forgejo command-line client
         ghc # Glasgow Haskell Compiler
         # gptfdisk
         # h # Modern Unix autojump for git projects
@@ -348,6 +349,7 @@ in
         tesseract # OCR tool
         tio # Serial device I/O tool
         tone # Audiobook metadata tool
+        (python3Packages.toPythonApplication python3Packages.tplink-omada-client) # TP-Link Omada controller command-line client
         treefmt # Code formatter
         # todo Use wl-clipboard-rs?
         wl-clipboard # Wayland clipboard program
