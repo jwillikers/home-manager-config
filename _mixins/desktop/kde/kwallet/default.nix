@@ -57,14 +57,19 @@
       Description = "Unlock kwallet from pam credentials";
       PartOf = [ "graphical-session.target" ];
       After = [ "graphical-session.target" ];
+      # pam_kwallet_init hands the login credentials to kwalletd over a socket that only works once per login.
+      # Don't let a home-manager switch run it again, since that always fails.
+      X-RestartIfChanged = false;
     };
     Service = {
       # Anything PAM-related has to be done outside of Nix.
       # Otherwise, things will most likely break because Nix and the OS might not agree on what PAM modules are available.
       ExecStart = "/usr/libexec/pam_kwallet_init";
-      Type = "exec";
+      # Stay active after the one-time handoff so units that require this one, like ksshaskpass, don't start it again.
+      Type = "oneshot";
+      RemainAfterExit = true;
       Slice = "background.slice";
-      Restart = false;
+      Restart = "no";
     };
     # todo Install?
   };
