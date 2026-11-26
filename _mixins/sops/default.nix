@@ -23,4 +23,8 @@ in
       "${hostname}/gog-username" = { };
     };
   };
+  # Stay active after decrypting the secrets.
+  # Otherwise, every restart of a unit that requires sops-nix runs it again and can hit the start limit.
+  # The sops-nix activation script restarts the unit, so secrets are still decrypted again on each switch.
+  systemd.user.services.sops-nix.Service.RemainAfterExit = true;
 }
