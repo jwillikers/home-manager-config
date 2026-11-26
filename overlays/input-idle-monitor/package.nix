@@ -10,8 +10,8 @@ let
   python = python3.withPackages (ps: [ ps.evdev ]);
 in
 stdenvNoCC.mkDerivation {
-  pname = "stretchly-idle-reset";
-  version = "0.2.0";
+  pname = "input-idle-monitor";
+  version = "0.3.0";
 
   src = ./.;
 
@@ -30,23 +30,23 @@ stdenvNoCC.mkDerivation {
     ruff format --check
     ruff check
     pyright
-    python -m unittest --verbose test_stretchly_idle_reset
+    python -m unittest --verbose test_input_idle_monitor
     runHook postCheck
   '';
 
   installPhase = ''
     runHook preInstall
-    install -D --mode=0755 stretchly_idle_reset.py $out/bin/stretchly-idle-reset
-    substituteInPlace $out/bin/stretchly-idle-reset \
+    install -D --mode=0755 input_idle_monitor.py $out/bin/input-idle-monitor
+    substituteInPlace $out/bin/input-idle-monitor \
       --replace-fail "#!/usr/bin/env python3" "#!${python.interpreter}"
     runHook postInstall
   '';
 
   meta = {
-    description = "Reset Stretchly breaks after returning from a long period without any input, gamepads included";
+    description = "Report when the user goes away and returns, counting input from every device, gamepads included";
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ jwillikers ];
-    mainProgram = "stretchly-idle-reset";
+    mainProgram = "input-idle-monitor";
   };
 }

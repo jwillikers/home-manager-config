@@ -112,48 +112,24 @@
         WantedBy = [ "xdg-desktop-autostart.target" ];
       };
     };
-    # Stretchly's natural breaks are disabled in its configs.
-    # They don't count gamepad input on the Steam Deck, and Stretchly's idle detection gets stuck on Hyprland,
-    # leaving breaks paused as if idle while the computer is in use.
-    # Instead, reset breaks when returning after 15 minutes without any input, gamepads included.
-    # The threshold must be longer than the longest break, 10 minutes on the Steam Deck, so that it never ends a break.
-    # This requires the user to be in the input group.
-    "stretchly-idle-reset" = {
-      Unit = {
-        Description = "Reset Stretchly breaks after returning from being idle";
-        After = [
-          "stretchly.service"
-        ];
-        BindsTo = [
-          "stretchly.service"
-        ];
-        Requires = [
-          "stretchly.service"
-        ];
-      };
-
-      Service = {
-        Type = "exec";
-        ExecStart = "${lib.getExe pkgs.stretchly-idle-reset} --threshold 900 -- ${lib.getExe pkgs.stretchly} reset";
-        Restart = "on-failure";
-        RestartSec = 5;
-        Slice = "background.slice";
-      };
-
-      Install = {
-        WantedBy = [
-          "stretchly.service"
-        ];
-      };
-    };
     # Pause breaks during online meetings and while watching videos.
     # Meetings are detected by microphone use and videos by requests to keep the screen on.
     # Games are ignored so that breaks continue while gaming.
     # On the Steam Deck, also pause breaks while playing games locally with friends,
     # i.e. while at least two gamepads are connected, not counting the Steam Deck's own controls.
+    #
+    # Also pause breaks while away, and reset them on returning.
+    # Otherwise, breaks keep opening while nobody is around, which wakes the screen and keeps it from locking.
+    # Stretchly's natural breaks are disabled in its configs, since its idle detection doesn't work for this.
+    # It doesn't count gamepad input on the Steam Deck, and it gets stuck on Hyprland,
+    # leaving breaks paused as if idle while the computer is in use.
+    # Instead, input-idle-monitor watches every input device, gamepads included, which requires the input group.
+    # The idle threshold must be longer than the longest break, since pausing ends a break in progress,
+    # and shorter than the time between breaks, so that the next break never opens while away.
+    # Breaks last up to 4 minutes, 16 minutes apart, or 10 minutes, 25 minutes apart, on the Steam Deck.
     "stretchly-inhibit" = {
       Unit = {
-        Description = "Pause Stretchly breaks during online meetings and while watching videos";
+        Description = "Pause Stretchly breaks during online meetings, while watching videos, and while away";
         After = [
           "pipewire-pulse.service"
           "stretchly.service"
@@ -174,8 +150,17 @@
       Service = {
         Type = "notify";
         ExecStart =
-          lib.getExe pkgs.stretchly-inhibit
-          + lib.optionalString (hostname == "steamdeck") " --pause-for-gamepads 2";
+          let
+            idleThreshold = if hostname == "steamdeck" then 900 else 600;
+          in
+          lib.concatStringsSep " " (
+            [
+              (lib.getExe pkgs.stretchly-inhibit)
+              "--idle-monitor"
+              (lib.escapeShellArg "${lib.getExe pkgs.input-idle-monitor} --threshold ${toString idleThreshold}")
+            ]
+            ++ lib.optionals (hostname == "steamdeck") [ "--pause-for-gamepads 2" ]
+          );
         NotifyAccess = "all";
         Restart = "always";
         Slice = "background.slice";

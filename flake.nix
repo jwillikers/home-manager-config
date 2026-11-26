@@ -221,7 +221,7 @@
             checkPkgs = devPkgs.extend overlays.packages;
           in
           devPkgs.lib.optionalAttrs devPkgs.stdenv.hostPlatform.isLinux {
-            inherit (checkPkgs) stretchly-hyprland stretchly-idle-reset stretchly-inhibit;
+            inherit (checkPkgs) input-idle-monitor stretchly-hyprland stretchly-inhibit;
           };
         devShells.default = devPkgs.mkShell {
           inherit (pre-commit) shellHook;
