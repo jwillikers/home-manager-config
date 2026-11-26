@@ -1,6 +1,7 @@
 """Unit tests for stretchly-inhibit."""
 
 import os
+import queue
 import tempfile
 import unittest
 from typing import Any
@@ -476,6 +477,73 @@ class InhibitorTest(unittest.TestCase):
         self.streams.append(stream(binary="zoom"))
         self.inhibitor.update()
         self.assertEqual(self.commands, [])
+
+    def go_idle(self, idle: bool) -> None:
+        self.inhibitor.set_idle(idle)
+        self.inhibitor.update()
+
+    def test_pauses_while_idle_and_resets_on_return(self) -> None:
+        self.inhibitor.update()
+        self.go_idle(True)
+        self.go_idle(False)
+        self.assertEqual(
+            self.commands,
+            [["stretchly", "resume"], ["stretchly", "pause"], ["stretchly", "reset"]],
+        )
+
+    def test_resumes_after_returning_once(self) -> None:
+        self.go_idle(True)
+        self.go_idle(False)
+        self.play_video()
+        self.inhibitor.update()
+        self.inhibitions.uninhibit_called(1)
+        self.inhibitor.update()
+        self.assertEqual(
+            self.commands,
+            [["stretchly", "pause"], ["stretchly", "reset"], ["stretchly", "pause"], ["stretchly", "resume"]],
+        )
+
+    def test_returning_during_a_video_resets_once_the_video_ends(self) -> None:
+        self.play_video()
+        self.inhibitor.update()
+        self.go_idle(True)
+        self.go_idle(False)
+        self.inhibitions.uninhibit_called(1)
+        self.inhibitor.update()
+        self.assertEqual(self.commands, [["stretchly", "pause"], ["stretchly", "reset"]])
+
+    def test_stays_paused_when_a_video_ends_while_idle(self) -> None:
+        self.play_video()
+        self.inhibitor.update()
+        self.go_idle(True)
+        self.inhibitions.uninhibit_called(1)
+        self.inhibitor.update()
+        self.assertEqual(self.commands, [["stretchly", "pause"]])
+
+
+class WatchIdleTest(unittest.TestCase):
+    def test_reports_idleness_until_the_monitor_exits(self) -> None:
+        inhibitor = si.Inhibitor(idle_monitor=["sh", "-c", "echo idle; echo nonsense; echo active; exit 3"])
+        events: si.Events = queue.Queue()
+        with self.assertLogs(si.log, "WARNING") as logs:
+            inhibitor.watch_idle(events)
+        self.assertIn("nonsense", logs.output[0])
+        self.assertEqual(
+            list(events.queue),
+            [si.IdleChanged(True), si.IdleChanged(False), "The idle monitor exited with status 3"],
+        )
+
+
+class ParseArgsTest(unittest.TestCase):
+    def test_defaults(self) -> None:
+        args = si.parse_args([])
+        self.assertFalse(args.dry_run)
+        self.assertEqual(args.pause_for_gamepads, 0)
+        self.assertEqual(args.idle_monitor, [])
+
+    def test_idle_monitor_is_split_like_a_shell(self) -> None:
+        args = si.parse_args(["--idle-monitor", "/bin/input-idle-monitor --threshold '600'"])
+        self.assertEqual(args.idle_monitor, ["/bin/input-idle-monitor", "--threshold", "600"])
 
 
 if __name__ == "__main__":
