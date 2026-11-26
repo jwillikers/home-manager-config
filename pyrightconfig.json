@@ -1,18 +1,18 @@
 {
   "executionEnvironments": [
     {
-      "root": "overlays/stretchly-idle-reset"
+      "root": "overlays/input-idle-monitor"
     },
     {
       "root": "overlays/stretchly-inhibit"
     }
   ],
   "include": [
-    "overlays/stretchly-idle-reset",
+    "overlays/input-idle-monitor",
     "overlays/stretchly-inhibit"
   ],
   "strict": [
-    "overlays/stretchly-idle-reset",
+    "overlays/input-idle-monitor",
     "overlays/stretchly-inhibit"
   ],
   "stubPath": "overlays/stretchly-inhibit/typings"

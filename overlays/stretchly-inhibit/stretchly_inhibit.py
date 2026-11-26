@@ -34,6 +34,14 @@ Chromium keeps the screen on while anything captures a tab, such as an extension
 which happens repeatedly for some extensions without any video playing.
 Chromium keeps the screen on for videos with a different reason, so those still pause breaks.
 
+Optionally, breaks are also paused while the user is away, according to an idle monitor command.
+The command prints a line with "idle" once the user has been away long enough and "active" when they return.
+While nobody is around, breaks would keep opening windows,
+which wakes the screen and restarts the desktop's idle timers so the screen never stays off or locks.
+When the user returns, breaks are reset instead of resumed, since being away counts as a break.
+The idle time should be longer than the longest break, since pausing ends a break that's in progress,
+and shorter than the time between breaks, so that the next break doesn't open while the user is away.
+
 Optionally, breaks are also paused while enough gamepads are connected, such as when playing games locally with friends.
 Gamepads are input devices with the south face button, i.e. A on an Xbox controller.
 Each controller counts once, even when it has separate input devices for its motion sensors or touchpad.
@@ -47,6 +55,7 @@ import logging
 import os
 import queue
 import re
+import shlex
 import socket
 import struct
 import subprocess
@@ -67,7 +76,17 @@ log = logging.getLogger("stretchly-inhibit")
 PulseObject = dict[str, Any]
 
 # A thread watching for events puts None in the queue when something changes and an error message when it fails.
-Events = queue.Queue[str | None]
+
+
+@dataclass
+class IdleChanged:
+    """The idle monitor reported that the user went away or returned."""
+
+    idle: bool
+
+
+# Events are errors, changes in idleness, or None for anything else that might change whether to pause.
+Events = queue.Queue[str | IdleChanged | None]
 
 # Environment variables that game launchers set for the games that they run.
 # Steam sets SteamAppId and SteamGameId for native and Proton games, and Proton adds STEAM_COMPAT_APP_ID.
@@ -438,6 +457,13 @@ class ScreenSaverMonitor:
         return False
 
 
+def join(items: Sequence[str]) -> str:
+    """Join items into an English list, like "a, b, and c"."""
+    if len(items) <= 2:
+        return " and ".join(items)
+    return ", ".join(items[:-1]) + ", and " + items[-1]
+
+
 def notify(message: str) -> None:
     """Send a message to systemd when running as a notify service."""
     address = os.environ.get("NOTIFY_SOCKET")
@@ -460,6 +486,7 @@ class Inhibitor:
         inhibitions: ScreenInhibitions | None = None,
         gamepad_threshold: int = 0,
         list_gamepads: Callable[[], list[Gamepad]] = gamepads,
+        idle_monitor: Sequence[str] = (),
     ) -> None:
         self.dry_run = dry_run
         self.proc = proc
@@ -469,7 +496,17 @@ class Inhibitor:
         # Pause breaks while at least this many gamepads are connected, or never when zero
         self.gamepad_threshold = gamepad_threshold
         self.list_gamepads = list_gamepads
+        # Command reporting when the user goes away and returns, or nothing to never pause for that
+        self.idle_monitor = idle_monitor
+        self.idle = False
+        # Whether the user has been away since breaks were last resumed
+        self.rested = False
         self.paused: bool | None = None
+
+    def set_idle(self, idle: bool) -> None:
+        self.idle = idle
+        if idle:
+            self.rested = True
 
     def stretchly(self, action: str) -> None:
         if self.dry_run:
@@ -478,12 +515,12 @@ class Inhibitor:
         self.run_command(["stretchly", action], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
     def update(self) -> None:
-        """Pause or resume Stretchly when microphone use, video playback, or local multiplayer starts or stops."""
+        """Pause or resume Stretchly when meetings, videos, local multiplayer, or being away start or stop."""
         streams = microphone_streams(self.list("source-outputs"), self.list("sources"), self.proc)
         videos = self.inhibitions.videos()
         connected = self.list_gamepads() if self.gamepad_threshold > 0 else []
         multiplayer = self.gamepad_threshold > 0 and len(connected) >= self.gamepad_threshold
-        pause = bool(streams or videos or multiplayer)
+        pause = bool(streams or videos or multiplayer or self.idle)
         if pause == self.paused:
             return
         if pause:
@@ -496,17 +533,25 @@ class Inhibitor:
                 causes.append(
                     f"{len(connected)} gamepads are connected: " + ", ".join(gamepad.name for gamepad in connected)
                 )
+            if self.idle:
+                causes.append("nobody is using the computer")
             log.info("Pausing Stretchly breaks since %s.", " and ".join(causes))
             self.stretchly("pause")
         else:
-            reasons = "no microphones are in use and no videos are playing"
+            reasons = ["no microphones are in use", "no videos are playing"]
             if self.gamepad_threshold > 0:
-                reasons = (
-                    "no microphones are in use, no videos are playing, "
-                    f"and fewer than {self.gamepad_threshold} gamepads are connected"
-                )
-            log.info("Resuming Stretchly breaks since %s.", reasons)
-            self.stretchly("resume")
+                reasons.append(f"fewer than {self.gamepad_threshold} gamepads are connected")
+            if self.idle_monitor:
+                reasons.append("someone is using the computer")
+            listed = join(reasons)
+            if self.rested:
+                # Resetting breaks also resumes them.
+                log.info("Resetting Stretchly breaks after being away since %s.", listed)
+                self.stretchly("reset")
+                self.rested = False
+            else:
+                log.info("Resuming Stretchly breaks since %s.", listed)
+                self.stretchly("resume")
         self.paused = pause
 
     def watch_pulseaudio(self, events: Events) -> None:
@@ -554,22 +599,39 @@ class Inhibitor:
                 previous = current
                 events.put(None)
 
+    def watch_idle(self, events: Events) -> None:
+        """Follow the idle monitor's reports of the user going away and returning."""
+        with subprocess.Popen(self.idle_monitor, stdout=subprocess.PIPE, text=True, bufsize=1) as monitor:
+            assert monitor.stdout is not None
+            for line in monitor.stdout:
+                state = line.strip()
+                if state in ("idle", "active"):
+                    events.put(IdleChanged(state == "idle"))
+                else:
+                    log.warning("Ignoring unexpected output from the idle monitor: %s", state)
+        events.put(f"The idle monitor exited with status {monitor.returncode}")
+
     def run(self) -> int:
         events: Events = queue.Queue()
         connection, monitor = self.open_screensaver_monitor()
         threading.Thread(target=self.watch_screensaver, args=(events, connection, monitor), daemon=True).start()
         threading.Thread(target=self.watch_pulseaudio, args=(events,), daemon=True).start()
-        status = "Monitoring microphone use and video playback"
+        monitored = ["microphone use", "video playback"]
         if self.gamepad_threshold > 0:
             threading.Thread(target=self.watch_gamepads, args=(events,), daemon=True).start()
-            status = "Monitoring microphone use, video playback, and gamepads"
+            monitored.append("gamepads")
+        if self.idle_monitor:
+            threading.Thread(target=self.watch_idle, args=(events,), daemon=True).start()
+            monitored.append("idleness")
         self.update()
-        notify(f"READY=1\nSTATUS={status}")
+        notify(f"READY=1\nSTATUS=Monitoring {join(monitored)}")
         while True:
-            error = events.get()
-            if error is not None:
-                log.error(error)
+            event = events.get()
+            if isinstance(event, str):
+                log.error(event)
                 return 1
+            if isinstance(event, IdleChanged):
+                self.set_idle(event.idle)
             self.update()
 
 
@@ -587,6 +649,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         metavar="COUNT",
         help="Pause breaks while at least this many gamepads are connected, or never when 0 (default: %(default)s)",
     )
+    parser.add_argument(
+        "--idle-monitor",
+        type=shlex.split,
+        default=[],
+        metavar="COMMAND",
+        help='Pause breaks while this command reports "idle", and reset them once it reports "active"',
+    )
     return parser.parse_args(argv)
 
 
@@ -596,7 +665,7 @@ def main() -> None:
         level=os.environ.get("LOG_LEVEL", "INFO"),
         format="%(levelname)s: %(message)s",
     )
-    sys.exit(Inhibitor(args.dry_run, gamepad_threshold=args.pause_for_gamepads).run())
+    sys.exit(Inhibitor(args.dry_run, gamepad_threshold=args.pause_for_gamepads, idle_monitor=args.idle_monitor).run())
 
 
 if __name__ == "__main__":

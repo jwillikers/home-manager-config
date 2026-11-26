@@ -15,7 +15,7 @@ in
 # KDE doesn't count gamepad input as activity, so the screen could dim or lock while playing with a controller.
 # Native games using SDL keep the screen on themselves, but Proton games and Steam's Big Picture mode might not.
 # This originally kept Stretchly's natural breaks from treating gamepad play as idle time.
-# Natural breaks are now disabled, and stretchly-idle-reset handles idle time instead, so this no longer affects Stretchly.
+# Natural breaks are now disabled, and input-idle-monitor tracks idle time for Stretchly instead, so this no longer affects it.
 # todo Check whether Proton games and Steam keep the screen on themselves.
 # stretchly-inhibit logs every request to keep the screen on, including those from games.
 # If they do, this is only needed when using a controller outside of games.

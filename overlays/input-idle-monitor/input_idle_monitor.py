@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Reset Stretchly breaks after returning from a long period without any input.
+"""Report when the user goes away and returns, counting input from every device, gamepads included.
 
-Stretchly's natural breaks rely on the desktop's idle time.
-Desktops don't count gamepad input as activity,
-so natural breaks consider the user idle while playing games with a controller.
-This watches every input device directly, gamepads included,
-and resets Stretchly when input resumes after the idle threshold.
-It never pauses Stretchly, so breaks still happen during long play sessions.
+This prints "idle" once there hasn't been any input for the idle threshold, and "active" at the next input.
+Each line is flushed right away, so another program can follow the output, like stretchly-inhibit does.
+Time spent suspended counts as idle time.
 
-Choose an idle threshold longer than the longest break.
-Otherwise, input after sitting through a break could reset Stretchly and end the break.
+Desktops don't count gamepad input as activity, so they consider the user idle while playing games with a controller.
+Their idle timers also restart when a window opens or takes focus, even when nobody is around,
+so windows which open by themselves, like Stretchly's breaks, keep the user from ever counting as idle.
+This watches every input device directly instead.
 
 While Steam is running, it reads the Steam Deck's built-in controls directly from the raw HID device,
 so they never produce events on any input device.
@@ -24,16 +23,16 @@ import asyncio
 import glob
 import logging
 import os
-import shlex
 import struct
+import sys
 import time
 from collections.abc import AsyncIterator, Iterator, Sequence
-from typing import cast
+from typing import TextIO, cast
 
 import evdev
 from evdev import ecodes
 
-log = logging.getLogger("stretchly-idle-reset")
+log = logging.getLogger("input-idle-monitor")
 
 # How far an absolute axis must move, as a fraction of its range, to count as activity.
 # This filters out analog stick drift and sensor noise.
@@ -41,6 +40,9 @@ ABS_ACTIVITY_FRACTION = 0.1
 
 # How often to look for new input devices, in seconds.
 RESCAN_INTERVAL = 5
+
+# How often to check whether the idle threshold has passed, in seconds.
+IDLE_CHECK_INTERVAL = 1
 
 # Steam Deck controller state reports from Valve's raw HID devices.
 # The layout matches the Linux kernel's hid-steam driver.
@@ -104,39 +106,33 @@ def now() -> float:
     return time.clock_gettime(time.CLOCK_BOOTTIME)
 
 
-class IdleResetter:
-    def __init__(self, threshold: float, command: list[str], dry_run: bool) -> None:
+class IdleMonitor:
+    def __init__(self, threshold: float, output: TextIO = sys.stdout) -> None:
         self.threshold = threshold
-        self.command = command
-        self.dry_run = dry_run
+        self.output = output
         self.last_activity = now()
+        self.idle = False
         # Watched devices, keyed by path, as input devices or the names of raw HID devices
         self.devices: dict[str, evdev.InputDevice[str] | str] = {}
 
-    async def activity(self, name: str) -> None:
-        current = now()
-        idle = current - self.last_activity
-        self.last_activity = current
-        if idle >= self.threshold:
-            log.info(
-                "Input from %s after %.0f seconds idle, resetting breaks",
-                name,
-                idle,
-            )
-            await self.reset()
+    def report(self, state: str) -> None:
+        print(state, file=self.output, flush=True)
 
-    async def reset(self) -> None:
-        if self.dry_run:
-            log.info("Dry run, not running: %s", shlex.join(self.command))
-            return
-        try:
-            process = await asyncio.create_subprocess_exec(*self.command)
-            return_code = await process.wait()
-        except OSError as error:
-            log.error("Unable to run %s: %s", shlex.join(self.command), error)
-            return
-        if return_code != 0:
-            log.warning("%s exited with status %d", shlex.join(self.command), return_code)
+    def check_idle(self) -> None:
+        idle = now() - self.last_activity
+        if not self.idle and idle >= self.threshold:
+            log.info("No input for %.0f seconds, idle", idle)
+            self.idle = True
+            self.report("idle")
+
+    async def activity(self, name: str) -> None:
+        # The threshold may have passed since the last check, such as while suspended.
+        self.check_idle()
+        self.last_activity = now()
+        if self.idle:
+            log.info("Input from %s, active", name)
+            self.idle = False
+            self.report("active")
 
     def is_activity(
         self, device: evdev.InputDevice[str], event: evdev.InputEvent, abs_baselines: dict[int, int]
@@ -245,7 +241,13 @@ class IdleResetter:
             asyncio.get_running_loop().create_task(self.watch(device))
         return unreadable
 
+    async def watch_idle(self) -> None:
+        while True:
+            self.check_idle()
+            await asyncio.sleep(IDLE_CHECK_INTERVAL)
+
     async def run(self) -> None:
+        asyncio.get_running_loop().create_task(self.watch_idle())
         warned = False
         while True:
             unreadable = self.scan()
@@ -261,39 +263,20 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--threshold",
         type=float,
         default=900,
-        help="Seconds without input before the next input resets breaks (default: %(default)s)",
+        help="Seconds without input before the user counts as idle (default: %(default)s)",
     )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Log when breaks would be reset instead of running the command",
-    )
-    parser.add_argument(
-        "command",
-        nargs=argparse.REMAINDER,
-        help="Command that resets breaks (default: stretchly reset)",
-    )
-    args = parser.parse_args(argv)
-    command = args.command
-    if command and command[0] == "--":
-        command = command[1:]
-    args.command = command or ["stretchly", "reset"]
-    return args
+    return parser.parse_args(argv)
 
 
 def main() -> None:
     args = parse_args()
-    command = args.command
+    # Log to standard error, since standard output is for reporting idleness.
     logging.basicConfig(
         level=os.environ.get("LOG_LEVEL", "INFO"),
         format="%(levelname)s: %(message)s",
     )
-    log.info(
-        "Resetting breaks after %.0f seconds without input with: %s",
-        args.threshold,
-        shlex.join(command),
-    )
-    asyncio.run(IdleResetter(args.threshold, command, args.dry_run).run())
+    log.info("Reporting idle after %.0f seconds without input", args.threshold)
+    asyncio.run(IdleMonitor(args.threshold).run())
 
 
 if __name__ == "__main__":
