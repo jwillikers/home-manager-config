@@ -36,16 +36,16 @@
           Requires = [
             "graphical-session.target"
             "ssh-agent.service"
-          ]
-          ++ lib.optionals (desktop == "kde") [
-            "plasma-kwallet-pam.service"
-          ]
-          ++ lib.optionals (desktop == "hyprland") [
-            "plasma-kwallet-pam.service"
           ];
-          Wants = lib.mkIf (desktop == "kde") [
-            "plasma-polkit-agent.service"
-          ];
+          # Unlocking kwallet only works once per login, so don't fail to add the SSH key when it can't run again.
+          Wants =
+            lib.optionals (desktop == "kde") [
+              "plasma-kwallet-pam.service"
+              "plasma-polkit-agent.service"
+            ]
+            ++ lib.optionals (desktop == "hyprland") [
+              "plasma-kwallet-pam.service"
+            ];
         };
 
         Service = {

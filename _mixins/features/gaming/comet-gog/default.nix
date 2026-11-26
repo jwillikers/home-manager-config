@@ -43,12 +43,16 @@ lib.mkIf (lib.elem hostname installOn) {
           "sops-nix.service"
         ];
         Requires = [ "sops-nix.service" ];
+        # Give up after repeated failures, such as when Lutris has no GOG tokens, instead of restarting forever.
+        StartLimitIntervalSec = "5min";
+        StartLimitBurst = 5;
       };
 
       Service = {
         Type = "notify";
         ExecStart = "${comet-service-script}/bin/comet.sh";
-        Restart = "always";
+        Restart = "on-failure";
+        RestartSec = "30s";
         NotifyAccess = "all";
         Slice = "background.slice";
       };
