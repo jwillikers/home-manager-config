@@ -401,6 +401,33 @@ Be sure to enable flake support when prompted.
 ----
 curl -sSf -L https://install.lix.systems/lix | sh -s -- install
 ----
++
+[IMPORTANT]
+====
+On SELinux-enabled systems, the Nix daemon's units have to be relabeled before systemd can load them.
+Store paths are created as `default_t`, which systemd, running as `init_t`, isn't allowed to read.
+The units are reported as `bad`, the socket fails with `Result: resources`, and every command which needs the daemon fails.
+
+[,sh]
+----
+error: could not connect to any lix socket (tried /nix/var/nix/daemon-socket/socket)
+----
+
+The policy already maps this path to the right label, so `restorecon` is all it takes.
+This has to be run again after every Lix update, since each one creates new store paths.
+
+[,sh]
+----
+sudo restorecon -R -v /nix/store/*-lix-*/lib/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl start nix-daemon.socket
+----
+
+Don't try to avoid the relabeling by aliasing `/nix` to `/usr`.
+The alias is applied before the context is matched, so it stops the policy's own
+`/nix/store/[^/]+/lib/systemd/system(/.*)?` rule from ever matching
+and labels the units `lib_t` rather than `systemd_unit_file_t`.
+====
 
 . Create the `ccache` directory for Nix.
 I configure Nix to use `ccache` to cache compiler outputs to speed up rebuilds.
