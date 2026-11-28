@@ -71,9 +71,14 @@ in
       # Preserve the handlers that were already registered outside Home Manager.
       "x-scheme-handler/claude-cli" = [ "claude-code-url-handler.desktop" ];
       "x-scheme-handler/heroic" = [ "com.heroicgameslauncher.hgl.desktop" ];
+      # Claude Desktop (in the 'ubuntu' distrobox) registers this itself on launch,
+      # clobbering this file. Declaring it means the app finds itself already the
+      # default and leaves the file alone.
+      "x-scheme-handler/claude" = [ "com.anthropic.Claude.desktop" ];
     };
     associations.added = {
       "x-scheme-handler/claude-cli" = [ "claude-code-url-handler.desktop" ];
+      "x-scheme-handler/claude" = [ "com.anthropic.Claude.desktop" ];
     };
   };
 
