@@ -66,7 +66,9 @@
         ++ lib.optionals (desktop == "hyprland") [
           "waybar.service"
         ]
-        ++ lib.optionals (hostname == "steamdeck") [
+        # Plasma reaches graphical-session.target before it starts the Wayland compositor,
+        # so ordering after that alone races kwin and the first start dies without a display.
+        ++ lib.optionals (desktop == "kde") [
           "plasma-workspace.target"
         ];
         BindsTo = [
