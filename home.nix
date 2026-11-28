@@ -294,7 +294,6 @@ in
         calibre # EBook manager
         ccache # Compiler cache
         chromaprint # Utility to calculate AcoustID audio fingerprint
-        chromium # Web browser
         claude-code # Claude Code CLI
         clipse # Clipboard manager
         deadnix # Nix dead code finder
