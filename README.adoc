@@ -424,11 +424,13 @@ avc:  denied  { execute } for  pid=85330 comm="(nix-daemon)" name="nix" tclass=f
 ----
 
 Querying the closure needs no daemon, since root uses the local store directly.
+Give `nix-store` its full path, as the Nix profile isn't on root's `PATH`.
 This has to be run again after every Lix update, since each one creates new store paths.
 
 [,sh]
 ----
-sudo nix-store --query --requisites /nix/var/nix/profiles/default | sudo xargs restorecon -R -v
+sudo /nix/var/nix/profiles/default/bin/nix-store --query --requisites \
+  /nix/var/nix/profiles/default | sudo xargs restorecon -R -v
 sudo restorecon -R -v /nix/var/nix/daemon-socket
 sudo systemctl daemon-reload
 sudo systemctl restart nix-daemon.socket
