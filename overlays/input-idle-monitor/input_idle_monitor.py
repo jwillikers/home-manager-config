@@ -14,7 +14,9 @@ While Steam is running, it reads the Steam Deck's built-in controls directly fro
 so they never produce events on any input device.
 To catch them, this also reads the controller state reports from Valve's raw HID devices.
 
-Requires read access to /dev/input/event*, i.e. membership in the input group.
+Requires read and write access to /dev/input/event*, i.e. membership in the input group.
+Without it, no input is ever seen and the user is reported idle once the threshold passes,
+so this warns at startup when none of the input devices can be read.
 On the Steam Deck, the logged-in user can read the controller's /dev/hidraw* devices.
 """
 
@@ -41,6 +43,9 @@ ABS_ACTIVITY_FRACTION = 0.1
 # How often to look for new input devices, in seconds.
 RESCAN_INTERVAL = 5
 
+# Where the kernel exposes input event devices, whether or not this user can read them.
+INPUT_DEVICE_GLOB = "/dev/input/event*"
+
 # How often to check whether the idle threshold has passed, in seconds.
 IDLE_CHECK_INTERVAL = 1
 
@@ -55,6 +60,11 @@ DECK_AXES_FORMAT = "<HHhhhh"
 DECK_AXES_OFFSET = 44
 DECK_AXIS_RANGES = (32767, 32767, 65535, 65535, 65535, 65535)
 DECK_REPORT_MIN_SIZE = DECK_AXES_OFFSET + struct.calcsize(DECK_AXES_FORMAT)
+
+
+def input_device_nodes(pattern: str = INPUT_DEVICE_GLOB) -> list[str]:
+    """List every input event device node, including the ones this user can't read."""
+    return sorted(glob.glob(pattern))
 
 
 def valve_hidraw_devices(sysfs: str = "/sys/class/hidraw") -> Iterator[tuple[str, str]]:
@@ -114,6 +124,8 @@ class IdleMonitor:
         self.idle = False
         # Watched devices, keyed by path, as input devices or the names of raw HID devices
         self.devices: dict[str, evdev.InputDevice[str] | str] = {}
+        # Whether the warning about unreadable input devices has already been logged
+        self.warned = False
 
     def report(self, state: str) -> None:
         print(state, file=self.output, flush=True)
@@ -214,22 +226,25 @@ class IdleMonitor:
             self.devices.pop(path, None)
             log.info("Stopped watching %s (%s)", path, name)
 
+    def watching_input_devices(self) -> bool:
+        """Whether any /dev/input device is being watched, rather than only raw HID devices."""
+        return any(not isinstance(device, str) for device in self.devices.values())
+
     def scan(self) -> int:
-        unreadable = 0
+        """Start watching any new devices and return how many input device nodes can't be read."""
         for path, name in valve_hidraw_devices():
             if path not in self.devices:
                 self.devices[path] = name
                 asyncio.get_running_loop().create_task(self.watch_hidraw(path, name))
+        # list_devices only returns the device nodes which this user can read and write,
+        # so the ones missing from it are the ones which require the input group.
         # The type hint of the directory parameter of list_devices is incomplete.
-        paths: list[str] = evdev.list_devices()  # pyright: ignore[reportUnknownMemberType]
-        for path in paths:
+        readable: list[str] = evdev.list_devices()  # pyright: ignore[reportUnknownMemberType]
+        for path in readable:
             if path in self.devices:
                 continue
             try:
                 device = evdev.InputDevice(path)
-            except PermissionError:
-                unreadable += 1
-                continue
             except OSError:
                 continue
             # Motion sensors report constantly, even when the device is sitting still.
@@ -239,21 +254,32 @@ class IdleMonitor:
             self.devices[path] = device
             log.info("Watching %s (%s)", path, device.name)
             asyncio.get_running_loop().create_task(self.watch(device))
-        return unreadable
+        return len(set(input_device_nodes()) - set(readable))
 
     async def watch_idle(self) -> None:
         while True:
             self.check_idle()
             await asyncio.sleep(IDLE_CHECK_INTERVAL)
 
+    def warn_if_unreadable(self, unreadable: int) -> None:
+        """Warn once when input devices exist but none of them can be read.
+
+        Raw HID devices don't need the input group, so watching only those still leaves
+        keyboards, mice, and gamepads unseen, which makes the user look permanently idle.
+        """
+        if self.warned or not unreadable or self.watching_input_devices():
+            return
+        log.warning(
+            "Unable to read any of the %d input devices in %s. Is this user in the input group?",
+            unreadable,
+            INPUT_DEVICE_GLOB,
+        )
+        self.warned = True
+
     async def run(self) -> None:
         asyncio.get_running_loop().create_task(self.watch_idle())
-        warned = False
         while True:
-            unreadable = self.scan()
-            if unreadable and not self.devices and not warned:
-                log.warning("Unable to read any input devices. Is this user in the input group?")
-                warned = True
+            self.warn_if_unreadable(self.scan())
             await asyncio.sleep(RESCAN_INTERVAL)
 
 

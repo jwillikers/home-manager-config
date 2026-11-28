@@ -11,7 +11,7 @@ let
 in
 stdenvNoCC.mkDerivation {
   pname = "input-idle-monitor";
-  version = "0.3.0";
+  version = "0.3.1";
 
   src = ./.;
 
@@ -44,6 +44,12 @@ stdenvNoCC.mkDerivation {
 
   meta = {
     description = "Report when the user goes away and returns, counting input from every device, gamepads included";
+    longDescription = ''
+      Reports when the user goes away and returns, counting input from every device, gamepads included.
+
+      Requires read and write access to /dev/input/event*, i.e. membership in the input group.
+      Without it, no input is ever seen and the user is reported idle once the threshold passes.
+    '';
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
     maintainers = with lib.maintainers; [ jwillikers ];

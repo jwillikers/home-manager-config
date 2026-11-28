@@ -23,11 +23,19 @@ def abs_info(minimum: int, maximum: int) -> AbsInfo:
 class FakeDevice:
     name = "Fake Gamepad"
 
-    def __init__(self, axes: dict[int, AbsInfo] | None = None) -> None:
+    def __init__(self, axes: dict[int, AbsInfo] | None = None, props: tuple[int, ...] = ()) -> None:
         self.axes = axes or {}
+        self.props = props
+        self.closed = False
 
     def absinfo(self, axis_num: int) -> AbsInfo:
         return self.axes[axis_num]
+
+    def input_props(self) -> tuple[int, ...]:
+        return self.props
+
+    def close(self) -> None:
+        self.closed = True
 
 
 def event(type_: int, code: int, value: int) -> InputEvent:
@@ -276,6 +284,116 @@ class WatchHidrawTest(unittest.TestCase):
             faulthandler.cancel_dump_traceback_later()
         self.assertEqual(activity, ["Fake Deck"])
         self.assertNotIn(fifo, monitor.devices)
+
+
+class InputDeviceNodesTest(unittest.TestCase):
+    def test_lists_every_node_in_order(self) -> None:
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        for name in ("event1", "event0", "event10", "mouse0"):
+            with open(os.path.join(directory.name, name), "w") as file:
+                file.write("")
+        self.assertEqual(
+            iim.input_device_nodes(os.path.join(directory.name, "event*")),
+            [os.path.join(directory.name, name) for name in ("event0", "event1", "event10")],
+        )
+
+
+class ScanTest(unittest.TestCase):
+    """Checks which devices scan watches and how it counts the ones it can't read."""
+
+    def setUp(self) -> None:
+        self.monitor = iim.IdleMonitor(900, io.StringIO())
+        self.devices = {path: FakeDevice() for path in ("/dev/input/event0", "/dev/input/event1")}
+        self.patch(iim, "input_device_nodes", lambda: sorted(self.devices))
+        self.patch(iim, "valve_hidraw_devices", lambda: iter(()))
+        self.patch(iim.evdev, "InputDevice", self.open_device)
+        # Watching a fake device would read from it, and the tasks are never awaited anyway.
+        self.patch(self.monitor, "watch", mock.AsyncMock())
+        self.patch(self.monitor, "watch_hidraw", mock.AsyncMock())
+        # Keep log messages out of the test output.
+        self.patch(iim, "log", mock.Mock())
+
+    def patch(self, target: object, attribute: str, value: object) -> None:
+        patcher = mock.patch.object(target, attribute, value)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def open_device(self, path: str) -> FakeDevice:
+        return self.devices[path]
+
+    def scan(self, readable: list[str]) -> int:
+        self.patch(iim.evdev, "list_devices", lambda: readable)
+
+        async def run() -> int:
+            return self.monitor.scan()
+
+        return asyncio.run(run())
+
+    def test_watches_every_readable_device(self) -> None:
+        self.assertEqual(self.scan(sorted(self.devices)), 0)
+        self.assertEqual(sorted(self.monitor.devices), sorted(self.devices))
+
+    def test_counts_the_nodes_missing_from_the_readable_list(self) -> None:
+        # evdev.list_devices leaves out the nodes this user can't read and write,
+        # so an unreadable device never reaches evdev.InputDevice to raise PermissionError.
+        self.assertEqual(self.scan(["/dev/input/event1"]), 1)
+        self.assertEqual(list(self.monitor.devices), ["/dev/input/event1"])
+
+    def test_counts_every_node_when_none_are_readable(self) -> None:
+        self.assertEqual(self.scan([]), 2)
+        self.assertEqual(self.monitor.devices, {})
+
+    def test_counts_nothing_when_there_are_no_nodes_at_all(self) -> None:
+        self.devices.clear()
+        self.assertEqual(self.scan([]), 0)
+
+    def test_skips_motion_sensors(self) -> None:
+        self.devices["/dev/input/event0"] = FakeDevice(props=(ecodes.INPUT_PROP_ACCELEROMETER,))
+        self.assertEqual(self.scan(sorted(self.devices)), 0)
+        self.assertEqual(list(self.monitor.devices), ["/dev/input/event1"])
+        self.assertTrue(self.devices["/dev/input/event0"].closed, "closed")
+
+    def test_already_watched_devices_are_not_watched_twice(self) -> None:
+        self.scan(sorted(self.devices))
+        watched = dict(self.monitor.devices)
+        self.scan(sorted(self.devices))
+        self.assertEqual(self.monitor.devices, watched)
+
+
+class UnreadableWarningTest(unittest.TestCase):
+    """The warning pointing at the input group has to reach a user who is missing it."""
+
+    def setUp(self) -> None:
+        self.monitor = iim.IdleMonitor(900, io.StringIO())
+
+    def assert_warns(self, unreadable: int) -> None:
+        with self.assertLogs(iim.log, "WARNING") as logs:
+            self.monitor.warn_if_unreadable(unreadable)
+        self.assertIn("input group", logs.output[0])
+
+    def assert_silent(self, unreadable: int) -> None:
+        with self.assertNoLogs(iim.log, "WARNING"):
+            self.monitor.warn_if_unreadable(unreadable)
+
+    def test_warns_when_no_input_device_can_be_read(self) -> None:
+        self.assert_warns(18)
+
+    def test_warns_only_once(self) -> None:
+        self.assert_warns(18)
+        self.assert_silent(18)
+
+    def test_warns_when_only_raw_hid_devices_are_watched(self) -> None:
+        # The Steam Deck's controller is read over raw HID, which doesn't need the input group.
+        self.monitor.devices["/dev/hidraw0"] = "Valve Software Steam Controller"
+        self.assert_warns(18)
+
+    def test_stays_quiet_while_watching_an_input_device(self) -> None:
+        self.monitor.devices["/dev/input/event0"] = cast("evdev.InputDevice[str]", FakeDevice())
+        self.assert_silent(18)
+
+    def test_stays_quiet_when_every_node_is_readable(self) -> None:
+        self.assert_silent(0)
 
 
 class ParseArgsTest(unittest.TestCase):
