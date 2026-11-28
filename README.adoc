@@ -413,14 +413,33 @@ The units are reported as `bad`, the socket fails with `Result: resources`, and 
 error: could not connect to any lix socket (tried /nix/var/nix/daemon-socket/socket)
 ----
 
-The policy already maps this path to the right label, so `restorecon` is all it takes.
+The policy already maps these paths to the right labels, so `restorecon` is all it takes.
+Relabel the daemon's whole closure, not just its unit files.
+The daemon runs as `init_t`, so it also needs to execute `bin/nix` as `bin_t`
+and read its libraries as `lib_t`, and only relabeling the units leaves it failing like this.
+
+[,sh]
+----
+avc:  denied  { execute } for  pid=85330 comm="(nix-daemon)" name="nix" tclass=file
+----
+
+Querying the closure needs no daemon, since root uses the local store directly.
 This has to be run again after every Lix update, since each one creates new store paths.
 
 [,sh]
 ----
-sudo restorecon -R -v /nix/store/*-lix-*/lib/systemd/system/
+sudo nix-store --query --requisites /nix/var/nix/profiles/default | sudo xargs restorecon -R -v
+sudo restorecon -R -v /nix/var/nix/daemon-socket
 sudo systemctl daemon-reload
-sudo systemctl start nix-daemon.socket
+sudo systemctl restart nix-daemon.socket
+----
+
+Relabel the whole store instead if anything still comes up denied.
+It takes a few minutes.
+
+[,sh]
+----
+sudo restorecon -R /nix
 ----
 
 If the socket then fails to start with `Address already in use`, systemd was unable to remove the
