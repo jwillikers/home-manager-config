@@ -466,6 +466,18 @@ in
 
   targets.genericLinux.enable = true;
 
+  # genericLinux adds /usr/share/ubuntu, /usr/local/share, /usr/share, and /var/lib/snapd/desktop
+  # to XDG_DATA_DIRS. The Ubuntu and snap directories don't exist here, and the session already
+  # provides /usr/local/share and /usr/share, as trailing-slash paths, so prepending them again
+  # leaves every one of those directories in the list twice.
+  # dbus-broker then reads each service file twice and logs hundreds of
+  # "Ignoring duplicate name" warnings at login.
+  # Keep only the Nix profiles, which nothing outside of Home Manager adds.
+  xdg.systemDirs.data = lib.mkForce [
+    "\${NIX_STATE_DIR:-/nix/var/nix}/profiles/default/share"
+    "${config.home.profileDirectory}/share"
+  ];
+
   nixpkgs.overlays = [
     inputs.private-nixpkgs.overlays.private-nixpkgs
   ];
