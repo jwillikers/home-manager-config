@@ -10,8 +10,12 @@
     file = {
       "${config.home.homeDirectory}/.gnupg/gpg-agent.conf".text =
         ""
+        # KWallet no longer ships pinentry-kwallet, and nothing in nixpkgs provides it,
+        # so use the Qt pinentry program, which fits the rest of the Plasma desktop.
+        # A pinentry-program which doesn't exist fails every attempt to sign or decrypt
+        # with "gpg: signing failed: No pinentry", so this has to point at a real binary.
         + lib.optionalString (desktop == "kde") ''
-          pinentry-program ${lib.getBin pkgs.kdePackages.kwallet}/bin/pinentry-kwallet
+          pinentry-program ${lib.getBin pkgs.pinentry-qt}/bin/pinentry-qt
         ''
         # Nix pinentry program crashes on Hyprland.
         # Use already installed pinentry package.
