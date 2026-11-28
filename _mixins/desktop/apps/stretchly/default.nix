@@ -123,7 +123,10 @@
     # Stretchly's natural breaks are disabled in its configs, since its idle detection doesn't work for this.
     # It doesn't count gamepad input on the Steam Deck, and it gets stuck on Hyprland,
     # leaving breaks paused as if idle while the computer is in use.
-    # Instead, input-idle-monitor watches every input device, gamepads included, which requires the input group.
+    # Instead, input-idle-monitor watches every input device, gamepads included.
+    # That needs read and write access to /dev/input/event*, i.e. membership in the input group,
+    # which Home Manager can't grant, so the README covers it as a manual setup step.
+    # Without it, no input is ever seen and breaks stay paused as if nobody were around.
     # The idle threshold must be longer than the longest break, since pausing ends a break in progress,
     # and shorter than the time between breaks, so that the next break never opens while away.
     # Breaks last up to 4 minutes, 16 minutes apart, or 10 minutes, 25 minutes apart, on the Steam Deck.

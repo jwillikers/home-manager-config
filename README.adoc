@@ -163,16 +163,24 @@ cat ~/.ssh/id_ed25519.pub
 
 .. Upload that public SSH key to the Forgejo user's SSH keys.
 
-. Add your user to the `input` group to allow Stretchly to properly detect idle time.
+. Add your user to the `input` group so that Stretchly can detect idle time.
++
+[IMPORTANT]
+====
+This step is required on every machine which runs Stretchly.
+The `input-idle-monitor` service watches every input device directly, which needs read and write access to `/dev/input/event*`.
+Those devices belong to the `input` group, so a user outside that group sees no input at all.
+Once the idle threshold passes, 10 minutes by default and 15 on the Steam Deck, `stretchly-inhibit` concludes that nobody is around and pauses breaks for good.
+====
 
-.. On Fedora Atomic, the _input_ group does not exist in the `/etc/group`, so it must be added.
+.. On Fedora Atomic, the _input_ group does not exist in `/etc/group`, so it must be added.
 +
 [,sh]
 ----
 echo $(getent group input) | sudo tee --append /etc/group
 ----
 
-.. Add your user to the `input` group to allow Stretchly to properly detect idle time.
+.. Add your user to the `input` group.
 +
 [,sh]
 ----
@@ -180,6 +188,34 @@ sudo usermod --append --group input $USER
 ----
 
 .. Log out and back in for the group change to take effect.
+
+.. Verify that the group membership applied.
++
+[,sh]
+----
+id -nG | grep --word-regexp input
+----
+
+.. Verify that `input-idle-monitor` can read the input devices.
+There should be one `Watching /dev/input/event*` line per device.
++
+[,sh]
+----
+journalctl --user --unit stretchly-inhibit.service --grep Watching
+----
++
+[NOTE]
+====
+If breaks are stuck paused, check this service for the reason it last paused them.
+
+[,sh]
+----
+journalctl --user --unit stretchly-inhibit.service --since today
+----
+
+A warning about the `input` group means that this step is still pending.
+A `Pausing Stretchly breaks since nobody is using the computer.` line with no `Watching` lines before it means the same thing.
+====
 
 . Configure Nextcloud access for Ludusavi game save synchronization.
 .. Create Nextcloud accounts on https://cloud.jwillikers.io[my Nextcloud instance] for `jordan` and `deck`.
