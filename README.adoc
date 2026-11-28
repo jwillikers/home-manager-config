@@ -414,34 +414,29 @@ error: could not connect to any lix socket (tried /nix/var/nix/daemon-socket/soc
 ----
 
 The policy already maps these paths to the right labels, so `restorecon` is all it takes.
-Relabel the daemon's whole closure, not just its unit files.
+Relabeling only the unit files isn't enough, though.
 The daemon runs as `init_t`, so it also needs to execute `bin/nix` as `bin_t`
-and read its libraries as `lib_t`, and only relabeling the units leaves it failing like this.
+and read its libraries as `lib_t`.
+Stopping at the units leaves the socket binding while every connection to it is reset,
+and the denial for that looks like this.
 
 [,sh]
 ----
 avc:  denied  { execute } for  pid=85330 comm="(nix-daemon)" name="nix" tclass=file
 ----
 
-Querying the closure needs no daemon, since root uses the local store directly.
-Give `nix-store` its full path, as the Nix profile isn't on root's `PATH`.
-This has to be run again after every Lix update, since each one creates new store paths.
-
-[,sh]
-----
-sudo /nix/var/nix/profiles/default/bin/nix-store --query --requisites \
-  /nix/var/nix/profiles/default | sudo xargs restorecon -R -v
-sudo restorecon -R -v /nix/var/nix/daemon-socket
-sudo systemctl daemon-reload
-sudo systemctl restart nix-daemon.socket
-----
-
-Relabel the whole store instead if anything still comes up denied.
-It takes a few minutes.
+Relabel the whole store.
+Don't try to narrow this down to the daemon's closure with `nix-store --query --requisites`,
+because every Nix command needs the very daemon which is broken,
+even as root, so there's no way to ask Nix what to relabel.
+Relabeling takes a few minutes on a large store,
+and has to be run again after every Lix update, since each one creates new store paths.
 
 [,sh]
 ----
 sudo restorecon -R /nix
+sudo systemctl daemon-reload
+sudo systemctl restart nix-daemon.socket
 ----
 
 If the socket then fails to start with `Address already in use`, systemd was unable to remove the
