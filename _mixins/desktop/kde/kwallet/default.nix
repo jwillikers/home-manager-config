@@ -47,6 +47,18 @@
   # gpg-agent.pinentry.package = lib.mkForce pkgs.pinentry-gnome3;
   # gpg-agent.pinentry.package = lib.mkForce pkgs.pinentry-qt;
   # services.gpg-agent.pinentry.package = lib.mkIf (desktop == "hyprland") pkgs.runCommandLocal "empty" { } "mkdir $out";
+  # pam_kwallet_init hands the login credentials to kwalletd over a socket that only works once per login.
+  # Plasma's own unit is Type=simple with no RemainAfterExit, so it falls back to inactive once the handoff
+  # is done and runs again whenever something wants it, such as ksshaskpass restarting during a
+  # home-manager switch, which always fails with "Connection refused" on the spent socket.
+  # Keep it active after the handoff instead, so nothing starts it a second time.
+  # On Hyprland the unit below already does this, since Wayblue has no Plasma unit to drop in on.
+  xdg.configFile = lib.mkIf (desktop == "kde") {
+    "systemd/user/plasma-kwallet-pam.service.d/remain-after-exit.conf".text = ''
+      [Service]
+      RemainAfterExit=true
+    '';
+  };
   xdg.portal = {
     config = {
       common = {
