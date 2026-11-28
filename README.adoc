@@ -423,10 +423,31 @@ sudo systemctl daemon-reload
 sudo systemctl start nix-daemon.socket
 ----
 
-Don't try to avoid the relabeling by aliasing `/nix` to `/usr`.
-The alias is applied before the context is matched, so it stops the policy's own
-`/nix/store/[^/]+/lib/systemd/system(/.*)?` rule from ever matching
-and labels the units `lib_t` rather than `systemd_unit_file_t`.
+If the socket then fails to start with `Address already in use`, systemd was unable to remove the
+socket left behind by the previous daemon, which shows up as a denied `unlink` on a `sock_file`.
+Delete it and start the unit again.
+
+[,sh]
+----
+sudo rm --force /nix/var/nix/daemon-socket/socket
+sudo systemctl start nix-daemon.socket
+----
+
+Don't try to avoid the relabeling by aliasing `/nix` to `/usr` with `semanage fcontext --equal`.
+The policy already ships rules for the Nix store and the daemon socket, among others.
+
+[,subs="verbatim"]
+----
+/nix/store/[^/]+/lib/systemd/system(/.*)?  system_u:object_r:systemd_unit_file_t:s0
+/nix/store/[^/]+/s?bin(/.*)?               system_u:object_r:bin_t:s0
+/nix/var/nix/daemon-socket(/.*)?           system_u:object_r:var_run_t:s0
+----
+
+The alias is applied before the context is matched, so it stops every one of those rules
+from matching and labels the whole tree as though it were `/usr`.
+The units end up `lib_t` rather than `systemd_unit_file_t`, which does still load,
+but the daemon socket ends up `usr_t` rather than `var_run_t`,
+which systemd is not allowed to remove, so the socket can never be recreated.
 ====
 
 . Create the `ccache` directory for Nix.
